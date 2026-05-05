@@ -3,153 +3,516 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Activités Mentales</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<title>Activités Mentales — Lycée Denis Diderot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f0f4ff;--surface:#fff;--accent:#3b5bdb;--orange:#f76707;--green:#2f9e44;--red:#e03131;--text:#1a1d2e;--muted:#9098b0;--shadow:0 6px 30px rgba(59,91,219,.11);--qc:var(--accent)}
+:root{
+  /* Lycée Diderot palette — blue-700 primary */
+  --bg:#f6f8fc;
+  --bg-grad-1:#eef3ff;
+  --bg-grad-2:#f6f8fc;
+  --surface:#ffffff;
+  --surface-2:#f1f5fb;
+  --accent:#1d4ed8;        /* blue-700 */
+  --accent-2:#1e40af;      /* blue-800 */
+  --accent-soft:#dbeafe;   /* blue-100 */
+  --orange:#ea580c;        /* orange-600 */
+  --orange-soft:#fff3e8;
+  --green:#16a34a;         /* green-600 */
+  --green-soft:#ecfdf3;
+  --red:#dc2626;           /* red-600 */
+  --red-soft:#fef2f2;
+  --text:#0f172a;          /* slate-900 */
+  --text-2:#334155;        /* slate-700 */
+  --muted:#64748b;         /* slate-500 */
+  --line:#e2e8f0;          /* slate-200 */
+  --line-2:#cbd5e1;        /* slate-300 */
+  --shadow-sm:0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+  --shadow:0 4px 16px rgba(29,78,216,.08), 0 2px 6px rgba(15,23,42,.04);
+  --shadow-lg:0 18px 42px rgba(29,78,216,.16), 0 6px 16px rgba(15,23,42,.06);
+  --radius-sm:10px;
+  --radius:14px;
+  --radius-lg:20px;
+  --radius-xl:24px;
+  --qc:var(--accent);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.screen{display:none;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;padding:1.5rem;gap:1.3rem}
-.screen.active{display:flex}
+html,body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{
+  font-family:'Open Sans','Segoe UI',system-ui,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, var(--bg-grad-1) 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #fff5ec 0%, transparent 55%),
+    var(--bg-grad-2);
+  color:var(--text);
+  min-height:100vh;
+  font-feature-settings:"ss01","cv11";
+}
 
-/* MENU */
-#s-menu{padding-top:2.5rem}
-.menu-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,8vw,3.5rem);color:var(--accent);letter-spacing:.04em;line-height:1;text-align:center}
-.menu-title span{color:var(--orange)}
-.menu-sub{color:var(--muted);font-weight:700;font-size:.95rem;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;width:100%;max-width:760px}
-.card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:1.3rem;cursor:pointer;border:2.5px solid transparent;transition:transform .15s,box-shadow .15s,border-color .15s;display:flex;flex-direction:column;gap:.55rem}
-.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(59,91,219,.15);border-color:var(--cc,var(--accent))}
-.card-icon{font-size:1.9rem;line-height:1}
-.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.03em;color:var(--cc,var(--accent))}
-.card-desc{font-size:.8rem;color:var(--muted);font-weight:700;line-height:1.4}
-.tags{display:flex;gap:.3rem;flex-wrap:wrap}
-.tag{background:#e8edf8;color:var(--accent);border-radius:20px;padding:.18rem .55rem;font-size:.7rem;font-weight:900;letter-spacing:.05em}
+/* SCREENS */
+.screen{display:none;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;padding:1.25rem 1rem 3rem;gap:1.4rem}
+.screen.active{display:flex;animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* QUIZ */
-#s-quiz{padding-top:1.5rem}
-.quiz-top{width:100%;max-width:500px;display:flex;align-items:center;justify-content:space-between}
-.q-label{font-weight:900;font-size:.9rem;color:var(--muted)}
-.score-lv{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--orange);letter-spacing:.04em}
-.progress-track{width:100%;max-width:500px;height:7px;background:#dde3f4;border-radius:10px;overflow:hidden}
-.progress-fill{height:100%;background:var(--qc);border-radius:10px;transition:width .4s ease;width:0%}
-.timer-wrap{position:relative;width:86px;height:86px}
+/* ═════ MENU ═════ */
+#s-menu{padding-top:2.2rem;max-width:1100px;margin:0 auto;width:100%}
+.brand{display:flex;flex-direction:column;align-items:center;gap:.35rem;text-align:center;margin-bottom:.4rem}
+.brand-eyebrow{
+  font-family:'Open Sans',sans-serif;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;font-size:.7rem;
+  color:var(--accent);
+  background:var(--accent-soft);
+  padding:.32rem .8rem;border-radius:999px;
+}
+.menu-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.4rem,7vw,3.6rem);
+  letter-spacing:.025em;line-height:.95;color:var(--text);
+  display:flex;align-items:baseline;gap:.4rem;flex-wrap:wrap;justify-content:center;
+}
+.menu-title em{font-style:normal;color:var(--accent);position:relative}
+.menu-title em::after{
+  content:"";position:absolute;left:0;right:0;bottom:.05em;height:.18em;
+  background:var(--accent-soft);z-index:-1;border-radius:4px;
+}
+.menu-sub{
+  color:var(--muted);font-weight:600;font-size:.95rem;
+  max-width:42ch;line-height:1.5;
+}
+.menu-school{
+  font-size:.78rem;color:var(--muted);font-weight:600;
+  display:flex;align-items:center;gap:.4rem;margin-top:.1rem;
+}
+.menu-school span{opacity:.6}
+
+.section-head{
+  display:flex;align-items:center;gap:.7rem;width:100%;
+  margin:.6rem 0 -.4rem;padding:0 .2rem;
+}
+.section-head h2{
+  font-family:'Open Sans',sans-serif;
+  font-weight:800;font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.15em;
+  color:var(--text-2);
+}
+.section-head .line{flex:1;height:1px;background:var(--line)}
+.section-head .count{
+  font-size:.7rem;font-weight:700;color:var(--muted);
+  background:var(--surface);border:1px solid var(--line);
+  padding:.18rem .55rem;border-radius:999px;
+}
+
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.85rem;width:100%}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:880px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:640px){.grid{grid-template-columns:repeat(2,1fr);gap:.7rem}}
+.card{
+  position:relative;
+  background:var(--surface);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);
+  border:1px solid var(--line);
+  padding:1.1rem 1.1rem 1rem;
+  cursor:pointer;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,border-color .18s;
+  display:flex;flex-direction:column;gap:.55rem;
+  overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--cc,var(--accent));
+  opacity:0;transition:opacity .18s;
+}
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-lg);
+  border-color:transparent;
+}
+.card:hover::before{opacity:1}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem}
+.card-icon{
+  font-size:1.5rem;line-height:1;
+  width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb, var(--cc,var(--accent)) 12%, white);
+  border-radius:10px;
+  flex-shrink:0;
+}
+.card-time{
+  font-size:.7rem;font-weight:700;color:var(--muted);
+  display:flex;align-items:center;gap:.25rem;
+  white-space:nowrap;
+}
+.card-title{
+  font-family:'Open Sans',sans-serif;
+  font-size:1rem;font-weight:800;line-height:1.25;
+  color:var(--text);text-wrap:pretty;
+}
+.card-desc{
+  font-size:.8rem;color:var(--muted);font-weight:500;
+  line-height:1.45;text-wrap:pretty;
+}
+.tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:auto;padding-top:.4rem}
+.tag{
+  background:var(--surface-2);color:var(--text-2);
+  border-radius:6px;padding:.18rem .5rem;
+  font-size:.68rem;font-weight:700;letter-spacing:.02em;
+}
+.card .arrow{
+  position:absolute;right:.9rem;bottom:.9rem;
+  font-size:.95rem;color:var(--cc,var(--accent));
+  opacity:0;transform:translateX(-4px);transition:.18s;
+  font-weight:800;
+}
+.card:hover .arrow{opacity:1;transform:translateX(0)}
+
+/* ═════ QUIZ ═════ */
+#s-quiz{padding-top:1rem;max-width:560px;margin:0 auto;width:100%}
+.btn-back{
+  align-self:flex-start;background:var(--surface);
+  border:1px solid var(--line);color:var(--text-2);
+  font-family:'Open Sans',sans-serif;font-weight:700;font-size:.82rem;
+  cursor:pointer;letter-spacing:.01em;padding:.45rem .75rem;
+  border-radius:10px;transition:.15s;
+  box-shadow:var(--shadow-sm);
+}
+.btn-back:hover{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
+.quiz-head{
+  width:100%;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:.85rem 1rem;box-shadow:var(--shadow-sm);
+  display:flex;flex-direction:column;gap:.7rem;
+}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.q-mod{
+  display:flex;align-items:center;gap:.5rem;min-width:0;
+}
+.q-mod-ico{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb, var(--qc) 14%, white);
+  font-size:1rem;
+}
+.q-mod-txt{display:flex;flex-direction:column;min-width:0}
+.q-label{font-weight:800;font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.q-mod-name{font-weight:700;font-size:.85rem;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.score-pill{
+  display:flex;align-items:center;gap:.4rem;
+  background:var(--green-soft);color:var(--green);
+  border:1px solid color-mix(in srgb, var(--green) 25%, transparent);
+  padding:.32rem .65rem;border-radius:999px;
+  font-weight:800;font-size:.85rem;font-variant-numeric:tabular-nums;
+}
+.score-pill .ico{font-size:.85rem}
+
+.progress-track{
+  width:100%;height:6px;background:var(--line);
+  border-radius:999px;overflow:hidden;position:relative;
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,var(--qc),color-mix(in srgb,var(--qc) 60%,white));
+  border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1);width:0%;
+}
+
+/* Question card */
+.q-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius-xl);
+  box-shadow:var(--shadow);
+  padding:1.6rem 1.4rem 1.5rem;
+  width:100%;display:flex;flex-direction:column;align-items:center;
+  gap:1.1rem;position:relative;overflow:hidden;
+}
+.q-card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;
+  background:linear-gradient(90deg,var(--qc),color-mix(in srgb,var(--qc) 50%,white));
+}
+.q-card.pop{animation:pop .32s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* Timer chip */
+.timer-row{display:flex;align-items:center;gap:.6rem;align-self:center}
+.timer-wrap{position:relative;width:60px;height:60px}
 .t-svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
-.t-bg{fill:none;stroke:#dde3f4;stroke-width:7}
-.t-arc{fill:none;stroke:var(--qc);stroke-width:7;stroke-linecap:round;stroke-dasharray:239;stroke-dashoffset:0;transition:stroke-dashoffset .95s linear,stroke .3s}
-.t-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:2rem;transition:color .3s}
-.q-card{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);padding:2.2rem 1.8rem 1.8rem;width:100%;max-width:500px;display:flex;flex-direction:column;align-items:center;gap:1.4rem}
-.q-card.pop{animation:pop .28s cubic-bezier(.175,.885,.32,1.275)}
-@keyframes pop{from{opacity:0;transform:scale(.9) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.operation{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,11vw,4.8rem);letter-spacing:.02em;line-height:1.1;color:var(--text);text-align:center}
-.operation.sm{font-size:clamp(1.4rem,5vw,2.4rem);font-family:'Nunito',sans-serif;font-weight:900}
-.operation.md{font-size:clamp(2rem,7vw,3.2rem)}
-.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 2px}
-.fr .n{border-bottom:3px solid currentColor;padding:0 4px 2px;min-width:1ch;text-align:center}
-.fr .d{padding:2px 4px 0;min-width:1ch;text-align:center}
-.blk{color:var(--orange)}
-.module-note{font-size:.85rem;font-weight:900;color:var(--muted);background:#f0f4ff;border-radius:8px;padding:.35rem .8rem}
+.t-bg{fill:none;stroke:var(--line);stroke-width:6}
+.t-arc{fill:none;stroke:var(--qc);stroke-width:6;stroke-linecap:round;stroke-dasharray:170;stroke-dashoffset:0;transition:stroke-dashoffset .95s linear,stroke .3s}
+.t-num{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Open Sans',sans-serif;font-weight:800;font-size:1.15rem;
+  font-variant-numeric:tabular-nums;transition:color .3s;color:var(--text);
+}
+
+.operation{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.6rem,10vw,4.4rem);
+  letter-spacing:.015em;line-height:1.05;color:var(--text);text-align:center;
+  text-wrap:balance;
+}
+.operation.sm{
+  font-size:clamp(1.25rem,4.6vw,2rem);
+  font-family:'Open Sans',sans-serif;font-weight:800;letter-spacing:0;
+  line-height:1.35;
+}
+.operation.md{font-size:clamp(1.8rem,6vw,2.8rem)}
+
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 3px}
+.fr .n{border-bottom:3px solid currentColor;padding:0 6px 3px;min-width:1.2ch;text-align:center}
+.fr .d{padding:3px 6px 0;min-width:1.2ch;text-align:center}
+.blk{color:var(--orange);position:relative}
+.blk::after{
+  content:"";position:absolute;left:-2px;right:-2px;top:-2px;bottom:-2px;
+  border:2px dashed color-mix(in srgb,var(--orange) 50%,transparent);
+  border-radius:6px;pointer-events:none;
+}
+
+.module-note{
+  font-size:.78rem;font-weight:700;color:var(--accent-2);
+  background:var(--accent-soft);
+  border-radius:8px;padding:.4rem .8rem;
+  display:inline-flex;align-items:center;gap:.35rem;
+  letter-spacing:.01em;
+}
 
 /* Number input */
-.ans-inp{width:160px;padding:.75rem;border-radius:14px;border:3px solid #dde3f4;background:var(--bg);font-family:'Bebas Neue',sans-serif;font-size:2.4rem;text-align:center;color:var(--text);outline:none;transition:border-color .15s,background .15s;-moz-appearance:textfield}
+.ans-inp{
+  width:170px;padding:.7rem;border-radius:14px;
+  border:2px solid var(--line);background:var(--surface-2);
+  font-family:'Bebas Neue',sans-serif;font-size:2.2rem;
+  text-align:center;color:var(--text);outline:none;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+  -moz-appearance:textfield;letter-spacing:.02em;
+}
 .ans-inp::-webkit-outer-spin-button,.ans-inp::-webkit-inner-spin-button{-webkit-appearance:none}
-.ans-inp:focus{border-color:var(--qc)}
-.ans-inp.good{border-color:var(--green);background:#edf7ee;color:var(--green)}
-.ans-inp.bad{border-color:var(--red);background:#fdeaea;color:var(--red)}
+.ans-inp:focus{border-color:var(--qc);background:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--qc) 18%,transparent)}
+.ans-inp.good{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+.ans-inp.bad{border-color:var(--red);background:var(--red-soft);color:var(--red)}
 
 /* Fraction input */
-.frac-field{display:flex;flex-direction:column;align-items:center}
-.frac-inp{width:130px;padding:.65rem;border-radius:12px;border:3px solid #dde3f4;background:var(--bg);font-family:'Bebas Neue',sans-serif;font-size:2.1rem;text-align:center;color:var(--text);outline:none;transition:border-color .15s,background .15s;-moz-appearance:textfield}
+.frac-field{display:flex;flex-direction:column;align-items:center;gap:0}
+.frac-inp{
+  width:140px;padding:.55rem;border-radius:12px;
+  border:2px solid var(--line);background:var(--surface-2);
+  font-family:'Bebas Neue',sans-serif;font-size:1.95rem;
+  text-align:center;color:var(--text);outline:none;
+  transition:.15s;-moz-appearance:textfield;letter-spacing:.02em;
+}
 .frac-inp::-webkit-outer-spin-button,.frac-inp::-webkit-inner-spin-button{-webkit-appearance:none}
-.frac-inp:focus{border-color:var(--qc)}
-.frac-bar{width:90%;height:3px;background:var(--text);margin:5px 0;border-radius:2px;transition:background .15s}
-.frac-field.good .frac-inp{border-color:var(--green);background:#edf7ee;color:var(--green)}
+.frac-inp:focus{border-color:var(--qc);background:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--qc) 18%,transparent)}
+.frac-bar{width:88%;height:3px;background:var(--text);margin:6px 0;border-radius:2px;transition:background .15s}
+.frac-field.good .frac-inp{border-color:var(--green);background:var(--green-soft);color:var(--green)}
 .frac-field.good .frac-bar{background:var(--green)}
-.frac-field.bad .frac-inp{border-color:var(--red);background:#fdeaea;color:var(--red)}
+.frac-field.bad .frac-inp{border-color:var(--red);background:var(--red-soft);color:var(--red)}
 .frac-field.bad .frac-bar{background:var(--red)}
 
 /* Text input */
-.ans-txt{width:100%;max-width:320px;padding:.7rem 1rem;border-radius:14px;border:3px solid #dde3f4;background:var(--bg);font-family:'Nunito',sans-serif;font-weight:700;font-size:1.5rem;text-align:center;color:var(--text);outline:none;transition:border-color .15s}
-.ans-txt:focus{border-color:var(--qc)}
-.ans-txt.good{border-color:var(--green);background:#edf7ee;color:var(--green)}
-.ans-txt.bad{border-color:var(--red);background:#fdeaea;color:var(--red)}
+.ans-txt{
+  width:100%;max-width:340px;padding:.75rem 1rem;border-radius:14px;
+  border:2px solid var(--line);background:var(--surface-2);
+  font-family:'Open Sans',sans-serif;font-weight:700;font-size:1.35rem;
+  text-align:center;color:var(--text);outline:none;transition:.15s;
+}
+.ans-txt:focus{border-color:var(--qc);background:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--qc) 18%,transparent)}
+.ans-txt.good{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+.ans-txt.bad{border-color:var(--red);background:var(--red-soft);color:var(--red)}
 
-.feedback{font-weight:900;font-size:.95rem;min-height:1.4rem;text-align:center}
+/* Feedback */
+.feedback{
+  font-weight:800;font-size:.92rem;min-height:1.4rem;text-align:center;
+  letter-spacing:.005em;
+}
 .feedback.good{color:var(--green)}
 .feedback.bad{color:var(--red)}
-.btn-valider{width:100%;padding:.9rem;border-radius:12px;border:none;background:var(--qc);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.05em;cursor:pointer;transition:transform .1s,opacity .2s}
-.btn-valider:hover{transform:translateY(-1px)}
-.btn-valider:disabled{opacity:.35;cursor:default;transform:none}
-/* Oui / Non */
-.yn-row{display:flex;gap:1rem;width:100%}
-.btn-yn{flex:1;padding:1rem;border-radius:14px;border:none;
-  font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.05em;
-  cursor:pointer;transition:transform .1s,opacity .2s}
-.btn-yn:hover{transform:translateY(-2px)}
-.btn-yn.yes{background:var(--green);color:#fff}
-.btn-yn.no{background:var(--red);color:#fff}
-.btn-yn:disabled{opacity:.35;cursor:default;transform:none}
-.btn-back{align-self:flex-start;background:none;border:none;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:900;font-size:.85rem;cursor:pointer;letter-spacing:.05em;padding:.3rem .6rem;border-radius:8px;transition:color .15s}
-.btn-back:hover{color:var(--accent)}
 
-/* RESULTS */
-#s-results{padding-top:2rem}
-.res-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,8vw,3.3rem);color:var(--qc);text-align:center;line-height:1}
-.score-ring{position:relative;width:140px;height:140px}
+/* Validate button */
+.btn-valider{
+  width:100%;padding:.95rem;border-radius:14px;border:none;
+  background:var(--qc);color:#fff;
+  font-family:'Open Sans',sans-serif;font-weight:800;
+  font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase;
+  cursor:pointer;transition:transform .12s,filter .15s,box-shadow .15s;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--qc) 30%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.15);
+}
+.btn-valider:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn-valider:active{transform:translateY(0)}
+.btn-valider:disabled{opacity:.4;cursor:default;transform:none;box-shadow:none}
+
+/* Oui / Non */
+.yn-row{display:flex;gap:.85rem;width:100%}
+.btn-yn{
+  flex:1;padding:1rem;border-radius:14px;border:none;
+  font-family:'Open Sans',sans-serif;font-weight:800;
+  font-size:1.2rem;letter-spacing:.04em;text-transform:uppercase;
+  cursor:pointer;transition:transform .12s,filter .15s;color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.btn-yn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.btn-yn.yes{background:var(--green);box-shadow:0 6px 18px color-mix(in srgb,var(--green) 28%,transparent)}
+.btn-yn.no{background:var(--red);box-shadow:0 6px 18px color-mix(in srgb,var(--red) 28%,transparent)}
+.btn-yn:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ═════ RESULTS ═════ */
+#s-results{padding-top:2rem;max-width:560px;margin:0 auto;width:100%}
+.res-eyebrow{
+  font-family:'Open Sans',sans-serif;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--muted);
+}
+.res-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2rem,7vw,3rem);
+  color:var(--text);text-align:center;line-height:1;letter-spacing:.02em;
+}
+.res-title em{font-style:normal;color:var(--qc)}
+.score-card{
+  width:100%;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius-xl);
+  box-shadow:var(--shadow);padding:1.4rem 1.4rem 1.5rem;
+  display:flex;flex-direction:column;align-items:center;gap:1rem;
+  position:relative;overflow:hidden;
+}
+.score-card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:4px;
+  background:linear-gradient(90deg,var(--qc),color-mix(in srgb,var(--qc) 50%,white));
+}
+.score-ring{position:relative;width:160px;height:160px}
 .sr-svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
-.sr-bg{fill:none;stroke:#dde3f4;stroke-width:9}
-.sr-arc{fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:408;stroke-dashoffset:408;transition:stroke-dashoffset 1s ease,stroke .5s}
-.sr-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.sr-score{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;line-height:1}
-.sr-lbl{font-size:.7rem;font-weight:900;color:var(--muted);letter-spacing:.06em}
-.mention{font-size:1rem;font-weight:900;padding:.55rem 1.3rem;border-radius:30px;text-align:center}
-.mention.p{background:#edf7ee;color:var(--green)}
-.mention.b{background:#e8f0ff;color:var(--accent)}
-.mention.m{background:#fff3e8;color:var(--orange)}
-.mention.e{background:#fdeaea;color:var(--red)}
-.recap{width:100%;max-width:500px;background:var(--surface);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;max-height:320px;overflow-y:auto}
-.rrow{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;border-bottom:1px solid var(--bg);font-size:.85rem;gap:.5rem}
+.sr-bg{fill:none;stroke:var(--line);stroke-width:10}
+.sr-arc{fill:none;stroke-width:10;stroke-linecap:round;stroke-dasharray:471.2;stroke-dashoffset:471.2;transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1),stroke .5s}
+.sr-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.05rem}
+.sr-score{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;line-height:1;letter-spacing:.02em}
+.sr-pct{font-weight:800;font-size:.95rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.sr-lbl{font-size:.66rem;font-weight:800;color:var(--muted);letter-spacing:.14em;margin-top:.25rem}
+.mention{
+  font-size:.95rem;font-weight:800;padding:.55rem 1.2rem;border-radius:999px;text-align:center;
+  display:inline-flex;align-items:center;gap:.4rem;
+  border:1px solid transparent;
+}
+.mention.p{background:var(--green-soft);color:var(--green);border-color:color-mix(in srgb,var(--green) 25%,transparent)}
+.mention.b{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 22%,transparent)}
+.mention.m{background:var(--orange-soft);color:var(--orange);border-color:color-mix(in srgb,var(--orange) 25%,transparent)}
+.mention.e{background:var(--red-soft);color:var(--red);border-color:color-mix(in srgb,var(--red) 22%,transparent)}
+
+.recap-wrap{
+  width:100%;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.recap-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.65rem 1rem;background:var(--surface-2);
+  border-bottom:1px solid var(--line);
+  font-size:.7rem;font-weight:800;color:var(--text-2);
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.recap{max-height:300px;overflow-y:auto}
+.rrow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem 1rem;border-bottom:1px solid var(--line);
+  font-size:.85rem;gap:.6rem;
+}
 .rrow:last-child{border-bottom:none}
-.rop{font-family:'Nunito',sans-serif;font-weight:700;flex:1;min-width:0}
-.rbadges{display:flex;gap:.4rem;align-items:center;flex-shrink:0}
-.bk{padding:.18rem .5rem;border-radius:6px;font-weight:900;font-size:.8rem}
-.bk.ok{background:#edf7ee;color:var(--green)}
-.bk.ko{background:#fdeaea;color:var(--red)}
-.bk.ans{background:#e8f0ff;color:var(--accent)}
-.btn-row{display:flex;gap:.75rem;width:100%;max-width:500px}
-.btn-replay{flex:1;padding:.95rem;border-radius:12px;border:none;background:var(--qc);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.05em;cursor:pointer;transition:transform .1s}
-.btn-replay:hover{transform:translateY(-1px)}
-.btn-menu{flex:1;padding:.95rem;border-radius:12px;border:2.5px solid var(--qc);background:transparent;color:var(--qc);font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.05em;cursor:pointer;transition:transform .1s}
-.btn-menu:hover{transform:translateY(-1px)}
+.rrow .n{
+  width:22px;height:22px;border-radius:6px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.7rem;color:var(--muted);
+  background:var(--surface-2);
+}
+.rop{
+  font-family:'Open Sans',sans-serif;font-weight:600;
+  flex:1;min-width:0;color:var(--text-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.rbadges{display:flex;gap:.35rem;align-items:center;flex-shrink:0}
+.bk{padding:.22rem .55rem;border-radius:7px;font-weight:800;font-size:.78rem;font-variant-numeric:tabular-nums}
+.bk.ok{background:var(--green-soft);color:var(--green)}
+.bk.ko{background:var(--red-soft);color:var(--red);text-decoration:line-through;text-decoration-thickness:1.5px}
+.bk.ans{background:var(--accent-soft);color:var(--accent)}
+
+.btn-row{display:flex;gap:.7rem;width:100%}
+.btn-replay,.btn-menu{
+  flex:1;padding:.95rem;border-radius:14px;
+  font-family:'Open Sans',sans-serif;font-weight:800;
+  font-size:.95rem;letter-spacing:.04em;text-transform:uppercase;
+  cursor:pointer;transition:.15s;
+  display:flex;align-items:center;justify-content:center;gap:.4rem;
+}
+.btn-replay{
+  border:none;background:var(--qc);color:#fff;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--qc) 28%,transparent);
+}
+.btn-replay:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn-menu{
+  border:2px solid var(--line);background:var(--surface);color:var(--text-2);
+}
+.btn-menu:hover{border-color:var(--qc);color:var(--qc);background:var(--accent-soft)}
+
+/* Footer */
+.footer{
+  margin-top:auto;padding-top:1.5rem;font-size:.72rem;
+  color:var(--muted);text-align:center;font-weight:600;
+}
+.footer span{color:var(--accent);font-weight:700}
+
+/* Scrollbar */
+.recap::-webkit-scrollbar{width:6px}
+.recap::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:6px}
+.recap::-webkit-scrollbar-track{background:transparent}
+
+@media (max-width:480px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.7rem}
+  .card{padding:.95rem}
+  .card-title{font-size:.92rem}
+  .card-icon{width:34px;height:34px;font-size:1.3rem}
+}
 </style>
 </head>
 <body>
 
-<!-- MENU -->
+<!-- ═════ MENU ═════ -->
 <div id="s-menu" class="screen active">
-  <div class="menu-title">Activités<br><span>Mentales</span></div>
-  <div class="menu-sub">Choisis ton exercice</div>
+  <div class="brand">
+    <div class="brand-eyebrow">🏫 Lycée Denis Diderot · Belfort</div>
+    <h1 class="menu-title">Activités <em>Mentales</em></h1>
+    <p class="menu-sub">Choisis un exercice. Réponds vite et juste — chaque série fait 10 questions.</p>
+  </div>
   <div class="grid" id="grid"></div>
 </div>
 
-<!-- QUIZ -->
+<!-- ═════ QUIZ ═════ -->
 <div id="s-quiz" class="screen">
   <button class="btn-back" onclick="goMenu()">← Menu</button>
-  <div class="quiz-top">
-    <div class="q-label" id="q-label">Question 1/10</div>
-    <div class="score-lv" id="score-lv">✓ 0</div>
+  <div class="quiz-head">
+    <div class="quiz-top">
+      <div class="q-mod">
+        <div class="q-mod-ico" id="q-mod-ico">✖️</div>
+        <div class="q-mod-txt">
+          <div class="q-label" id="q-label">Question 1 / 10</div>
+          <div class="q-mod-name" id="q-mod-name">—</div>
+        </div>
+      </div>
+      <div class="score-pill"><span class="ico">✓</span><span id="score-lv">0</span></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
   </div>
-  <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
-  <div class="timer-wrap">
-    <svg class="t-svg" viewBox="0 0 86 86" width="86" height="86">
-      <circle class="t-bg" cx="43" cy="43" r="37"/>
-      <circle class="t-arc" id="t-arc" cx="43" cy="43" r="37"/>
-    </svg>
-    <div class="t-num" id="t-num">10</div>
-  </div>
+
   <div class="q-card" id="q-card">
+    <div class="timer-row">
+      <div class="timer-wrap">
+        <svg class="t-svg" viewBox="0 0 60 60" width="60" height="60">
+          <circle class="t-bg" cx="30" cy="30" r="27"/>
+          <circle class="t-arc" id="t-arc" cx="30" cy="30" r="27"/>
+        </svg>
+        <div class="t-num" id="t-num">10</div>
+      </div>
+    </div>
     <div class="operation" id="operation">—</div>
     <div class="module-note" id="mod-note" style="display:none"></div>
+
     <!-- int / decimal -->
     <div id="int-wrap">
       <input id="ans" type="number" class="ans-inp" placeholder="?"
@@ -170,41 +533,54 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
     <!-- text -->
     <div id="text-wrap" style="display:none">
-      <input id="ans-txt" type="text" class="ans-txt" placeholder="?"
+      <input id="ans-txt" type="text" class="ans-txt" placeholder="ta réponse…"
              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
              onkeydown="if(event.key==='Enter')valider()">
     </div>
     <!-- oui / non -->
     <div id="yn-wrap" style="display:none">
       <div class="yn-row">
-        <button class="btn-yn yes" id="btn-oui" onclick="process(null,null,'oui',false)">✓ OUI</button>
-        <button class="btn-yn no"  id="btn-non" onclick="process(null,null,'non',false)">✗ NON</button>
+        <button class="btn-yn yes" id="btn-oui" onclick="process(null,null,'oui',false)">✓ Oui</button>
+        <button class="btn-yn no"  id="btn-non" onclick="process(null,null,'non',false)">✗ Non</button>
       </div>
     </div>
     <div class="feedback" id="feedback"></div>
-    <button class="btn-valider" id="btn-v" onclick="valider()">VALIDER</button>
+    <button class="btn-valider" id="btn-v" onclick="valider()">Valider</button>
   </div>
 </div>
 
-<!-- RESULTS -->
+<!-- ═════ RESULTS ═════ -->
 <div id="s-results" class="screen">
-  <div class="res-title" id="res-title">Résultats 🎯</div>
-  <div class="score-ring">
-    <svg class="sr-svg" viewBox="0 0 140 140" width="140" height="140">
-      <circle class="sr-bg" cx="70" cy="70" r="65"/>
-      <circle class="sr-arc" id="sr-arc" cx="70" cy="70" r="65"/>
-    </svg>
-    <div class="sr-inner">
-      <div class="sr-score" id="sr-score">0/10</div>
-      <div class="sr-lbl">RÉPONSES</div>
+  <div style="text-align:center">
+    <div class="res-eyebrow">Bilan de la série</div>
+    <div class="res-title" id="res-title">—</div>
+  </div>
+  <div class="score-card">
+    <div class="score-ring">
+      <svg class="sr-svg" viewBox="0 0 160 160" width="160" height="160">
+        <circle class="sr-bg" cx="80" cy="80" r="75"/>
+        <circle class="sr-arc" id="sr-arc" cx="80" cy="80" r="75"/>
+      </svg>
+      <div class="sr-inner">
+        <div class="sr-score" id="sr-score">0/10</div>
+        <div class="sr-pct" id="sr-pct">0 %</div>
+        <div class="sr-lbl">Réussite</div>
+      </div>
     </div>
+    <div class="mention" id="mention"></div>
   </div>
-  <div class="mention" id="mention"></div>
-  <div class="recap" id="recap"></div>
+  <div class="recap-wrap">
+    <div class="recap-head">
+      <span>Récapitulatif</span>
+      <span id="recap-count">10 questions</span>
+    </div>
+    <div class="recap" id="recap"></div>
+  </div>
   <div class="btn-row">
-    <button class="btn-replay" onclick="replayQuiz()">🔄 REJOUER</button>
-    <button class="btn-menu" onclick="goMenu()">🏠 MENU</button>
+    <button class="btn-replay" onclick="replayQuiz()">🔄 Rejouer</button>
+    <button class="btn-menu" onclick="goMenu()">🏠 Menu</button>
   </div>
+  <div class="footer">Activités mentales · <span>Lycée Denis Diderot</span></div>
 </div>
 
 <script>
@@ -216,16 +592,7 @@ const gcd = (a,b) => { a=Math.abs(a); b=Math.abs(b); return b===0?a:gcd(b,a%b); 
 function fmtFrac(n,d){ if(d===1||d===0) return `${n}`; const g=gcd(Math.abs(n),Math.abs(d)); return `${n/g}/${d/g}`; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];} }
 
-/* ══ POLYNOMIAL CHECKER (for text answers) ══ */
-function normExpr(s, v) {
-  return s.toLowerCase()
-    .replace(/\s+/g,'')
-    .replace(/²/g,'**2')
-    .replace(/\^2/g,'**2')
-    .replace(/([0-9])([a-z])/g,'$1*$2')
-    .replace(/([a-z])\*\*2/g, `(${v})**2`)  // handle x**2 after var sub
-    .replace(new RegExp(v,'g'), `(${v})`);
-}
+/* ══ POLYNOMIAL CHECKER ══ */
 function evalAt(s, v, val) {
   try {
     const n = s.toLowerCase()
@@ -249,11 +616,18 @@ function polyEqual(student, canonical) {
 
 /* ══ MODULES ══ */
 const MODULES = {
-
-  mult:{color:'#3b5bdb',icon:'✖️',title:'Tables de multiplication',desc:'Tables de 2 à 9 mélangées',tags:['× 2 à × 9','aléatoire','⏱ 10s'],time:10,ansType:'int',
+  mult:{group:'Calcul de base',color:'#1d4ed8',icon:'✖️',title:'Tables de multiplication',desc:'Tables de 2 à 9 mélangées',tags:['× 2 à × 9','aléatoire','⏱ 10s'],time:10,ansType:'int',
     gen(){const p=[];for(let a=2;a<=9;a++)for(let b=2;b<=9;b++)p.push({html:`${a} × ${b}`,ans:a*b});shuffle(p);return p.slice(0,10);}},
 
-  add_rel:{color:'#0c8599',icon:'➕',title:'Addition de relatifs',desc:'Additions avec entiers relatifs',tags:['relatifs','⏱ 10s'],time:10,ansType:'int',
+  mult10:{group:'Calcul de base',color:'#9333ea',icon:'×',title:'Multiplier par 10, 100, 1 000',desc:'Multiplications par puissances de 10',tags:['calcul','⏱ 20s'],time:20,ansType:'int',
+    gen(){const p=[
+      {html:'100 × 596',ans:59600},{html:'614 × 10',ans:6140},{html:'121 × 100',ans:12100},
+      {html:'880 × 10',ans:8800},{html:'445 × 10',ans:4450},{html:'10 × 569',ans:5690},
+      {html:'100 × 510',ans:51000},{html:'100 × 837',ans:83700},{html:'850 × 10',ans:8500},
+      {html:'727 × 100',ans:72700},{html:'10 × 850',ans:8500},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  add_rel:{group:'Nombres relatifs',color:'#0891b2',icon:'➕',title:'Addition de relatifs',desc:'Additions avec entiers relatifs',tags:['relatifs','⏱ 10s'],time:10,ansType:'int',
     gen(){const p=[
       {html:'3 + 7',ans:10},{html:'3 + 6',ans:9},{html:'(−3) + 9',ans:6},{html:'(−3) + 7',ans:4},
       {html:'2 + (−7)',ans:-5},{html:'4 + (−7)',ans:-3},{html:'9 + (−8)',ans:1},{html:'9 + (−6)',ans:3},
@@ -262,7 +636,7 @@ const MODULES = {
       {html:'3 + (−8)',ans:-5},{html:'9 + (−6)',ans:3},{html:'(−15) + (−3)',ans:-18},{html:'(−12) + (−4)',ans:-16},
     ];shuffle(p);return p.slice(0,10);}},
 
-  mult_rel:{color:'#7048e8',icon:'✖️',title:'Multiplication de relatifs',desc:'Multiplications avec entiers relatifs',tags:['relatifs','⏱ 15s'],time:15,ansType:'int',
+  mult_rel:{group:'Nombres relatifs',color:'#7c3aed',icon:'✖️',title:'Multiplication de relatifs',desc:'Multiplications avec entiers relatifs',tags:['relatifs','⏱ 15s'],time:15,ansType:'int',
     gen(){const p=[
       {html:'3 × 7',ans:21},{html:'3 × 6',ans:18},{html:'(−3) × 9',ans:-27},{html:'(−3) × 7',ans:-21},
       {html:'2 × (−7)',ans:-14},{html:'4 × (−7)',ans:-28},{html:'9 × (−8)',ans:-72},{html:'9 × (−6)',ans:-54},
@@ -271,7 +645,7 @@ const MODULES = {
       {html:'3 × (−8)',ans:-24},{html:'9 × (−6)',ans:-54},{html:'15 × (−3)',ans:-45},{html:'12 × (−4)',ans:-48},
     ];shuffle(p);return p.slice(0,10);}},
 
-  frac_equiv:{color:'#f76707',icon:'🔢',title:'Fractions équivalentes',desc:'Trouver le numérateur manquant',tags:['fractions','⏱ 30s'],time:30,ansType:'int',
+  frac_equiv:{group:'Fractions',color:'#ea580c',icon:'🔢',title:'Fractions équivalentes',desc:'Trouver le numérateur manquant',tags:['fractions','⏱ 30s'],time:30,ansType:'int',
     gen(){const p=[
       {html:`${F(1,2)} = ${FB(4)}`,ans:2},{html:`${F(1,5)} = ${FB(10)}`,ans:2},
       {html:`${F(4,5)} = ${FB(10)}`,ans:8},{html:`${F(6,2)} = ${FB(4)}`,ans:12},
@@ -285,7 +659,7 @@ const MODULES = {
       {html:`${F(6,8)} = ${FB(56)}`,ans:42},{html:`${F(8,7)} = ${FB(56)}`,ans:64},
     ];shuffle(p);return p.slice(0,10);}},
 
-  arrondir:{color:'#2f9e44',icon:'🎯',title:'Arrondir au dixième',desc:'Arrondir des fractions à 0,1',tags:['fractions','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.051,note:'📱 Utilise ta calculatrice',
+  arrondir:{group:'Fractions',color:'#16a34a',icon:'🎯',title:'Arrondir au dixième',desc:'Arrondir des fractions à 0,1',tags:['fractions','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.051,note:'📱 Utilise ta calculatrice',
     gen(){const r=(n,d)=>Math.round(n/d*10)/10;const p=[
       {html:F(3,7),ans:r(3,7)},{html:F(6,14),ans:r(6,14)},{html:F(6,9),ans:r(6,9)},{html:F(5,13),ans:r(5,13)},
       {html:F(50,23),ans:r(50,23)},{html:F(100,62),ans:r(100,62)},{html:F(12,59),ans:r(12,59)},{html:F(15,4),ans:r(15,4)},
@@ -294,7 +668,7 @@ const MODULES = {
       {html:F(3215,3216),ans:r(3215,3216)},{html:F(0,4),ans:0},{html:F(0,3),ans:0},
     ];shuffle(p);return p.slice(0,10);}},
 
-  add_frac:{color:'#e03131',icon:'➕',title:'Addition de fractions',desc:'Calculer la somme de deux fractions',tags:['fractions','⏱ 30s'],time:30,ansType:'fraction',
+  add_frac:{group:'Fractions',color:'#dc2626',icon:'➕',title:'Addition de fractions',desc:'Calculer la somme de deux fractions',tags:['fractions','⏱ 30s'],time:30,ansType:'fraction',
     gen(){const p=[
       {html:`${F(1,5)} + ${F(1,3)}`,ans:{n:8,d:15}},{html:`${F(1,7)} + ${F(1,3)}`,ans:{n:10,d:21}},
       {html:`${F(3,7)} + ${F(4,3)}`,ans:{n:37,d:21}},{html:`${F(5,7)} + ${F(2,3)}`,ans:{n:29,d:21}},
@@ -308,7 +682,7 @@ const MODULES = {
       {html:`${F(0,4)} + ${F(1,3)}`,ans:{n:1,d:3}},{html:`${F(0,3)} + ${F(1,4)}`,ans:{n:1,d:4}},
     ];shuffle(p);return p.slice(0,10);}},
 
-  mult_frac:{color:'#3b5bdb',icon:'✖️',title:'Multiplication de fractions',desc:'Calculer le produit de deux fractions',tags:['fractions','⏱ 15s'],time:15,ansType:'fraction',
+  mult_frac:{group:'Fractions',color:'#1d4ed8',icon:'✖️',title:'Multiplication de fractions',desc:'Calculer le produit de deux fractions',tags:['fractions','⏱ 15s'],time:15,ansType:'fraction',
     gen(){const p=[
       {html:`${F(7,4)} × ${F(7,4)}`,ans:{n:49,d:16}},{html:`${F(9,8)} × ${F(1,8)}`,ans:{n:9,d:64}},
       {html:`${F(9,2)} × ${F(7,8)}`,ans:{n:63,d:16}},{html:`${F(2,9)} × ${F(8,7)}`,ans:{n:16,d:63}},
@@ -317,9 +691,7 @@ const MODULES = {
       {html:`${F(9,4)} × ${F(5,2)}`,ans:{n:45,d:8}},{html:`${F(3,8)} × ${F(16,3)}`,ans:{n:2,d:1}},
     ];shuffle(p);return p.slice(0,10);}},
 
-  /* ══ NEW MODULES ══ */
-
-  moyenne:{color:'#0c8599',icon:'📊',title:'Calcul de moyenne',desc:'Calculer la moyenne d\'une série',tags:['stats','⏱ 30s'],time:30,ansType:'decimal',tol:0.01,note:'📊 Calcule la moyenne',
+  moyenne:{group:'Stats & mesures',color:'#0891b2',icon:'📊',title:'Calcul de moyenne',desc:'Calculer la moyenne d\'une série',tags:['stats','⏱ 30s'],time:30,ansType:'decimal',tol:0.01,note:'📊 Calcule la moyenne',
     gen(){const p=[
       {html:'1 ; 2 ; 3',ans:2},{html:'1,5 ; 2,5 ; 4,5 ; 1,5',ans:2.5},
       {html:'15 ; 25 ; 45 ; 15',ans:25},{html:'16 ; 18 ; 13 ; 12 ; 11',ans:14},
@@ -328,28 +700,8 @@ const MODULES = {
       {html:'11 ; 12 ; 13 ; 9 ; 4 ; 3 ; 18',ans:10},{html:'9,5 ; 13 ; 19 ; 9,5 ; 4,5 ; 3,5 ; 18',ans:11},
     ];shuffle(p);return p.slice(0,10);}},
 
-  conv_long:{color:'#ae3ec9',icon:'📏',title:'Conversions de longueurs',desc:'Convertir des longueurs (cm, dm, m, mm)',tags:['longueurs','⏱ 25s'],time:25,ansType:'decimal',tol:1e-9,
+  etendue:{group:'Stats & mesures',color:'#16a34a',icon:'📐',title:'Étendue d\'une série',desc:'Calculer l\'étendue de chaque série',tags:['stats','⏱ 30s'],time:30,ansType:'decimal',tol:0.005,note:'📐 Étendue = max − min',smallFont:true,
     gen(){const p=[
-      {html:'440 cm → m',ans:4.4},{html:'650 cm → m',ans:6.5},{html:'300 dm → m',ans:30},{html:'400 dm → m',ans:40},
-      {html:'5,9 cm → m',ans:0.059},{html:'3,3 cm → m',ans:0.033},{html:'85 cm → m',ans:0.85},{html:'56 cm → m',ans:0.56},
-      {html:'144 cm → m',ans:1.44},{html:'123 cm → m',ans:1.23},{html:'0,22 m → mm',ans:220},{html:'0,23 m → mm',ans:230},
-      {html:'240 cm → m',ans:2.4},{html:'125 cm → m',ans:1.25},{html:'6 cm → m',ans:0.06},{html:'8 cm → m',ans:0.08},
-      {html:'0,6 mm → m',ans:0.0006},{html:'0,8 mm → m',ans:0.0008},{html:'2 300 mm → m',ans:2.3},{html:'2 500 mm → m',ans:2.5},
-    ];shuffle(p);return p.slice(0,10);}},
-
-  pourcentages:{color:'#f76707',icon:'%',title:'Pourcentages',desc:'Exprimer une proportion en %',tags:['%','⏱ 25s'],time:25,ansType:'int',note:'📊 Réponse en %',smallFont:true,
-    gen(){const r=(a,b)=>Math.round(a/b*100);const p=[
-      {html:'3 chats sur 10',ans:30},{html:'21 L sur 100 L',ans:21},{html:'8 kg sur 10 kg',ans:80},
-      {html:'100 € sur 500 €',ans:20},{html:'5 km sur 20 km',ans:25},{html:'490 km sur 1 000 km',ans:49},
-      {html:'15 g sur 240 g',ans:r(15,240)},{html:'120 cm sur 280 cm',ans:r(120,280)},
-      {html:'120 élèves sur 5 000',ans:r(120,5000)},{html:'120 g sur 840 g',ans:r(120,840)},
-      {html:'240 élèves sur 500',ans:48},{html:'120 cm sur 160 cm',ans:75},
-      {html:'10 g sur 1 000 g',ans:1},{html:'12 km sur 20 km',ans:60},
-      {html:'0,5 kg sur 1 kg',ans:50},{html:'3 élèves sur 10',ans:30},
-    ];shuffle(p);return p.slice(0,10);}},
-
-  etendue:{color:'#2f9e44',icon:'📐',title:'Étendue d\'une série',desc:'Calculer l\'étendue de chaque série',tags:['stats','⏱ 30s'],time:30,ansType:'decimal',tol:0.005,note:'📐 Étendue = max − min',smallFont:true,
-    gen(){const ext=a=>{const n=a.map(Number);return Math.max(...n)-Math.min(...n);};const p=[
       {html:'{1 ; 2 ; 3 ; 4 ; 5}',ans:4},{html:'{120 ; 102 ; 130 ; 104 ; 105}',ans:28},
       {html:'{410 ; 402 ; 440 ; 455 ; 405}',ans:53},{html:'{1,2 ; 1,01 ; 1,3 ; 1,4 ; 1,06}',ans:0.39},
       {html:'{4,1 ; 4,01 ; 4,4 ; 4,6 ; 4,06}',ans:0.59},{html:'{9 ; 8,9 ; 1,6 ; 7,64 ; 5,38}',ans:7.4},
@@ -362,83 +714,41 @@ const MODULES = {
       {html:'{2,501 ; 2,150 ; 2,015 ; 2,051 ; 2,510}',ans:0.495},{html:'{3,804 ; 3,408 ; 3,840 ; 3,084 ; 3,048}',ans:0.792},
     ];shuffle(p);return p.slice(0,10);}},
 
-  probas:{color:'#e03131',icon:'🃏',title:'Probabilités — 32 cartes',desc:'Probabilités dans un jeu de 32 cartes',tags:['probas','fractions','⏱ 20s'],time:20,ansType:'fraction',note:'🃏 Jeu de 32 cartes (7 à As)',
+  conv_long:{group:'Stats & mesures',color:'#a855f7',icon:'📏',title:'Conversions de longueurs',desc:'Convertir des longueurs (cm, dm, m, mm)',tags:['longueurs','⏱ 25s'],time:25,ansType:'decimal',tol:1e-9,
     gen(){const p=[
-      {html:'tirer le 7 de trèfle',ans:{n:1,d:32}},{html:'tirer le 8 de pique',ans:{n:1,d:32}},
-      {html:'tirer un 7 rouge',ans:{n:1,d:16}},{html:'tirer un 8 noir',ans:{n:1,d:16}},
-      {html:'tirer un trèfle ♣',ans:{n:1,d:4}},{html:'tirer un pique ♠',ans:{n:1,d:4}},
-      {html:'tirer une carte rouge',ans:{n:1,d:2}},{html:'tirer une carte noire',ans:{n:1,d:2}},
-      {html:'tirer un Roi',ans:{n:1,d:8}},{html:'tirer un As',ans:{n:1,d:8}},
-      {html:'tirer un 2 rouge',ans:{n:0,d:1}},{html:'tirer un 2 noir',ans:{n:0,d:1}},
-      {html:'tirer un habillé (J, Q ou K)',ans:{n:3,d:8}},{html:'tirer une carte à numéro (7 à 10)',ans:{n:1,d:2}},
-      {html:'tirer une rouge OU une noire',ans:{n:1,d:1}},{html:'tirer une rouge ET une noire',ans:{n:0,d:1}},
+      {html:'440 cm → m',ans:4.4},{html:'650 cm → m',ans:6.5},{html:'300 dm → m',ans:30},{html:'400 dm → m',ans:40},
+      {html:'5,9 cm → m',ans:0.059},{html:'3,3 cm → m',ans:0.033},{html:'85 cm → m',ans:0.85},{html:'56 cm → m',ans:0.56},
+      {html:'144 cm → m',ans:1.44},{html:'123 cm → m',ans:1.23},{html:'0,22 m → mm',ans:220},{html:'0,23 m → mm',ans:230},
+      {html:'240 cm → m',ans:2.4},{html:'125 cm → m',ans:1.25},{html:'6 cm → m',ans:0.06},{html:'8 cm → m',ans:0.08},
+      {html:'0,6 mm → m',ans:0.0006},{html:'0,8 mm → m',ans:0.0008},{html:'2 300 mm → m',ans:2.3},{html:'2 500 mm → m',ans:2.5},
     ];shuffle(p);return p.slice(0,10);}},
 
-  expressions:{color:'#7048e8',icon:'🔣',title:'Calcul d\'expressions',desc:'Calculer une expression algébrique',tags:['algèbre','⏱ 25s'],time:25,ansType:'int',smallFont:true,
-    gen(){const p=[
-      {html:'a=1, b=4 → a+b',ans:5},{html:'a=4, b=1 → a+b',ans:5},
-      {html:'a=2, b=3 → ab',ans:6},{html:'a=5, b=2 → ab',ans:10},
-      {html:'a=5 → 5+a²',ans:30},{html:'a=3 → 5+a²',ans:14},
-      {html:'a=3 → 1+5a²',ans:46},{html:'a=2 → 1+5a²',ans:21},
-      {html:'a=3, b=5 → 3a+2b',ans:19},{html:'a=2, b=5 → 3a+2b',ans:16},
-      {html:'a=5, b=6 → a²+2b',ans:37},{html:'a=3, b=7 → a²+2b',ans:23},
-      {html:'a=3, b=4 → a²+b²',ans:25},{html:'a=4, b=3 → a²+b²',ans:25},
-      {html:'a=5, b=2 → b²+3a',ans:19},{html:'a=4, b=2 → b²+3a',ans:16},
-      {html:'a=5, b=2 → 2b²+5a',ans:33},{html:'a=4, b=2 → 2b²+5a',ans:28},
-      {html:'a=1, b=1 → 3a(a+2b)',ans:9},
+  pourcentages:{group:'Proportionnalité & %',color:'#ea580c',icon:'%',title:'Pourcentages',desc:'Exprimer une proportion en %',tags:['%','⏱ 25s'],time:25,ansType:'int',note:'📊 Réponse en %',smallFont:true,
+    gen(){const r=(a,b)=>Math.round(a/b*100);const p=[
+      {html:'3 chats sur 10',ans:30},{html:'21 L sur 100 L',ans:21},{html:'8 kg sur 10 kg',ans:80},
+      {html:'100 € sur 500 €',ans:20},{html:'5 km sur 20 km',ans:25},{html:'490 km sur 1 000 km',ans:49},
+      {html:'15 g sur 240 g',ans:r(15,240)},{html:'120 cm sur 280 cm',ans:r(120,280)},
+      {html:'120 élèves sur 5 000',ans:r(120,5000)},{html:'120 g sur 840 g',ans:r(120,840)},
+      {html:'240 élèves sur 500',ans:48},{html:'120 cm sur 160 cm',ans:75},
+      {html:'10 g sur 1 000 g',ans:1},{html:'12 km sur 20 km',ans:60},
+      {html:'0,5 kg sur 1 kg',ans:50},{html:'3 élèves sur 10',ans:30},
     ];shuffle(p);return p.slice(0,10);}},
 
-  mult10:{color:'#ae3ec9',icon:'×',title:'Multiplier par 10, 100, 1 000',desc:'Multiplications par puissances de 10',tags:['calcul','⏱ 20s'],time:20,ansType:'int',
-    gen(){const p=[
-      {html:'100 × 596',ans:59600},{html:'614 × 10',ans:6140},{html:'121 × 100',ans:12100},
-      {html:'880 × 10',ans:8800},{html:'445 × 10',ans:4450},{html:'10 × 569',ans:5690},
-      {html:'100 × 510',ans:51000},{html:'100 × 837',ans:83700},{html:'850 × 10',ans:8500},
-      {html:'727 × 100',ans:72700},{html:'10 × 850',ans:8500},
+  pct_arrondi:{group:'Proportionnalité & %',color:'#f97316',icon:'%',title:'Calculer un pourcentage',desc:'a par rapport à b, arrondi à 0,01',tags:['%','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.6,note:'📱 Réponse en % (ex: 33,33)',smallFont:true,
+    gen(){const r=(a,b)=>Math.round(a/b*10000)/100;const p=[
+      {html:'20 par rapport à 100',ans:20},{html:'30 par rapport à 100',ans:30},
+      {html:'15 par rapport à 50',ans:30},{html:'10 par rapport à 50',ans:20},
+      {html:'12 par rapport à 48',ans:25},{html:'15 par rapport à 60',ans:25},
+      {html:'11 par rapport à 110',ans:10},{html:'13 par rapport à 130',ans:10},
+      {html:'7 par rapport à 140',ans:5},{html:'8 par rapport à 160',ans:5},
+      {html:'15 par rapport à 180',ans:r(15,180)},{html:'17 par rapport à 160',ans:r(17,160)},
+      {html:'19 par rapport à 20',ans:95},{html:'18 par rapport à 25',ans:72},
+      {html:'0,5 par rapport à 0,75',ans:r(0.5,0.75)},{html:'0,25 par rapport à 1,25',ans:20},
+      {html:'1,25 par rapport à 0,75',ans:r(1.25,0.75)},{html:'2,25 par rapport à 1,25',ans:180},
+      {html:'13,95 par rapport à 25',ans:r(13.95,25)},{html:'19,25 par rapport à 31',ans:r(19.25,31)},
     ];shuffle(p);return p.slice(0,10);}},
 
-  reductions:{color:'#0c8599',icon:'✏️',title:'Réductions d\'expressions',desc:'Réduire une expression algébrique',tags:['algèbre','⏱ 40s'],time:40,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
-    gen(){const p=[
-      {html:'2x + 3 − x + 5',ans:'x+8'},{html:'2x + 4 − x + 2',ans:'x+6'},
-      {html:'2x + 3 − x + 2',ans:'x+5'},{html:'2x + 4 − x + 3',ans:'x+7'},
-      {html:'−x + 2 + 3x + 8',ans:'2x+10'},{html:'−x + 4 + 4x + 6',ans:'3x+10'},
-      {html:'3b + 2 − 5b − 3',ans:'-2b-1'},{html:'−4b + 4 + 5b + 6',ans:'b+10'},
-      {html:'−3x + 2 + 3x + 8',ans:'10'},{html:'−4x + 2 + 4x + 8',ans:'10'},
-      {html:'3x² + 2 + x² + 5',ans:'4x^2+7'},{html:'4x² + 2 + x² + 7',ans:'5x^2+9'},
-      {html:'3x² + x + x² + 5x + 8',ans:'4x^2+6x+8'},{html:'2x² + x + x² + 4x + 5',ans:'3x^2+5x+5'},
-      {html:'3x² + x − x² − 2x',ans:'2x^2-x'},{html:'4x² + x − x² − 3x',ans:'3x^2-2x'},
-      {html:'−x² + x + 3x² − 2x',ans:'2x^2-x'},{html:'−x² + 5x − 4x² − 2x',ans:'-5x^2+3x'},
-      {html:`${F('18x',9)} + ${F(15,3)} + ${F('6x',2)} + 1`,ans:'5x+6'},
-      {html:`${F('9x',3)} + ${F(12,6)} + ${F('15x',5)} + 1`,ans:'6x+3'},
-    ];shuffle(p);return p.slice(0,10);}},
-
-  dev_simple:{color:'#ae3ec9',icon:'📐',title:'Développement simple',desc:'Développer avec un seul facteur',tags:['algèbre','⏱ 30s'],time:30,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
-    gen(){const p=[
-      {html:'3(x + 2)',ans:'3x+6'},{html:'3(x + 5)',ans:'3x+15'},
-      {html:'4(x − 3)',ans:'4x-12'},{html:'2(x − 7)',ans:'2x-14'},
-      {html:'5(2x + 1)',ans:'10x+5'},{html:'3(4x + 2)',ans:'12x+6'},
-      {html:'−2(x + 3)',ans:'-2x-6'},{html:'−3(x + 4)',ans:'-3x-12'},
-      {html:'−4(x − 2)',ans:'-4x+8'},{html:'−5(x − 3)',ans:'-5x+15'},
-      {html:'x(x + 2)',ans:'x^2+2x'},{html:'x(x + 5)',ans:'x^2+5x'},
-      {html:'x(x − 3)',ans:'x^2-3x'},{html:'x(x − 7)',ans:'x^2-7x'},
-      {html:'2x(x + 3)',ans:'2x^2+6x'},{html:'3x(x + 4)',ans:'3x^2+12x'},
-      {html:'2x(x − 5)',ans:'2x^2-10x'},{html:'4x(x − 2)',ans:'4x^2-8x'},
-      {html:'−x(x + 4)',ans:'-x^2-4x'},{html:'−2x(x − 3)',ans:'-2x^2+6x'},
-    ];shuffle(p);return p.slice(0,10);}},
-
-  dev_double:{color:'#e03131',icon:'📐',title:'Développement double',desc:'Développer et réduire deux facteurs',tags:['algèbre','⏱ 50s'],time:50,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
-    gen(){const p=[
-      {html:'(x+2)(x+1)',ans:'x^2+3x+2'},{html:'(x+2)(x+3)',ans:'x^2+5x+6'},
-      {html:'(x+5)(x+1)',ans:'x^2+6x+5'},{html:'(2x+2)(x+1)',ans:'2x^2+4x+2'},
-      {html:'(x+2)(x−1)',ans:'x^2+x-2'},{html:'(x−2)(x+1)',ans:'x^2-x-2'},
-      {html:'(x−2)(x−1)',ans:'x^2-3x+2'},{html:'(x−1)(x−2)',ans:'x^2-3x+2'},
-      {html:'(x+2)(2x−1)',ans:'2x^2+3x-2'},{html:'(x−2)(2x+1)',ans:'2x^2-3x-2'},
-      {html:'(x−1)(x−1)',ans:'x^2-2x+1'},{html:'(x−1)(x+1)',ans:'x^2-1'},
-      {html:'(3x+1)(x−3)',ans:'3x^2-8x-3'},{html:'(3x−1)(x+3)',ans:'3x^2+8x-3'},
-    ];shuffle(p);return p.slice(0,10);}},
-
-  /* ══ BATCH 3 MODULES ══ */
-
-  pcx1:{color:'#0c8599',icon:'⚖️',title:'Produit en croix — Niv.1',desc:'Trouver le numérateur manquant (entier)',tags:['proportionnalité','⏱ 20s'],time:20,ansType:'int',
+  pcx1:{group:'Proportionnalité & %',color:'#0891b2',icon:'⚖️',title:'Produit en croix — Niv.1',desc:'Trouver le numérateur manquant (entier)',tags:['proportionnalité','⏱ 20s'],time:20,ansType:'int',
     gen(){const p=[
       {html:`${F(1,2)} = ${FB(4)}`,ans:2},{html:`${F(6,3)} = ${FB(5)}`,ans:10},
       {html:`${F(1,4)} = ${FB(12)}`,ans:3},{html:`${F(2,5)} = ${FB(40)}`,ans:16},
@@ -452,7 +762,7 @@ const MODULES = {
       {html:`${F(20,235)} = ${FB(94)}`,ans:8},
     ];shuffle(p);return p.slice(0,10);}},
 
-  pcx2:{color:'#7048e8',icon:'⚖️',title:'Produit en croix — Niv.2',desc:'Valeur manquante (résultat décimal OK)',tags:['proportionnalité','⏱ 20s'],time:20,ansType:'decimal',tol:0.2,note:'📱 Arrondi accepté',smallFont:true,
+  pcx2:{group:'Proportionnalité & %',color:'#7c3aed',icon:'⚖️',title:'Produit en croix — Niv.2',desc:'Valeur manquante (résultat décimal OK)',tags:['proportionnalité','⏱ 20s'],time:20,ansType:'decimal',tol:0.2,note:'📱 Arrondi accepté',smallFont:true,
     gen(){const p=[
       {html:`${F(1,8)} = ${FB(4)}`,ans:0.5},{html:`${F(1,20)} = ${FB(4)}`,ans:0.2},
       {html:`${FBD(3)} = ${F(9,5)}`,ans:5.4},{html:`${FBD(15)} = ${F(12,24)}`,ans:7.5},
@@ -465,7 +775,7 @@ const MODULES = {
       {html:`${F(1.85,0.5)} = ${FB(1.22)}`,ans:4.5},{html:`${F(2.01,2.35)} = ${FB(9.4)}`,ans:8},
     ];shuffle(p);return p.slice(0,10);}},
 
-  pcx3:{color:'#ae3ec9',icon:'⚖️',title:'Produit en croix — Niv.3',desc:'Valeur manquante, arrondi à 0,1',tags:['proportionnalité','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',smallFont:true,
+  pcx3:{group:'Proportionnalité & %',color:'#a855f7',icon:'⚖️',title:'Produit en croix — Niv.3',desc:'Valeur manquante, arrondi à 0,1',tags:['proportionnalité','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',smallFont:true,
     gen(){const p=[
       {html:`${F(1,8)} = ${FB(3)}`,ans:Math.round(1*3/8*10)/10},
       {html:`${F(1,20)} = ${FB(6)}`,ans:Math.round(1*6/20*10)/10},
@@ -487,20 +797,74 @@ const MODULES = {
       {html:`${F(2.1,2.5)} = ${FB(9.4)}`,ans:Math.round(2.1*9.4/2.5*10)/10},
     ];shuffle(p);return p.slice(0,10);}},
 
-  racine:{color:'#2f9e44',icon:'√',title:'Racine carrée',desc:'Calculer √n, arrondi à 0,1 si nécessaire',tags:['calcul','⏱ 15s'],time:15,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',
-    gen(){const r=n=>Math.round(Math.sqrt(n)*10)/10; const p=[
-      {html:'√144',ans:12},{html:'√169',ans:13},{html:'√49',ans:7},{html:'√64',ans:8},
-      {html:'√131',ans:r(131)},{html:'√125',ans:r(125)},{html:'√9',ans:3},{html:'√4',ans:2},
-      {html:'√18',ans:r(18)},{html:'√41',ans:r(41)},{html:'√1458',ans:r(1458)},{html:'√1248',ans:r(1248)},
-      {html:'√6561',ans:81},{html:'√4096',ans:64},{html:'√219',ans:r(219)},{html:'√214',ans:r(214)},
-      {html:'√324',ans:18},{html:'√361',ans:19},{html:'√12,14',ans:r(12.14)},{html:'√14,12',ans:r(14.12)},
+  probas:{group:'Probabilités',color:'#dc2626',icon:'🃏',title:'Probabilités — 32 cartes',desc:'Probabilités dans un jeu de 32 cartes',tags:['probas','fractions','⏱ 20s'],time:20,ansType:'fraction',note:'🃏 Jeu de 32 cartes (7 à As)',
+    gen(){const p=[
+      {html:'tirer le 7 de trèfle',ans:{n:1,d:32}},{html:'tirer le 8 de pique',ans:{n:1,d:32}},
+      {html:'tirer un 7 rouge',ans:{n:1,d:16}},{html:'tirer un 8 noir',ans:{n:1,d:16}},
+      {html:'tirer un trèfle ♣',ans:{n:1,d:4}},{html:'tirer un pique ♠',ans:{n:1,d:4}},
+      {html:'tirer une carte rouge',ans:{n:1,d:2}},{html:'tirer une carte noire',ans:{n:1,d:2}},
+      {html:'tirer un Roi',ans:{n:1,d:8}},{html:'tirer un As',ans:{n:1,d:8}},
+      {html:'tirer un 2 rouge',ans:{n:0,d:1}},{html:'tirer un 2 noir',ans:{n:0,d:1}},
+      {html:'tirer un habillé (J, Q ou K)',ans:{n:3,d:8}},{html:'tirer une carte à numéro (7 à 10)',ans:{n:1,d:2}},
+      {html:'tirer une rouge OU une noire',ans:{n:1,d:1}},{html:'tirer une rouge ET une noire',ans:{n:0,d:1}},
     ];shuffle(p);return p.slice(0,10);}},
 
-  veq:{color:'#f76707',icon:'✔️',title:'Vérification d\'équation',desc:'x est-il solution de l\'équation ?',tags:['équations','oui/non','⏱ 40s'],time:40,ansType:'yesno',smallFont:true,
-    gen(){const chk=(expr,x)=>{ // evaluate expr at x
-      try{ return Math.abs(new Function('x',`return (${expr.replace(/[^-+*/().\d x]/g,'').replace(/x/g,'('+x+')')})`)(x)) < 0.001; }catch{return false;}
-    };
-    const p=[
+  expressions:{group:'Algèbre',color:'#7c3aed',icon:'🔣',title:'Calcul d\'expressions',desc:'Calculer une expression algébrique',tags:['algèbre','⏱ 25s'],time:25,ansType:'int',smallFont:true,
+    gen(){const p=[
+      {html:'a=1, b=4 → a+b',ans:5},{html:'a=4, b=1 → a+b',ans:5},
+      {html:'a=2, b=3 → ab',ans:6},{html:'a=5, b=2 → ab',ans:10},
+      {html:'a=5 → 5+a²',ans:30},{html:'a=3 → 5+a²',ans:14},
+      {html:'a=3 → 1+5a²',ans:46},{html:'a=2 → 1+5a²',ans:21},
+      {html:'a=3, b=5 → 3a+2b',ans:19},{html:'a=2, b=5 → 3a+2b',ans:16},
+      {html:'a=5, b=6 → a²+2b',ans:37},{html:'a=3, b=7 → a²+2b',ans:23},
+      {html:'a=3, b=4 → a²+b²',ans:25},{html:'a=4, b=3 → a²+b²',ans:25},
+      {html:'a=5, b=2 → b²+3a',ans:19},{html:'a=4, b=2 → b²+3a',ans:16},
+      {html:'a=5, b=2 → 2b²+5a',ans:33},{html:'a=4, b=2 → 2b²+5a',ans:28},
+      {html:'a=1, b=1 → 3a(a+2b)',ans:9},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  reductions:{group:'Algèbre',color:'#0891b2',icon:'✏️',title:'Réductions d\'expressions',desc:'Réduire une expression algébrique',tags:['algèbre','⏱ 40s'],time:40,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
+    gen(){const p=[
+      {html:'2x + 3 − x + 5',ans:'x+8'},{html:'2x + 4 − x + 2',ans:'x+6'},
+      {html:'2x + 3 − x + 2',ans:'x+5'},{html:'2x + 4 − x + 3',ans:'x+7'},
+      {html:'−x + 2 + 3x + 8',ans:'2x+10'},{html:'−x + 4 + 4x + 6',ans:'3x+10'},
+      {html:'3b + 2 − 5b − 3',ans:'-2b-1'},{html:'−4b + 4 + 5b + 6',ans:'b+10'},
+      {html:'−3x + 2 + 3x + 8',ans:'10'},{html:'−4x + 2 + 4x + 8',ans:'10'},
+      {html:'3x² + 2 + x² + 5',ans:'4x^2+7'},{html:'4x² + 2 + x² + 7',ans:'5x^2+9'},
+      {html:'3x² + x + x² + 5x + 8',ans:'4x^2+6x+8'},{html:'2x² + x + x² + 4x + 5',ans:'3x^2+5x+5'},
+      {html:'3x² + x − x² − 2x',ans:'2x^2-x'},{html:'4x² + x − x² − 3x',ans:'3x^2-2x'},
+      {html:'−x² + x + 3x² − 2x',ans:'2x^2-x'},{html:'−x² + 5x − 4x² − 2x',ans:'-5x^2+3x'},
+      {html:`${F('18x',9)} + ${F(15,3)} + ${F('6x',2)} + 1`,ans:'5x+6'},
+      {html:`${F('9x',3)} + ${F(12,6)} + ${F('15x',5)} + 1`,ans:'6x+3'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  dev_simple:{group:'Algèbre',color:'#a855f7',icon:'📐',title:'Développement simple',desc:'Développer avec un seul facteur',tags:['algèbre','⏱ 30s'],time:30,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
+    gen(){const p=[
+      {html:'3(x + 2)',ans:'3x+6'},{html:'3(x + 5)',ans:'3x+15'},
+      {html:'4(x − 3)',ans:'4x-12'},{html:'2(x − 7)',ans:'2x-14'},
+      {html:'5(2x + 1)',ans:'10x+5'},{html:'3(4x + 2)',ans:'12x+6'},
+      {html:'−2(x + 3)',ans:'-2x-6'},{html:'−3(x + 4)',ans:'-3x-12'},
+      {html:'−4(x − 2)',ans:'-4x+8'},{html:'−5(x − 3)',ans:'-5x+15'},
+      {html:'x(x + 2)',ans:'x^2+2x'},{html:'x(x + 5)',ans:'x^2+5x'},
+      {html:'x(x − 3)',ans:'x^2-3x'},{html:'x(x − 7)',ans:'x^2-7x'},
+      {html:'2x(x + 3)',ans:'2x^2+6x'},{html:'3x(x + 4)',ans:'3x^2+12x'},
+      {html:'2x(x − 5)',ans:'2x^2-10x'},{html:'4x(x − 2)',ans:'4x^2-8x'},
+      {html:'−x(x + 4)',ans:'-x^2-4x'},{html:'−2x(x − 3)',ans:'-2x^2+6x'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  dev_double:{group:'Algèbre',color:'#dc2626',icon:'📐',title:'Développement double',desc:'Développer et réduire deux facteurs',tags:['algèbre','⏱ 50s'],time:50,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
+    gen(){const p=[
+      {html:'(x+2)(x+1)',ans:'x^2+3x+2'},{html:'(x+2)(x+3)',ans:'x^2+5x+6'},
+      {html:'(x+5)(x+1)',ans:'x^2+6x+5'},{html:'(2x+2)(x+1)',ans:'2x^2+4x+2'},
+      {html:'(x+2)(x−1)',ans:'x^2+x-2'},{html:'(x−2)(x+1)',ans:'x^2-x-2'},
+      {html:'(x−2)(x−1)',ans:'x^2-3x+2'},{html:'(x−1)(x−2)',ans:'x^2-3x+2'},
+      {html:'(x+2)(2x−1)',ans:'2x^2+3x-2'},{html:'(x−2)(2x+1)',ans:'2x^2-3x-2'},
+      {html:'(x−1)(x−1)',ans:'x^2-2x+1'},{html:'(x−1)(x+1)',ans:'x^2-1'},
+      {html:'(3x+1)(x−3)',ans:'3x^2-8x-3'},{html:'(3x−1)(x+3)',ans:'3x^2+8x-3'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  veq:{group:'Équations',color:'#ea580c',icon:'✔️',title:'Vérification d\'équation',desc:'x est-il solution de l\'équation ?',tags:['équations','oui/non','⏱ 40s'],time:40,ansType:'yesno',smallFont:true,
+    gen(){const p=[
       {html:'2x + 1 = 3 &nbsp;&nbsp; x = 1',ans:'oui'},{html:'2x + 1 = 5 &nbsp;&nbsp; x = 2',ans:'oui'},
       {html:'2x + 8 = 10 &nbsp;&nbsp; x = 1',ans:'oui'},{html:'2x + 4 = 5 &nbsp;&nbsp; x = 1',ans:'non'},
       {html:'4x + 5 = 17 &nbsp;&nbsp; x = 3',ans:'oui'},{html:'3x + 4 = 12 &nbsp;&nbsp; x = 3',ans:'non'},
@@ -513,7 +877,7 @@ const MODULES = {
       {html:'8 − 2x = 10 &nbsp;&nbsp; x = −1',ans:'oui'},{html:'7 − 8x = 15 &nbsp;&nbsp; x = −1',ans:'oui'},
     ];shuffle(p);return p.slice(0,10);}},
 
-  eq_res:{color:'#0c8599',icon:'🔢',title:'Résolution d\'équations',desc:'Trouver la valeur de x',tags:['équations','⏱ 20s'],time:20,ansType:'decimal',tol:0.01,smallFont:true,
+  eq_res:{group:'Équations',color:'#0891b2',icon:'🔢',title:'Résolution d\'équations',desc:'Trouver la valeur de x',tags:['équations','⏱ 20s'],time:20,ansType:'decimal',tol:0.01,smallFont:true,
     gen(){const p=[
       {html:'2x + 1 = 5',ans:2},{html:'2x + 4 = 16',ans:6},{html:'3x + 4 = 16',ans:4},
       {html:'4x + 5 = 25',ans:5},{html:'0,5x + 3 = 7',ans:8},{html:'8x + 4 = 36',ans:4},
@@ -523,7 +887,16 @@ const MODULES = {
       {html:'5x = 35',ans:7},{html:'3x + 1 = 10',ans:3},{html:'4x − 8 = 0',ans:2},
     ];shuffle(p);return p.slice(0,10);}},
 
-  pyth_verif:{color:'#e03131',icon:'📐',title:'Vérifier Pythagore',desc:'Le triangle est-il rectangle ? (BC = hyp.)',tags:['Pythagore','oui/non','⏱ 30s'],time:30,ansType:'yesno',smallFont:true,
+  racine:{group:'Pythagore & racines',color:'#16a34a',icon:'√',title:'Racine carrée',desc:'Calculer √n, arrondi à 0,1 si nécessaire',tags:['calcul','⏱ 15s'],time:15,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',
+    gen(){const r=n=>Math.round(Math.sqrt(n)*10)/10; const p=[
+      {html:'√144',ans:12},{html:'√169',ans:13},{html:'√49',ans:7},{html:'√64',ans:8},
+      {html:'√131',ans:r(131)},{html:'√125',ans:r(125)},{html:'√9',ans:3},{html:'√4',ans:2},
+      {html:'√18',ans:r(18)},{html:'√41',ans:r(41)},{html:'√1458',ans:r(1458)},{html:'√1248',ans:r(1248)},
+      {html:'√6561',ans:81},{html:'√4096',ans:64},{html:'√219',ans:r(219)},{html:'√214',ans:r(214)},
+      {html:'√324',ans:18},{html:'√361',ans:19},{html:'√12,14',ans:r(12.14)},{html:'√14,12',ans:r(14.12)},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  pyth_verif:{group:'Pythagore & racines',color:'#dc2626',icon:'📐',title:'Vérifier Pythagore',desc:'Le triangle est-il rectangle ? (BC = hyp.)',tags:['Pythagore','oui/non','⏱ 30s'],time:30,ansType:'yesno',smallFont:true,
     gen(){const chk=(a,b,c)=>a*a+b*b===c*c;const p=[
       {html:'AB=3, AC=4, BC=5',ans:chk(3,4,5)?'oui':'non'},
       {html:'AB=3, AC=5, BC=7',ans:chk(3,5,7)?'oui':'non'},
@@ -544,7 +917,7 @@ const MODULES = {
       {html:'AB=8, AC=15, BC=17',ans:chk(8,15,17)?'oui':'non'},
     ];shuffle(p);return p.slice(0,10);}},
 
-  pyth_hyp:{color:'#7048e8',icon:'📐',title:'Calculer l\'hypoténuse',desc:'BC² = AB² + AC², arrondi à 0,1',tags:['Pythagore','calc.','⏱ 40s'],time:40,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',smallFont:true,
+  pyth_hyp:{group:'Pythagore & racines',color:'#7c3aed',icon:'📐',title:'Calculer l\'hypoténuse',desc:'BC² = AB² + AC², arrondi à 0,1',tags:['Pythagore','calc.','⏱ 40s'],time:40,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',smallFont:true,
     gen(){const h=(a,b)=>Math.round(Math.sqrt(a*a+b*b)*10)/10;const p=[
       {html:'AB=3, AC=4',ans:h(3,4)},{html:'AB=6, AC=8',ans:h(6,8)},
       {html:'AB=8, AC=15',ans:h(8,15)},{html:'AB=9, AC=12',ans:h(9,12)},
@@ -556,40 +929,36 @@ const MODULES = {
       {html:'AB=15, AC=20',ans:h(15,20)},{html:'AB=3, AC=3',ans:h(3,3)},
     ];shuffle(p);return p.slice(0,10);}},
 
-  pct_arrondi:{color:'#f76707',icon:'%',title:'Calculer un pourcentage',desc:'a par rapport à b, arrondi à 0,01',tags:['%','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.6,note:'📱 Réponse en % (ex: 33,33)',smallFont:true,
-    gen(){const r=(a,b)=>Math.round(a/b*10000)/100;const p=[
-      {html:'20 par rapport à 100',ans:20},{html:'30 par rapport à 100',ans:30},
-      {html:'15 par rapport à 50',ans:30},{html:'10 par rapport à 50',ans:20},
-      {html:'12 par rapport à 48',ans:25},{html:'15 par rapport à 60',ans:25},
-      {html:'11 par rapport à 110',ans:10},{html:'13 par rapport à 130',ans:10},
-      {html:'7 par rapport à 140',ans:5},{html:'8 par rapport à 160',ans:5},
-      {html:'15 par rapport à 180',ans:r(15,180)},{html:'17 par rapport à 160',ans:r(17,160)},
-      {html:'19 par rapport à 20',ans:95},{html:'18 par rapport à 25',ans:72},
-      {html:'0,5 par rapport à 0,75',ans:r(0.5,0.75)},{html:'0,25 par rapport à 1,25',ans:20},
-      {html:'1,25 par rapport à 0,75',ans:r(1.25,0.75)},{html:'2,25 par rapport à 1,25',ans:180},
-      {html:'13,95 par rapport à 25',ans:r(13.95,25)},{html:'19,25 par rapport à 31',ans:r(19.25,31)},
-    ];shuffle(p);return p.slice(0,10);}},
-
 };
 
 /* ══ STATE ══ */
-let CM=null, questions=[], cur=0, good=0, log=[];
+let CM=null, CMKey=null, questions=[], cur=0, good=0, log=[];
 let tInt=null, left=0, done=false;
 
-/* ══ BUILD MENU ══ */
+/* ══ BUILD MENU (grouped) ══ */
 (function buildMenu(){
   const grid=document.getElementById('grid');
   for(const [key,m] of Object.entries(MODULES)){
     const d=document.createElement('div');
     d.className='card'; d.style.setProperty('--cc',m.color);
-    d.innerHTML=`<div class="card-icon">${m.icon}</div><div class="card-title">${m.title}</div><div class="card-desc">${m.desc}</div><div class="tags">${m.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+    const timeTag=m.tags.find(t=>t.includes('⏱'));
+    const otherTags=m.tags.filter(t=>!t.includes('⏱'));
+    d.innerHTML=`
+      <div class="card-head">
+        <div class="card-icon">${m.icon}</div>
+        ${timeTag?`<div class="card-time">${timeTag}</div>`:''}
+      </div>
+      <div class="card-title">${m.title}</div>
+      <div class="card-desc">${m.desc}</div>
+      <div class="tags">${otherTags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="arrow">→</div>`;
     d.onclick=()=>launchQuiz(key); grid.appendChild(d);
   }
 })();
 
 /* ══ LAUNCH ══ */
 function launchQuiz(key){
-  CM=MODULES[key];
+  CM=MODULES[key]; CMKey=key;
   document.documentElement.style.setProperty('--qc',CM.color);
   questions=CM.gen(); cur=0; good=0; log=[];
   show('s-quiz'); loadQ();
@@ -601,20 +970,19 @@ function loadQ(){
   done=false;
   const q=questions[cur], nb=questions.length;
   document.getElementById('q-label').textContent=`Question ${cur+1} / ${nb}`;
-  document.getElementById('score-lv').textContent=`✓ ${good}`;
+  document.getElementById('q-mod-name').textContent=CM.title;
+  document.getElementById('q-mod-ico').textContent=CM.icon;
+  document.getElementById('score-lv').textContent=good;
   document.getElementById('pfill').style.width=`${cur/nb*100}%`;
 
-  // Operation display with font class
   const op=document.getElementById('operation');
   op.innerHTML=q.html;
   op.className='operation'+(CM.smallFont?' sm':'');
 
-  // Note
   const noteEl=document.getElementById('mod-note');
   if(CM.note){noteEl.textContent=CM.note;noteEl.style.display='';}
   else noteEl.style.display='none';
 
-  // Show correct input type
   const isFrac=CM.ansType==='fraction';
   const isTxt=CM.ansType==='text';
   const isYN=CM.ansType==='yesno';
@@ -658,7 +1026,7 @@ function startTimer(){
   tInt=setInterval(()=>{ left--; updateTimer(left); if(left<=0){clearInterval(tInt);process(null,null,null,true);}},1000);
 }
 function updateTimer(t){
-  const circ=2*Math.PI*37, arc=document.getElementById('t-arc'), num=document.getElementById('t-num');
+  const circ=2*Math.PI*27, arc=document.getElementById('t-arc'), num=document.getElementById('t-num');
   arc.style.strokeDashoffset=circ*(1-t/CM.time);
   const c=t<=3?'var(--red)':t<=5?'var(--orange)':'var(--qc)';
   arc.style.stroke=c; num.style.color=c; num.textContent=t;
@@ -693,15 +1061,12 @@ function process(val,valD,valTxt,timeout){
     if(!timeout&&val!==null&&valD!==null&&valD!==0)
       ok=(val*q.ans.d===valD*q.ans.n);
   } else if(CM.ansType==='yesno'){
-    if(!timeout&&valTxt)
-      ok=valTxt.toLowerCase()===q.ans.toLowerCase();
+    if(!timeout&&valTxt) ok=valTxt.toLowerCase()===q.ans.toLowerCase();
   } else if(CM.ansType==='text'){
-    if(!timeout&&valTxt)
-      ok=polyEqual(valTxt, q.ans);
+    if(!timeout&&valTxt) ok=polyEqual(valTxt, q.ans);
   } else if(CM.ansType==='decimal'){
     const tol=CM.tol??0.001;
-    if(!timeout&&val!==null)
-      ok=Math.abs(val-q.ans)<tol+Math.abs(q.ans)*0.0001;
+    if(!timeout&&val!==null) ok=Math.abs(val-q.ans)<tol+Math.abs(q.ans)*0.0001;
   } else {
     ok=!timeout&&val!==null&&val===q.ans;
   }
@@ -719,21 +1084,18 @@ function process(val,valD,valTxt,timeout){
   if(CM.ansType==='yesno'){
     document.getElementById('btn-oui').disabled=true;
     document.getElementById('btn-non').disabled=true;
-    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
   } else if(CM.ansType==='fraction'){
     document.getElementById('frac-field').className='frac-field '+(ok?'good':'bad');
     document.getElementById('ans-n').disabled=true;
     document.getElementById('ans-d').disabled=true;
-    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
   } else if(CM.ansType==='text'){
     const t=document.getElementById('ans-txt');
     t.disabled=true; t.className='ans-txt '+(ok?'good':'bad');
-    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
   } else {
     const inp=document.getElementById('ans');
     inp.disabled=true; inp.className='ans-inp '+(ok?'good':'bad');
-    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
   }
+  fb.textContent=ok?'✅ Bravo !':(timeout?`⏱️ Temps écoulé · réponse : ${corrStr}`:`❌ Pas tout à fait · réponse : ${corrStr}`);
   document.getElementById('btn-v').disabled=true;
   log.push({q,val,valD,valTxt,ok});
   setTimeout(()=>{ cur++; cur<questions.length?loadQ():showResults(); },1400);
@@ -743,19 +1105,21 @@ function process(val,valD,valTxt,timeout){
 function showResults(){
   show('s-results');
   const nb=questions.length, pct=good/nb;
-  const arc=document.getElementById('sr-arc'), circ=2*Math.PI*65;
+  const arc=document.getElementById('sr-arc'), circ=2*Math.PI*75;
   arc.style.strokeDashoffset=circ*(1-pct);
   arc.style.stroke=pct===1?'var(--green)':pct>=.7?'var(--qc)':'var(--red)';
   const sc=document.getElementById('sr-score');
   sc.textContent=`${good}/${nb}`;
   sc.style.color=pct===1?'var(--green)':pct>=.7?'var(--qc)':'var(--red)';
-  document.getElementById('res-title').textContent=CM.title+' 🎯';
+  document.getElementById('sr-pct').textContent=`${Math.round(pct*100)} %`;
+  document.getElementById('res-title').innerHTML=CM.title;
+  document.getElementById('recap-count').textContent=`${nb} questions`;
 
   const m=document.getElementById('mention');
-  if(pct===1)     {m.textContent='🏆 Parfait !';                        m.className='mention p';}
-  else if(pct>=.8){m.textContent='🌟 Très bien ! Continue !';            m.className='mention b';}
-  else if(pct>=.6){m.textContent='💪 Pas mal, continue à t\'entraîner.'; m.className='mention m';}
-  else            {m.textContent='📚 Il faut encore travailler !';        m.className='mention e';}
+  if(pct===1)     {m.innerHTML='🏆 Parfait, sans faute !';                m.className='mention p';}
+  else if(pct>=.8){m.innerHTML='🌟 Très bien — continue comme ça';        m.className='mention b';}
+  else if(pct>=.6){m.innerHTML='💪 Pas mal, entraîne-toi encore';         m.className='mention m';}
+  else            {m.innerHTML='📚 Il faut encore travailler !';           m.className='mention e';}
 
   function getCorr(q){
     if(CM.ansType==='fraction') return fmtFrac(q.ans.n,q.ans.d);
@@ -770,13 +1134,14 @@ function showResults(){
     return val!==null?val.toString():'—';
   }
 
-  document.getElementById('recap').innerHTML=log.map(({q,val,valD,valTxt,ok})=>`
+  document.getElementById('recap').innerHTML=log.map(({q,val,valD,valTxt,ok},i)=>`
     <div class="rrow">
-      <div class="rop">${q.html} =</div>
+      <div class="n">${i+1}</div>
+      <div class="rop">${q.html}</div>
       <div class="rbadges">
         ${ok?`<span class="bk ok">✓ ${getCorr(q)}</span>`
             :`<span class="bk ko">${getGiven({val,valD,valTxt})}</span>
-              <span class="bk ans">→ ${getCorr(q)}</span>`}
+              <span class="bk ans">${getCorr(q)}</span>`}
       </div>
     </div>`).join('');
 }
