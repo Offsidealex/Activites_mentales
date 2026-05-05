@@ -935,6 +935,18 @@ const MODULES = {
       {html:'5x = 35',ans:7},{html:'3x + 1 = 10',ans:3},{html:'4x − 8 = 0',ans:2},
     ];shuffle(p);return p.slice(0,10);}},
 
+  carre:{group:'Pythagore & racines',color:'#ea580c',icon:'x²',title:'Calculer un carré',desc:'Calculer x² à la calculatrice',tags:['calculatrice','⏱ 20s'],time:20,ansType:'decimal',tol:0.005,note:'📱 Calculatrice autorisée',
+    gen(){const s=n=>Math.round(n*n*1000)/1000;const p=[
+      {html:'3²',ans:9},{html:'4²',ans:16},{html:'5²',ans:25},{html:'6²',ans:36},
+      {html:'7²',ans:49},{html:'8²',ans:64},{html:'9²',ans:81},{html:'11²',ans:121},
+      {html:'12²',ans:144},{html:'13²',ans:169},{html:'15²',ans:225},{html:'20²',ans:400},
+      {html:'25²',ans:625},{html:'30²',ans:900},{html:'45²',ans:2025},{html:'50²',ans:2500},
+      {html:'1,5²',ans:s(1.5)},{html:'2,5²',ans:s(2.5)},{html:'3,5²',ans:s(3.5)},{html:'4,5²',ans:s(4.5)},
+      {html:'0,5²',ans:s(0.5)},{html:'1,2²',ans:s(1.2)},{html:'2,3²',ans:s(2.3)},{html:'3,7²',ans:s(3.7)},
+      {html:'14²',ans:196},{html:'16²',ans:256},{html:'18²',ans:324},{html:'22²',ans:484},
+      {html:'0,4²',ans:s(0.4)},{html:'1,8²',ans:s(1.8)},
+    ];shuffle(p);return p.slice(0,10);}},
+
   racine:{group:'Pythagore & racines',color:'#16a34a',icon:'√',title:'Racine carrée',desc:'Calculer √n à la calculatrice, arrondi à 0,1',tags:['calculatrice','⏱ 25s'],time:25,ansType:'decimal',tol:0.06,note:'📱 Calculatrice autorisée — arrondir à 0,1',
     gen(){const r=n=>Math.round(Math.sqrt(n)*10)/10; const p=[
       {html:'√144',ans:12},{html:'√169',ans:13},{html:'√49',ans:7},{html:'√64',ans:8},
