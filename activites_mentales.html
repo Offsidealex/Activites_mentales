@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activités Mentales</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f4ff;--surface:#fff;--accent:#3b5bdb;--orange:#f76707;--green:#2f9e44;--red:#e03131;--text:#1a1d2e;--muted:#9098b0;--shadow:0 6px 30px rgba(59,91,219,.11);--qc:var(--accent)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.screen{display:none;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;padding:1.5rem;gap:1.3rem}
+.screen.active{display:flex}
+
+/* MENU */
+#s-menu{padding-top:2.5rem}
+.menu-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,8vw,3.5rem);color:var(--accent);letter-spacing:.04em;line-height:1;text-align:center}
+.menu-title span{color:var(--orange)}
+.menu-sub{color:var(--muted);font-weight:700;font-size:.95rem;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;width:100%;max-width:760px}
+.card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:1.3rem;cursor:pointer;border:2.5px solid transparent;transition:transform .15s,box-shadow .15s,border-color .15s;display:flex;flex-direction:column;gap:.55rem}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(59,91,219,.15);border-color:var(--cc,var(--accent))}
+.card-icon{font-size:1.9rem;line-height:1}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.03em;color:var(--cc,var(--accent))}
+.card-desc{font-size:.8rem;color:var(--muted);font-weight:700;line-height:1.4}
+.tags{display:flex;gap:.3rem;flex-wrap:wrap}
+.tag{background:#e8edf8;color:var(--accent);border-radius:20px;padding:.18rem .55rem;font-size:.7rem;font-weight:900;letter-spacing:.05em}
+
+/* QUIZ */
+#s-quiz{padding-top:1.5rem}
+.quiz-top{width:100%;max-width:500px;display:flex;align-items:center;justify-content:space-between}
+.q-label{font-weight:900;font-size:.9rem;color:var(--muted)}
+.score-lv{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--orange);letter-spacing:.04em}
+.progress-track{width:100%;max-width:500px;height:7px;background:#dde3f4;border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;background:var(--qc);border-radius:10px;transition:width .4s ease;width:0%}
+.timer-wrap{position:relative;width:86px;height:86px}
+.t-svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+.t-bg{fill:none;stroke:#dde3f4;stroke-width:7}
+.t-arc{fill:none;stroke:var(--qc);stroke-width:7;stroke-linecap:round;stroke-dasharray:239;stroke-dashoffset:0;transition:stroke-dashoffset .95s linear,stroke .3s}
+.t-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:2rem;transition:color .3s}
+.q-card{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);padding:2.2rem 1.8rem 1.8rem;width:100%;max-width:500px;display:flex;flex-direction:column;align-items:center;gap:1.4rem}
+.q-card.pop{animation:pop .28s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{opacity:0;transform:scale(.9) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.operation{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,11vw,4.8rem);letter-spacing:.02em;line-height:1.1;color:var(--text);text-align:center}
+.operation.sm{font-size:clamp(1.4rem,5vw,2.4rem);font-family:'Nunito',sans-serif;font-weight:900}
+.operation.md{font-size:clamp(2rem,7vw,3.2rem)}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 2px}
+.fr .n{border-bottom:3px solid currentColor;padding:0 4px 2px;min-width:1ch;text-align:center}
+.fr .d{padding:2px 4px 0;min-width:1ch;text-align:center}
+.blk{color:var(--orange)}
+.module-note{font-size:.85rem;font-weight:900;color:var(--muted);background:#f0f4ff;border-radius:8px;padding:.35rem .8rem}
+
+/* Number input */
+.ans-inp{width:160px;padding:.75rem;border-radius:14px;border:3px solid #dde3f4;background:var(--bg);font-family:'Bebas Neue',sans-serif;font-size:2.4rem;text-align:center;color:var(--text);outline:none;transition:border-color .15s,background .15s;-moz-appearance:textfield}
+.ans-inp::-webkit-outer-spin-button,.ans-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.ans-inp:focus{border-color:var(--qc)}
+.ans-inp.good{border-color:var(--green);background:#edf7ee;color:var(--green)}
+.ans-inp.bad{border-color:var(--red);background:#fdeaea;color:var(--red)}
+
+/* Fraction input */
+.frac-field{display:flex;flex-direction:column;align-items:center}
+.frac-inp{width:130px;padding:.65rem;border-radius:12px;border:3px solid #dde3f4;background:var(--bg);font-family:'Bebas Neue',sans-serif;font-size:2.1rem;text-align:center;color:var(--text);outline:none;transition:border-color .15s,background .15s;-moz-appearance:textfield}
+.frac-inp::-webkit-outer-spin-button,.frac-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.frac-inp:focus{border-color:var(--qc)}
+.frac-bar{width:90%;height:3px;background:var(--text);margin:5px 0;border-radius:2px;transition:background .15s}
+.frac-field.good .frac-inp{border-color:var(--green);background:#edf7ee;color:var(--green)}
+.frac-field.good .frac-bar{background:var(--green)}
+.frac-field.bad .frac-inp{border-color:var(--red);background:#fdeaea;color:var(--red)}
+.frac-field.bad .frac-bar{background:var(--red)}
+
+/* Text input */
+.ans-txt{width:100%;max-width:320px;padding:.7rem 1rem;border-radius:14px;border:3px solid #dde3f4;background:var(--bg);font-family:'Nunito',sans-serif;font-weight:700;font-size:1.5rem;text-align:center;color:var(--text);outline:none;transition:border-color .15s}
+.ans-txt:focus{border-color:var(--qc)}
+.ans-txt.good{border-color:var(--green);background:#edf7ee;color:var(--green)}
+.ans-txt.bad{border-color:var(--red);background:#fdeaea;color:var(--red)}
+
+.feedback{font-weight:900;font-size:.95rem;min-height:1.4rem;text-align:center}
+.feedback.good{color:var(--green)}
+.feedback.bad{color:var(--red)}
+.btn-valider{width:100%;padding:.9rem;border-radius:12px;border:none;background:var(--qc);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.05em;cursor:pointer;transition:transform .1s,opacity .2s}
+.btn-valider:hover{transform:translateY(-1px)}
+.btn-valider:disabled{opacity:.35;cursor:default;transform:none}
+/* Oui / Non */
+.yn-row{display:flex;gap:1rem;width:100%}
+.btn-yn{flex:1;padding:1rem;border-radius:14px;border:none;
+  font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.05em;
+  cursor:pointer;transition:transform .1s,opacity .2s}
+.btn-yn:hover{transform:translateY(-2px)}
+.btn-yn.yes{background:var(--green);color:#fff}
+.btn-yn.no{background:var(--red);color:#fff}
+.btn-yn:disabled{opacity:.35;cursor:default;transform:none}
+.btn-back{align-self:flex-start;background:none;border:none;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:900;font-size:.85rem;cursor:pointer;letter-spacing:.05em;padding:.3rem .6rem;border-radius:8px;transition:color .15s}
+.btn-back:hover{color:var(--accent)}
+
+/* RESULTS */
+#s-results{padding-top:2rem}
+.res-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,8vw,3.3rem);color:var(--qc);text-align:center;line-height:1}
+.score-ring{position:relative;width:140px;height:140px}
+.sr-svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+.sr-bg{fill:none;stroke:#dde3f4;stroke-width:9}
+.sr-arc{fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:408;stroke-dashoffset:408;transition:stroke-dashoffset 1s ease,stroke .5s}
+.sr-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sr-score{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;line-height:1}
+.sr-lbl{font-size:.7rem;font-weight:900;color:var(--muted);letter-spacing:.06em}
+.mention{font-size:1rem;font-weight:900;padding:.55rem 1.3rem;border-radius:30px;text-align:center}
+.mention.p{background:#edf7ee;color:var(--green)}
+.mention.b{background:#e8f0ff;color:var(--accent)}
+.mention.m{background:#fff3e8;color:var(--orange)}
+.mention.e{background:#fdeaea;color:var(--red)}
+.recap{width:100%;max-width:500px;background:var(--surface);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;max-height:320px;overflow-y:auto}
+.rrow{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;border-bottom:1px solid var(--bg);font-size:.85rem;gap:.5rem}
+.rrow:last-child{border-bottom:none}
+.rop{font-family:'Nunito',sans-serif;font-weight:700;flex:1;min-width:0}
+.rbadges{display:flex;gap:.4rem;align-items:center;flex-shrink:0}
+.bk{padding:.18rem .5rem;border-radius:6px;font-weight:900;font-size:.8rem}
+.bk.ok{background:#edf7ee;color:var(--green)}
+.bk.ko{background:#fdeaea;color:var(--red)}
+.bk.ans{background:#e8f0ff;color:var(--accent)}
+.btn-row{display:flex;gap:.75rem;width:100%;max-width:500px}
+.btn-replay{flex:1;padding:.95rem;border-radius:12px;border:none;background:var(--qc);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.05em;cursor:pointer;transition:transform .1s}
+.btn-replay:hover{transform:translateY(-1px)}
+.btn-menu{flex:1;padding:.95rem;border-radius:12px;border:2.5px solid var(--qc);background:transparent;color:var(--qc);font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.05em;cursor:pointer;transition:transform .1s}
+.btn-menu:hover{transform:translateY(-1px)}
+</style>
+</head>
+<body>
+
+<!-- MENU -->
+<div id="s-menu" class="screen active">
+  <div class="menu-title">Activités<br><span>Mentales</span></div>
+  <div class="menu-sub">Choisis ton exercice</div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- QUIZ -->
+<div id="s-quiz" class="screen">
+  <button class="btn-back" onclick="goMenu()">← Menu</button>
+  <div class="quiz-top">
+    <div class="q-label" id="q-label">Question 1/10</div>
+    <div class="score-lv" id="score-lv">✓ 0</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
+  <div class="timer-wrap">
+    <svg class="t-svg" viewBox="0 0 86 86" width="86" height="86">
+      <circle class="t-bg" cx="43" cy="43" r="37"/>
+      <circle class="t-arc" id="t-arc" cx="43" cy="43" r="37"/>
+    </svg>
+    <div class="t-num" id="t-num">10</div>
+  </div>
+  <div class="q-card" id="q-card">
+    <div class="operation" id="operation">—</div>
+    <div class="module-note" id="mod-note" style="display:none"></div>
+    <!-- int / decimal -->
+    <div id="int-wrap">
+      <input id="ans" type="number" class="ans-inp" placeholder="?"
+             inputmode="numeric" autocomplete="off"
+             onkeydown="if(event.key==='Enter')valider()">
+    </div>
+    <!-- fraction -->
+    <div id="frac-wrap" style="display:none">
+      <div class="frac-field" id="frac-field">
+        <input id="ans-n" type="number" class="frac-inp" placeholder="?"
+               inputmode="numeric" autocomplete="off"
+               onkeydown="if(event.key==='Enter')document.getElementById('ans-d').focus()">
+        <div class="frac-bar"></div>
+        <input id="ans-d" type="number" class="frac-inp" placeholder="?"
+               inputmode="numeric" autocomplete="off"
+               onkeydown="if(event.key==='Enter')valider()">
+      </div>
+    </div>
+    <!-- text -->
+    <div id="text-wrap" style="display:none">
+      <input id="ans-txt" type="text" class="ans-txt" placeholder="?"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+             onkeydown="if(event.key==='Enter')valider()">
+    </div>
+    <!-- oui / non -->
+    <div id="yn-wrap" style="display:none">
+      <div class="yn-row">
+        <button class="btn-yn yes" id="btn-oui" onclick="process(null,null,'oui',false)">✓ OUI</button>
+        <button class="btn-yn no"  id="btn-non" onclick="process(null,null,'non',false)">✗ NON</button>
+      </div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="btn-valider" id="btn-v" onclick="valider()">VALIDER</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="s-results" class="screen">
+  <div class="res-title" id="res-title">Résultats 🎯</div>
+  <div class="score-ring">
+    <svg class="sr-svg" viewBox="0 0 140 140" width="140" height="140">
+      <circle class="sr-bg" cx="70" cy="70" r="65"/>
+      <circle class="sr-arc" id="sr-arc" cx="70" cy="70" r="65"/>
+    </svg>
+    <div class="sr-inner">
+      <div class="sr-score" id="sr-score">0/10</div>
+      <div class="sr-lbl">RÉPONSES</div>
+    </div>
+  </div>
+  <div class="mention" id="mention"></div>
+  <div class="recap" id="recap"></div>
+  <div class="btn-row">
+    <button class="btn-replay" onclick="replayQuiz()">🔄 REJOUER</button>
+    <button class="btn-menu" onclick="goMenu()">🏠 MENU</button>
+  </div>
+</div>
+
+<script>
+/* ══ HELPERS ══ */
+const F = (n,d) => `<span class="fr"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+const FB  = d => F(`<span class="blk">?</span>`, d);
+const FBD = n => F(n, `<span class="blk">?</span>`);
+const gcd = (a,b) => { a=Math.abs(a); b=Math.abs(b); return b===0?a:gcd(b,a%b); };
+function fmtFrac(n,d){ if(d===1||d===0) return `${n}`; const g=gcd(Math.abs(n),Math.abs(d)); return `${n/g}/${d/g}`; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];} }
+
+/* ══ POLYNOMIAL CHECKER (for text answers) ══ */
+function normExpr(s, v) {
+  return s.toLowerCase()
+    .replace(/\s+/g,'')
+    .replace(/²/g,'**2')
+    .replace(/\^2/g,'**2')
+    .replace(/([0-9])([a-z])/g,'$1*$2')
+    .replace(/([a-z])\*\*2/g, `(${v})**2`)  // handle x**2 after var sub
+    .replace(new RegExp(v,'g'), `(${v})`);
+}
+function evalAt(s, v, val) {
+  try {
+    const n = s.toLowerCase()
+      .replace(/\s+/g,'')
+      .replace(/²/g,'**2').replace(/\^2/g,'**2')
+      .replace(/([0-9])([a-z])/g,'$1*$2')
+      .replace(new RegExp(v,'g'), String(val));
+    return new Function(`return (${n})`)();
+  } catch(e){ return NaN; }
+}
+function polyEqual(student, canonical) {
+  const vMatch = canonical.toLowerCase().match(/[a-z]/);
+  const v = vMatch ? vMatch[0] : 'x';
+  const pts = [0,1,2,3,-1,0.7];
+  return pts.every(p => {
+    const v1 = evalAt(student, v, p);
+    const v2 = evalAt(canonical, v, p);
+    return isFinite(v1) && isFinite(v2) && Math.abs(v1-v2) < 0.001;
+  });
+}
+
+/* ══ MODULES ══ */
+const MODULES = {
+
+  mult:{color:'#3b5bdb',icon:'✖️',title:'Tables de multiplication',desc:'Tables de 2 à 9 mélangées',tags:['× 2 à × 9','aléatoire','⏱ 10s'],time:10,ansType:'int',
+    gen(){const p=[];for(let a=2;a<=9;a++)for(let b=2;b<=9;b++)p.push({html:`${a} × ${b}`,ans:a*b});shuffle(p);return p.slice(0,10);}},
+
+  add_rel:{color:'#0c8599',icon:'➕',title:'Addition de relatifs',desc:'Additions avec entiers relatifs',tags:['relatifs','⏱ 10s'],time:10,ansType:'int',
+    gen(){const p=[
+      {html:'3 + 7',ans:10},{html:'3 + 6',ans:9},{html:'(−3) + 9',ans:6},{html:'(−3) + 7',ans:4},
+      {html:'2 + (−7)',ans:-5},{html:'4 + (−7)',ans:-3},{html:'9 + (−8)',ans:1},{html:'9 + (−6)',ans:3},
+      {html:'(−3) + (−5)',ans:-8},{html:'(−5) + (−4)',ans:-9},{html:'(−4) + 5',ans:1},{html:'(−6) + 5',ans:-1},
+      {html:'(−40) + 2',ans:-38},{html:'(−20) + 6',ans:-14},{html:'36 + (−7)',ans:29},{html:'32 + (−6)',ans:26},
+      {html:'3 + (−8)',ans:-5},{html:'9 + (−6)',ans:3},{html:'(−15) + (−3)',ans:-18},{html:'(−12) + (−4)',ans:-16},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  mult_rel:{color:'#7048e8',icon:'✖️',title:'Multiplication de relatifs',desc:'Multiplications avec entiers relatifs',tags:['relatifs','⏱ 15s'],time:15,ansType:'int',
+    gen(){const p=[
+      {html:'3 × 7',ans:21},{html:'3 × 6',ans:18},{html:'(−3) × 9',ans:-27},{html:'(−3) × 7',ans:-21},
+      {html:'2 × (−7)',ans:-14},{html:'4 × (−7)',ans:-28},{html:'9 × (−8)',ans:-72},{html:'9 × (−6)',ans:-54},
+      {html:'(−3) × (−5)',ans:15},{html:'(−5) × (−4)',ans:20},{html:'4 × 5',ans:20},{html:'6 × 8',ans:48},
+      {html:'400 × (−2)',ans:-800},{html:'200 × (−6)',ans:-1200},{html:'6 × (−7)',ans:-42},{html:'2 × (−9)',ans:-18},
+      {html:'3 × (−8)',ans:-24},{html:'9 × (−6)',ans:-54},{html:'15 × (−3)',ans:-45},{html:'12 × (−4)',ans:-48},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  frac_equiv:{color:'#f76707',icon:'🔢',title:'Fractions équivalentes',desc:'Trouver le numérateur manquant',tags:['fractions','⏱ 30s'],time:30,ansType:'int',
+    gen(){const p=[
+      {html:`${F(1,2)} = ${FB(4)}`,ans:2},{html:`${F(1,5)} = ${FB(10)}`,ans:2},
+      {html:`${F(4,5)} = ${FB(10)}`,ans:8},{html:`${F(6,2)} = ${FB(4)}`,ans:12},
+      {html:`${F(7,8)} = ${FB(16)}`,ans:14},{html:`${F(6,7)} = ${FB(14)}`,ans:12},
+      {html:`${F(3,8)} = ${FB(24)}`,ans:9},{html:`${F(5,6)} = ${FB(30)}`,ans:25},
+      {html:`${F(12,5)} = ${FB(30)}`,ans:72},{html:`${F(12,6)} = ${FB(36)}`,ans:72},
+      {html:`${F(15,8)} = ${FB(40)}`,ans:75},{html:`${F(12,7)} = ${FB(21)}`,ans:36},
+      {html:`${F(4,6)} = ${FB(48)}`,ans:32},{html:`${F(5,6)} = ${FB(42)}`,ans:35},
+      {html:`${F(14,12)} = ${FB(24)}`,ans:28},{html:`${F(15,11)} = ${FB(22)}`,ans:30},
+      {html:`${F(11,9)} = ${FB(72)}`,ans:88},{html:`${F(12,9)} = ${FB(81)}`,ans:108},
+      {html:`${F(6,8)} = ${FB(56)}`,ans:42},{html:`${F(8,7)} = ${FB(56)}`,ans:64},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  arrondir:{color:'#2f9e44',icon:'🎯',title:'Arrondir au dixième',desc:'Arrondir des fractions à 0,1',tags:['fractions','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.051,note:'📱 Utilise ta calculatrice',
+    gen(){const r=(n,d)=>Math.round(n/d*10)/10;const p=[
+      {html:F(3,7),ans:r(3,7)},{html:F(6,14),ans:r(6,14)},{html:F(6,9),ans:r(6,9)},{html:F(5,13),ans:r(5,13)},
+      {html:F(50,23),ans:r(50,23)},{html:F(100,62),ans:r(100,62)},{html:F(12,59),ans:r(12,59)},{html:F(15,4),ans:r(15,4)},
+      {html:F(15,3),ans:r(15,3)},{html:F(18,6),ans:r(18,6)},{html:F(16,19),ans:r(16,19)},{html:F(17,20),ans:r(17,20)},
+      {html:F(160,9),ans:r(160,9)},{html:F(185,3),ans:r(185,3)},{html:F(3214,3215),ans:r(3214,3215)},
+      {html:F(3215,3216),ans:r(3215,3216)},{html:F(0,4),ans:0},{html:F(0,3),ans:0},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  add_frac:{color:'#e03131',icon:'➕',title:'Addition de fractions',desc:'Calculer la somme de deux fractions',tags:['fractions','⏱ 30s'],time:30,ansType:'fraction',
+    gen(){const p=[
+      {html:`${F(1,5)} + ${F(1,3)}`,ans:{n:8,d:15}},{html:`${F(1,7)} + ${F(1,3)}`,ans:{n:10,d:21}},
+      {html:`${F(3,7)} + ${F(4,3)}`,ans:{n:37,d:21}},{html:`${F(5,7)} + ${F(2,3)}`,ans:{n:29,d:21}},
+      {html:`${F(7,3)} + ${F(9,4)}`,ans:{n:55,d:12}},{html:`${F(6,7)} + ${F(9,5)}`,ans:{n:93,d:35}},
+      {html:`7 + ${F(1,4)}`,ans:{n:29,d:4}},{html:`6 + ${F(1,5)}`,ans:{n:31,d:5}},
+      {html:`${F(1,4)} + ${F(1,4)}`,ans:{n:1,d:2}},{html:`${F(1,5)} + ${F(1,5)}`,ans:{n:2,d:5}},
+      {html:`${F(2,3)} + ${F(2,6)}`,ans:{n:1,d:1}},{html:`${F(3,5)} + ${F(4,10)}`,ans:{n:1,d:1}},
+      {html:`${F(14,2)} + ${F(1,2)}`,ans:{n:15,d:2}},{html:`${F(15,5)} + ${F(1,5)}`,ans:{n:16,d:5}},
+      {html:`${F(2,7)} + ${F(3,5)}`,ans:{n:31,d:35}},{html:`${F(2,7)} + ${F(4,5)}`,ans:{n:38,d:35}},
+      {html:`${F(1,3)} + ${F(1,6)}`,ans:{n:1,d:2}},{html:`${F(15,4)} + ${F(1,2)}`,ans:{n:17,d:4}},
+      {html:`${F(0,4)} + ${F(1,3)}`,ans:{n:1,d:3}},{html:`${F(0,3)} + ${F(1,4)}`,ans:{n:1,d:4}},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  mult_frac:{color:'#3b5bdb',icon:'✖️',title:'Multiplication de fractions',desc:'Calculer le produit de deux fractions',tags:['fractions','⏱ 15s'],time:15,ansType:'fraction',
+    gen(){const p=[
+      {html:`${F(7,4)} × ${F(7,4)}`,ans:{n:49,d:16}},{html:`${F(9,8)} × ${F(1,8)}`,ans:{n:9,d:64}},
+      {html:`${F(9,2)} × ${F(7,8)}`,ans:{n:63,d:16}},{html:`${F(2,9)} × ${F(8,7)}`,ans:{n:16,d:63}},
+      {html:`${F(8,4)} × ${F(4,9)}`,ans:{n:8,d:9}},{html:`${F(6,8)} × ${F(8,6)}`,ans:{n:1,d:1}},
+      {html:`${F(8,3)} × ${F(8,7)}`,ans:{n:64,d:21}},{html:`${F(1,2)} × ${F(7,4)}`,ans:{n:7,d:8}},
+      {html:`${F(9,4)} × ${F(5,2)}`,ans:{n:45,d:8}},{html:`${F(3,8)} × ${F(16,3)}`,ans:{n:2,d:1}},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  /* ══ NEW MODULES ══ */
+
+  moyenne:{color:'#0c8599',icon:'📊',title:'Calcul de moyenne',desc:'Calculer la moyenne d\'une série',tags:['stats','⏱ 30s'],time:30,ansType:'decimal',tol:0.01,note:'📊 Calcule la moyenne',
+    gen(){const p=[
+      {html:'1 ; 2 ; 3',ans:2},{html:'1,5 ; 2,5 ; 4,5 ; 1,5',ans:2.5},
+      {html:'15 ; 25 ; 45 ; 15',ans:25},{html:'16 ; 18 ; 13 ; 12 ; 11',ans:14},
+      {html:'78 ; 88 ; 98 ; 28 ; 18',ans:62},{html:'185 ; 12 ; 8 ; 255',ans:115},
+      {html:'11 ; 12 ; 10 ; 13 ; 14 ; 15',ans:12.5},{html:'11,5 ; 12,5 ; 12 ; 12 ; 12 ; 12',ans:12},
+      {html:'11 ; 12 ; 13 ; 9 ; 4 ; 3 ; 18',ans:10},{html:'9,5 ; 13 ; 19 ; 9,5 ; 4,5 ; 3,5 ; 18',ans:11},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  conv_long:{color:'#ae3ec9',icon:'📏',title:'Conversions de longueurs',desc:'Convertir des longueurs (cm, dm, m, mm)',tags:['longueurs','⏱ 25s'],time:25,ansType:'decimal',tol:1e-9,
+    gen(){const p=[
+      {html:'440 cm → m',ans:4.4},{html:'650 cm → m',ans:6.5},{html:'300 dm → m',ans:30},{html:'400 dm → m',ans:40},
+      {html:'5,9 cm → m',ans:0.059},{html:'3,3 cm → m',ans:0.033},{html:'85 cm → m',ans:0.85},{html:'56 cm → m',ans:0.56},
+      {html:'144 cm → m',ans:1.44},{html:'123 cm → m',ans:1.23},{html:'0,22 m → mm',ans:220},{html:'0,23 m → mm',ans:230},
+      {html:'240 cm → m',ans:2.4},{html:'125 cm → m',ans:1.25},{html:'6 cm → m',ans:0.06},{html:'8 cm → m',ans:0.08},
+      {html:'0,6 mm → m',ans:0.0006},{html:'0,8 mm → m',ans:0.0008},{html:'2 300 mm → m',ans:2.3},{html:'2 500 mm → m',ans:2.5},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  pourcentages:{color:'#f76707',icon:'%',title:'Pourcentages',desc:'Exprimer une proportion en %',tags:['%','⏱ 25s'],time:25,ansType:'int',note:'📊 Réponse en %',smallFont:true,
+    gen(){const r=(a,b)=>Math.round(a/b*100);const p=[
+      {html:'3 chats sur 10',ans:30},{html:'21 L sur 100 L',ans:21},{html:'8 kg sur 10 kg',ans:80},
+      {html:'100 € sur 500 €',ans:20},{html:'5 km sur 20 km',ans:25},{html:'490 km sur 1 000 km',ans:49},
+      {html:'15 g sur 240 g',ans:r(15,240)},{html:'120 cm sur 280 cm',ans:r(120,280)},
+      {html:'120 élèves sur 5 000',ans:r(120,5000)},{html:'120 g sur 840 g',ans:r(120,840)},
+      {html:'240 élèves sur 500',ans:48},{html:'120 cm sur 160 cm',ans:75},
+      {html:'10 g sur 1 000 g',ans:1},{html:'12 km sur 20 km',ans:60},
+      {html:'0,5 kg sur 1 kg',ans:50},{html:'3 élèves sur 10',ans:30},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  etendue:{color:'#2f9e44',icon:'📐',title:'Étendue d\'une série',desc:'Calculer l\'étendue de chaque série',tags:['stats','⏱ 30s'],time:30,ansType:'decimal',tol:0.005,note:'📐 Étendue = max − min',smallFont:true,
+    gen(){const ext=a=>{const n=a.map(Number);return Math.max(...n)-Math.min(...n);};const p=[
+      {html:'{1 ; 2 ; 3 ; 4 ; 5}',ans:4},{html:'{120 ; 102 ; 130 ; 104 ; 105}',ans:28},
+      {html:'{410 ; 402 ; 440 ; 455 ; 405}',ans:53},{html:'{1,2 ; 1,01 ; 1,3 ; 1,4 ; 1,06}',ans:0.39},
+      {html:'{4,1 ; 4,01 ; 4,4 ; 4,6 ; 4,06}',ans:0.59},{html:'{9 ; 8,9 ; 1,6 ; 7,64 ; 5,38}',ans:7.4},
+      {html:'{8 ; 7,9 ; 1,5 ; 8,64 ; 5,65}',ans:7.14},{html:'{87 ; 89 ; 85 ; 86 ; 84}',ans:5},
+      {html:'{78 ; 79 ; 75 ; 77 ; 76}',ans:4},{html:'{102,1 ; 1 110 ; 12,8 ; 105,3 ; 115,4}',ans:1097.2},
+      {html:'{141,8 ; 1 327 ; 129,7 ; 234,8 ; 2,56}',ans:1324.44},
+      {html:'{2,1 ; 11 ; 2,8 ; 15,3 ; 15,04}',ans:13.2},{html:'{11,8 ; 2,09 ; 12,7 ; 2,8 ; 2,6}',ans:10.61},
+      {html:'{2,1 ; 11 ; 2,8 ; 15,3 ; 15,44}',ans:13.34},{html:'{11,9 ; 2,09 ; 12,77 ; 2,8 ; 2,6}',ans:10.68},
+      {html:'{12,5 ; 101 ; 12,8 ; 15,3 ; 5,4}',ans:95.6},{html:'{11,8 ; 2,9 ; 2,7 ; 2,8 ; 1,6}',ans:10.2},
+      {html:'{2,501 ; 2,150 ; 2,015 ; 2,051 ; 2,510}',ans:0.495},{html:'{3,804 ; 3,408 ; 3,840 ; 3,084 ; 3,048}',ans:0.792},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  probas:{color:'#e03131',icon:'🃏',title:'Probabilités — 32 cartes',desc:'Probabilités dans un jeu de 32 cartes',tags:['probas','fractions','⏱ 20s'],time:20,ansType:'fraction',note:'🃏 Jeu de 32 cartes (7 à As)',
+    gen(){const p=[
+      {html:'tirer le 7 de trèfle',ans:{n:1,d:32}},{html:'tirer le 8 de pique',ans:{n:1,d:32}},
+      {html:'tirer un 7 rouge',ans:{n:1,d:16}},{html:'tirer un 8 noir',ans:{n:1,d:16}},
+      {html:'tirer un trèfle ♣',ans:{n:1,d:4}},{html:'tirer un pique ♠',ans:{n:1,d:4}},
+      {html:'tirer une carte rouge',ans:{n:1,d:2}},{html:'tirer une carte noire',ans:{n:1,d:2}},
+      {html:'tirer un Roi',ans:{n:1,d:8}},{html:'tirer un As',ans:{n:1,d:8}},
+      {html:'tirer un 2 rouge',ans:{n:0,d:1}},{html:'tirer un 2 noir',ans:{n:0,d:1}},
+      {html:'tirer un habillé (J, Q ou K)',ans:{n:3,d:8}},{html:'tirer une carte à numéro (7 à 10)',ans:{n:1,d:2}},
+      {html:'tirer une rouge OU une noire',ans:{n:1,d:1}},{html:'tirer une rouge ET une noire',ans:{n:0,d:1}},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  expressions:{color:'#7048e8',icon:'🔣',title:'Calcul d\'expressions',desc:'Calculer une expression algébrique',tags:['algèbre','⏱ 25s'],time:25,ansType:'int',smallFont:true,
+    gen(){const p=[
+      {html:'a=1, b=4 → a+b',ans:5},{html:'a=4, b=1 → a+b',ans:5},
+      {html:'a=2, b=3 → ab',ans:6},{html:'a=5, b=2 → ab',ans:10},
+      {html:'a=5 → 5+a²',ans:30},{html:'a=3 → 5+a²',ans:14},
+      {html:'a=3 → 1+5a²',ans:46},{html:'a=2 → 1+5a²',ans:21},
+      {html:'a=3, b=5 → 3a+2b',ans:19},{html:'a=2, b=5 → 3a+2b',ans:16},
+      {html:'a=5, b=6 → a²+2b',ans:37},{html:'a=3, b=7 → a²+2b',ans:23},
+      {html:'a=3, b=4 → a²+b²',ans:25},{html:'a=4, b=3 → a²+b²',ans:25},
+      {html:'a=5, b=2 → b²+3a',ans:19},{html:'a=4, b=2 → b²+3a',ans:16},
+      {html:'a=5, b=2 → 2b²+5a',ans:33},{html:'a=4, b=2 → 2b²+5a',ans:28},
+      {html:'a=1, b=1 → 3a(a+2b)',ans:9},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  mult10:{color:'#ae3ec9',icon:'×',title:'Multiplier par 10, 100, 1 000',desc:'Multiplications par puissances de 10',tags:['calcul','⏱ 20s'],time:20,ansType:'int',
+    gen(){const p=[
+      {html:'100 × 596',ans:59600},{html:'614 × 10',ans:6140},{html:'121 × 100',ans:12100},
+      {html:'880 × 10',ans:8800},{html:'445 × 10',ans:4450},{html:'10 × 569',ans:5690},
+      {html:'100 × 510',ans:51000},{html:'100 × 837',ans:83700},{html:'850 × 10',ans:8500},
+      {html:'727 × 100',ans:72700},{html:'10 × 850',ans:8500},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  reductions:{color:'#0c8599',icon:'✏️',title:'Réductions d\'expressions',desc:'Réduire une expression algébrique',tags:['algèbre','⏱ 40s'],time:40,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
+    gen(){const p=[
+      {html:'2x + 3 − x + 5',ans:'x+8'},{html:'2x + 4 − x + 2',ans:'x+6'},
+      {html:'2x + 3 − x + 2',ans:'x+5'},{html:'2x + 4 − x + 3',ans:'x+7'},
+      {html:'−x + 2 + 3x + 8',ans:'2x+10'},{html:'−x + 4 + 4x + 6',ans:'3x+10'},
+      {html:'3b + 2 − 5b − 3',ans:'-2b-1'},{html:'−4b + 4 + 5b + 6',ans:'b+10'},
+      {html:'−3x + 2 + 3x + 8',ans:'10'},{html:'−4x + 2 + 4x + 8',ans:'10'},
+      {html:'3x² + 2 + x² + 5',ans:'4x^2+7'},{html:'4x² + 2 + x² + 7',ans:'5x^2+9'},
+      {html:'3x² + x + x² + 5x + 8',ans:'4x^2+6x+8'},{html:'2x² + x + x² + 4x + 5',ans:'3x^2+5x+5'},
+      {html:'3x² + x − x² − 2x',ans:'2x^2-x'},{html:'4x² + x − x² − 3x',ans:'3x^2-2x'},
+      {html:'−x² + x + 3x² − 2x',ans:'2x^2-x'},{html:'−x² + 5x − 4x² − 2x',ans:'-5x^2+3x'},
+      {html:`${F('18x',9)} + ${F(15,3)} + ${F('6x',2)} + 1`,ans:'5x+6'},
+      {html:`${F('9x',3)} + ${F(12,6)} + ${F('15x',5)} + 1`,ans:'6x+3'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  dev_simple:{color:'#ae3ec9',icon:'📐',title:'Développement simple',desc:'Développer avec un seul facteur',tags:['algèbre','⏱ 30s'],time:30,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
+    gen(){const p=[
+      {html:'3(x + 2)',ans:'3x+6'},{html:'3(x + 5)',ans:'3x+15'},
+      {html:'4(x − 3)',ans:'4x-12'},{html:'2(x − 7)',ans:'2x-14'},
+      {html:'5(2x + 1)',ans:'10x+5'},{html:'3(4x + 2)',ans:'12x+6'},
+      {html:'−2(x + 3)',ans:'-2x-6'},{html:'−3(x + 4)',ans:'-3x-12'},
+      {html:'−4(x − 2)',ans:'-4x+8'},{html:'−5(x − 3)',ans:'-5x+15'},
+      {html:'x(x + 2)',ans:'x^2+2x'},{html:'x(x + 5)',ans:'x^2+5x'},
+      {html:'x(x − 3)',ans:'x^2-3x'},{html:'x(x − 7)',ans:'x^2-7x'},
+      {html:'2x(x + 3)',ans:'2x^2+6x'},{html:'3x(x + 4)',ans:'3x^2+12x'},
+      {html:'2x(x − 5)',ans:'2x^2-10x'},{html:'4x(x − 2)',ans:'4x^2-8x'},
+      {html:'−x(x + 4)',ans:'-x^2-4x'},{html:'−2x(x − 3)',ans:'-2x^2+6x'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  dev_double:{color:'#e03131',icon:'📐',title:'Développement double',desc:'Développer et réduire deux facteurs',tags:['algèbre','⏱ 50s'],time:50,ansType:'text',note:'✏️ Format : ax²+bx+c (utilise ^ pour ²)',smallFont:true,
+    gen(){const p=[
+      {html:'(x+2)(x+1)',ans:'x^2+3x+2'},{html:'(x+2)(x+3)',ans:'x^2+5x+6'},
+      {html:'(x+5)(x+1)',ans:'x^2+6x+5'},{html:'(2x+2)(x+1)',ans:'2x^2+4x+2'},
+      {html:'(x+2)(x−1)',ans:'x^2+x-2'},{html:'(x−2)(x+1)',ans:'x^2-x-2'},
+      {html:'(x−2)(x−1)',ans:'x^2-3x+2'},{html:'(x−1)(x−2)',ans:'x^2-3x+2'},
+      {html:'(x+2)(2x−1)',ans:'2x^2+3x-2'},{html:'(x−2)(2x+1)',ans:'2x^2-3x-2'},
+      {html:'(x−1)(x−1)',ans:'x^2-2x+1'},{html:'(x−1)(x+1)',ans:'x^2-1'},
+      {html:'(3x+1)(x−3)',ans:'3x^2-8x-3'},{html:'(3x−1)(x+3)',ans:'3x^2+8x-3'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  /* ══ BATCH 3 MODULES ══ */
+
+  pcx1:{color:'#0c8599',icon:'⚖️',title:'Produit en croix — Niv.1',desc:'Trouver le numérateur manquant (entier)',tags:['proportionnalité','⏱ 20s'],time:20,ansType:'int',
+    gen(){const p=[
+      {html:`${F(1,2)} = ${FB(4)}`,ans:2},{html:`${F(6,3)} = ${FB(5)}`,ans:10},
+      {html:`${F(1,4)} = ${FB(12)}`,ans:3},{html:`${F(2,5)} = ${FB(40)}`,ans:16},
+      {html:`${F(3,5)} = ${FB(60)}`,ans:36},{html:`${F(5,8)} = ${FB(80)}`,ans:50},
+      {html:`${F(6,7)} = ${FB(70)}`,ans:60},{html:`${F(4,12)} = ${FB(9)}`,ans:3},
+      {html:`${F(13,14)} = ${FB(98)}`,ans:91},{html:`${F(5,20)} = ${FB(4)}`,ans:1},
+      {html:`${F(8,17)} = ${FB(85)}`,ans:40},{html:`${F(18,23)} = ${FB(138)}`,ans:108},
+      {html:`${F(17,16)} = ${FB(48)}`,ans:51},{html:`${F(17,85)} = ${FB(340)}`,ans:68},
+      {html:`${F(51,17)} = ${FB(136)}`,ans:408},{html:`${F(15,210)} = ${FB(98)}`,ans:7},
+      {html:`${F(1,32)} = ${FB(256)}`,ans:8},{html:`${F(187,132)} = ${FB(12)}`,ans:17},
+      {html:`${F(20,235)} = ${FB(94)}`,ans:8},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  pcx2:{color:'#7048e8',icon:'⚖️',title:'Produit en croix — Niv.2',desc:'Valeur manquante (résultat décimal OK)',tags:['proportionnalité','⏱ 20s'],time:20,ansType:'decimal',tol:0.2,note:'📱 Arrondi accepté',smallFont:true,
+    gen(){const p=[
+      {html:`${F(1,8)} = ${FB(4)}`,ans:0.5},{html:`${F(1,20)} = ${FB(4)}`,ans:0.2},
+      {html:`${FBD(3)} = ${F(9,5)}`,ans:5.4},{html:`${FBD(15)} = ${F(12,24)}`,ans:7.5},
+      {html:`${FBD(20)} = ${F(10,40)}`,ans:80},{html:`${FBD(30)} = ${F(360,180)}`,ans:15},
+      {html:`${F(5,8)} = ${F(14,'?')}`,ans:22.4},{html:`${F(5,7)} = ${FB(14)}`,ans:10},
+      {html:`${F(40,12)} = ${FB(9)}`,ans:30},{html:`${F(25,15)} = ${FB(9)}`,ans:15},
+      {html:`${F(12,20)} = ${FB(9)}`,ans:5.4},{html:`${F(24,40)} = ${FB(9)}`,ans:5.4},
+      {html:`${FBD(21)} = ${F(45,6)}`,ans:2.8},{html:`${F(16,85)} = ${F(6,'?')}`,ans:31.9},
+      {html:`${F(9.6,2.1)} = ${FB(0.7)}`,ans:3.2},{html:`${F(9.6,3.2)} = ${FB(1.4)}`,ans:4.2},
+      {html:`${F(1.85,0.5)} = ${FB(1.22)}`,ans:4.5},{html:`${F(2.01,2.35)} = ${FB(9.4)}`,ans:8},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  pcx3:{color:'#ae3ec9',icon:'⚖️',title:'Produit en croix — Niv.3',desc:'Valeur manquante, arrondi à 0,1',tags:['proportionnalité','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',smallFont:true,
+    gen(){const p=[
+      {html:`${F(1,8)} = ${FB(3)}`,ans:Math.round(1*3/8*10)/10},
+      {html:`${F(1,20)} = ${FB(6)}`,ans:Math.round(1*6/20*10)/10},
+      {html:`${FBD(3)} = ${F(7,5)}`,ans:Math.round(3*7/5*10)/10},
+      {html:`${FBD(5)} = ${F(21,8)}`,ans:Math.round(5*21/8*10)/10},
+      {html:`${FBD(3)} = ${F(7,40)}`,ans:Math.round(3*40/7*10)/10},
+      {html:`${FBD(3)} = ${F(7,20)}`,ans:Math.round(3*20/7*10)/10},
+      {html:`${F(5,7)} = ${F(8,'?')}`,ans:Math.round(7*8/5*10)/10},
+      {html:`${F(5,7)} = ${F(3,'?')}`,ans:Math.round(7*3/5*10)/10},
+      {html:`${F(40,13)} = ${FB(9)}`,ans:Math.round(40*9/13*10)/10},
+      {html:`${F(25,13)} = ${FB(9)}`,ans:Math.round(25*9/13*10)/10},
+      {html:`${F(14,20)} = ${FB(9)}`,ans:Math.round(14*9/20*10)/10},
+      {html:`${FBD(21)} = ${F(45,7)}`,ans:Math.round(21*7/45*10)/10},
+      {html:`${F(16,5)} = ${F(7,'?')}`,ans:Math.round(5*7/16*10)/10},
+      {html:`${F(16,7)} = ${F(3,'?')}`,ans:Math.round(7*3/16*10)/10},
+      {html:`${F(9.9,2.1)} = ${FB(0.3)}`,ans:Math.round(9.9*0.3/2.1*10)/10},
+      {html:`${F(9.9,3.2)} = ${FB(1.4)}`,ans:Math.round(9.9*1.4/3.2*10)/10},
+      {html:`${F(1.9,0.7)} = ${FB(1.2)}`,ans:Math.round(1.9*1.2/0.7*10)/10},
+      {html:`${F(2.1,2.5)} = ${FB(9.4)}`,ans:Math.round(2.1*9.4/2.5*10)/10},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  racine:{color:'#2f9e44',icon:'√',title:'Racine carrée',desc:'Calculer √n, arrondi à 0,1 si nécessaire',tags:['calcul','⏱ 15s'],time:15,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',
+    gen(){const r=n=>Math.round(Math.sqrt(n)*10)/10; const p=[
+      {html:'√144',ans:12},{html:'√169',ans:13},{html:'√49',ans:7},{html:'√64',ans:8},
+      {html:'√131',ans:r(131)},{html:'√125',ans:r(125)},{html:'√9',ans:3},{html:'√4',ans:2},
+      {html:'√18',ans:r(18)},{html:'√41',ans:r(41)},{html:'√1458',ans:r(1458)},{html:'√1248',ans:r(1248)},
+      {html:'√6561',ans:81},{html:'√4096',ans:64},{html:'√219',ans:r(219)},{html:'√214',ans:r(214)},
+      {html:'√324',ans:18},{html:'√361',ans:19},{html:'√12,14',ans:r(12.14)},{html:'√14,12',ans:r(14.12)},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  veq:{color:'#f76707',icon:'✔️',title:'Vérification d\'équation',desc:'x est-il solution de l\'équation ?',tags:['équations','oui/non','⏱ 40s'],time:40,ansType:'yesno',smallFont:true,
+    gen(){const chk=(expr,x)=>{ // evaluate expr at x
+      try{ return Math.abs(new Function('x',`return (${expr.replace(/[^-+*/().\d x]/g,'').replace(/x/g,'('+x+')')})`)(x)) < 0.001; }catch{return false;}
+    };
+    const p=[
+      {html:'2x + 1 = 3 &nbsp;&nbsp; x = 1',ans:'oui'},{html:'2x + 1 = 5 &nbsp;&nbsp; x = 2',ans:'oui'},
+      {html:'2x + 8 = 10 &nbsp;&nbsp; x = 1',ans:'oui'},{html:'2x + 4 = 5 &nbsp;&nbsp; x = 1',ans:'non'},
+      {html:'4x + 5 = 17 &nbsp;&nbsp; x = 3',ans:'oui'},{html:'3x + 4 = 12 &nbsp;&nbsp; x = 3',ans:'non'},
+      {html:'5x + 4 = 18 &nbsp;&nbsp; x = 3',ans:'non'},{html:'4x + 5 = 25 &nbsp;&nbsp; x = 5',ans:'oui'},
+      {html:'0,5x + 4 = 7 &nbsp;&nbsp; x = 6',ans:'oui'},{html:'0,5x + 4 = 7 &nbsp;&nbsp; x = 4',ans:'non'},
+      {html:'8x + 4 = 28 &nbsp;&nbsp; x = 3',ans:'oui'},{html:'8x + 4 = 36 &nbsp;&nbsp; x = 4',ans:'oui'},
+      {html:'7x + 6 = 28 &nbsp;&nbsp; x = 3',ans:'non'},{html:'7x + 4 = 26 &nbsp;&nbsp; x = 3',ans:'non'},
+      {html:'5x + 5 = 20 &nbsp;&nbsp; x = 3',ans:'oui'},{html:'3x + 4 = 13 &nbsp;&nbsp; x = 3',ans:'oui'},
+      {html:'5 − 3x = 2 &nbsp;&nbsp; x = 1',ans:'oui'},{html:'4 − 2x = 6 &nbsp;&nbsp; x = 1',ans:'non'},
+      {html:'8 − 2x = 10 &nbsp;&nbsp; x = −1',ans:'oui'},{html:'7 − 8x = 15 &nbsp;&nbsp; x = −1',ans:'oui'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  eq_res:{color:'#0c8599',icon:'🔢',title:'Résolution d\'équations',desc:'Trouver la valeur de x',tags:['équations','⏱ 20s'],time:20,ansType:'decimal',tol:0.01,smallFont:true,
+    gen(){const p=[
+      {html:'2x + 1 = 5',ans:2},{html:'2x + 4 = 16',ans:6},{html:'3x + 4 = 16',ans:4},
+      {html:'4x + 5 = 25',ans:5},{html:'0,5x + 3 = 7',ans:8},{html:'8x + 4 = 36',ans:4},
+      {html:'7x = 63',ans:9},{html:'4x + 4 = 12',ans:2},{html:'2x + 2 = 6',ans:2},
+      {html:'2x + 19 = 20',ans:0.5},{html:'5x − 3 = 12',ans:3},{html:'3x − 7 = 8',ans:5},
+      {html:'6x + 1 = 25',ans:4},{html:'9x − 9 = 0',ans:1},{html:'2x = 14',ans:7},
+      {html:'5x = 35',ans:7},{html:'3x + 1 = 10',ans:3},{html:'4x − 8 = 0',ans:2},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  pyth_verif:{color:'#e03131',icon:'📐',title:'Vérifier Pythagore',desc:'Le triangle est-il rectangle ? (BC = hyp.)',tags:['Pythagore','oui/non','⏱ 30s'],time:30,ansType:'yesno',smallFont:true,
+    gen(){const chk=(a,b,c)=>a*a+b*b===c*c;const p=[
+      {html:'AB=3, AC=4, BC=5',ans:chk(3,4,5)?'oui':'non'},
+      {html:'AB=3, AC=5, BC=7',ans:chk(3,5,7)?'oui':'non'},
+      {html:'AB=3, AC=6, BC=8',ans:chk(3,6,8)?'oui':'non'},
+      {html:'AB=6, AC=8, BC=10',ans:chk(6,8,10)?'oui':'non'},
+      {html:'AB=6, AC=8, BC=11',ans:chk(6,8,11)?'oui':'non'},
+      {html:'AB=5, AC=13, BC=16',ans:chk(5,13,16)?'oui':'non'},
+      {html:'AB=5, AC=12, BC=13',ans:chk(5,12,13)?'oui':'non'},
+      {html:'AB=10, AC=25, BC=26',ans:chk(10,25,26)?'oui':'non'},
+      {html:'AB=10, AC=24, BC=26',ans:chk(10,24,26)?'oui':'non'},
+      {html:'AB=9, AC=12, BC=15',ans:chk(9,12,15)?'oui':'non'},
+      {html:'AB=18, AC=24, BC=30',ans:chk(18,24,30)?'oui':'non'},
+      {html:'AB=24, AC=17, BC=30',ans:chk(24,17,30)?'oui':'non'},
+      {html:'AB=15, AC=25, BC=20',ans:chk(15,25,20)?'oui':'non'},
+      {html:'AB=15, AC=20, BC=25',ans:chk(15,20,25)?'oui':'non'},
+      {html:'AB=20, AC=21, BC=29',ans:chk(20,21,29)?'oui':'non'},
+      {html:'AB=12, AC=16, BC=20',ans:chk(12,16,20)?'oui':'non'},
+      {html:'AB=8, AC=15, BC=17',ans:chk(8,15,17)?'oui':'non'},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  pyth_hyp:{color:'#7048e8',icon:'📐',title:'Calculer l\'hypoténuse',desc:'BC² = AB² + AC², arrondi à 0,1',tags:['Pythagore','calc.','⏱ 40s'],time:40,ansType:'decimal',tol:0.06,note:'📱 Arrondir à 0,1',smallFont:true,
+    gen(){const h=(a,b)=>Math.round(Math.sqrt(a*a+b*b)*10)/10;const p=[
+      {html:'AB=3, AC=4',ans:h(3,4)},{html:'AB=6, AC=8',ans:h(6,8)},
+      {html:'AB=8, AC=15',ans:h(8,15)},{html:'AB=9, AC=12',ans:h(9,12)},
+      {html:'AB=10, AC=24',ans:h(10,24)},{html:'AB=14, AC=48',ans:h(14,48)},
+      {html:'AB=12, AC=16',ans:h(12,16)},{html:'AB=11, AC=60',ans:h(11,60)},
+      {html:'AB=20, AC=20',ans:h(20,20)},{html:'AB=8, AC=10',ans:h(8,10)},
+      {html:'AB=5, AC=12',ans:h(5,12)},{html:'AB=7, AC=24',ans:h(7,24)},
+      {html:'AB=9, AC=40',ans:h(9,40)},{html:'AB=6, AC=8',ans:h(6,8)},
+      {html:'AB=15, AC=20',ans:h(15,20)},{html:'AB=3, AC=3',ans:h(3,3)},
+    ];shuffle(p);return p.slice(0,10);}},
+
+  pct_arrondi:{color:'#f76707',icon:'%',title:'Calculer un pourcentage',desc:'a par rapport à b, arrondi à 0,01',tags:['%','calc.','⏱ 20s'],time:20,ansType:'decimal',tol:0.6,note:'📱 Réponse en % (ex: 33,33)',smallFont:true,
+    gen(){const r=(a,b)=>Math.round(a/b*10000)/100;const p=[
+      {html:'20 par rapport à 100',ans:20},{html:'30 par rapport à 100',ans:30},
+      {html:'15 par rapport à 50',ans:30},{html:'10 par rapport à 50',ans:20},
+      {html:'12 par rapport à 48',ans:25},{html:'15 par rapport à 60',ans:25},
+      {html:'11 par rapport à 110',ans:10},{html:'13 par rapport à 130',ans:10},
+      {html:'7 par rapport à 140',ans:5},{html:'8 par rapport à 160',ans:5},
+      {html:'15 par rapport à 180',ans:r(15,180)},{html:'17 par rapport à 160',ans:r(17,160)},
+      {html:'19 par rapport à 20',ans:95},{html:'18 par rapport à 25',ans:72},
+      {html:'0,5 par rapport à 0,75',ans:r(0.5,0.75)},{html:'0,25 par rapport à 1,25',ans:20},
+      {html:'1,25 par rapport à 0,75',ans:r(1.25,0.75)},{html:'2,25 par rapport à 1,25',ans:180},
+      {html:'13,95 par rapport à 25',ans:r(13.95,25)},{html:'19,25 par rapport à 31',ans:r(19.25,31)},
+    ];shuffle(p);return p.slice(0,10);}},
+
+};
+
+/* ══ STATE ══ */
+let CM=null, questions=[], cur=0, good=0, log=[];
+let tInt=null, left=0, done=false;
+
+/* ══ BUILD MENU ══ */
+(function buildMenu(){
+  const grid=document.getElementById('grid');
+  for(const [key,m] of Object.entries(MODULES)){
+    const d=document.createElement('div');
+    d.className='card'; d.style.setProperty('--cc',m.color);
+    d.innerHTML=`<div class="card-icon">${m.icon}</div><div class="card-title">${m.title}</div><div class="card-desc">${m.desc}</div><div class="tags">${m.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+    d.onclick=()=>launchQuiz(key); grid.appendChild(d);
+  }
+})();
+
+/* ══ LAUNCH ══ */
+function launchQuiz(key){
+  CM=MODULES[key];
+  document.documentElement.style.setProperty('--qc',CM.color);
+  questions=CM.gen(); cur=0; good=0; log=[];
+  show('s-quiz'); loadQ();
+}
+function replayQuiz(){ questions=CM.gen(); cur=0; good=0; log=[]; show('s-quiz'); loadQ(); }
+
+/* ══ LOAD QUESTION ══ */
+function loadQ(){
+  done=false;
+  const q=questions[cur], nb=questions.length;
+  document.getElementById('q-label').textContent=`Question ${cur+1} / ${nb}`;
+  document.getElementById('score-lv').textContent=`✓ ${good}`;
+  document.getElementById('pfill').style.width=`${cur/nb*100}%`;
+
+  // Operation display with font class
+  const op=document.getElementById('operation');
+  op.innerHTML=q.html;
+  op.className='operation'+(CM.smallFont?' sm':'');
+
+  // Note
+  const noteEl=document.getElementById('mod-note');
+  if(CM.note){noteEl.textContent=CM.note;noteEl.style.display='';}
+  else noteEl.style.display='none';
+
+  // Show correct input type
+  const isFrac=CM.ansType==='fraction';
+  const isTxt=CM.ansType==='text';
+  const isYN=CM.ansType==='yesno';
+  document.getElementById('int-wrap').style.display=(!isFrac&&!isTxt&&!isYN)?'':'none';
+  document.getElementById('frac-wrap').style.display=isFrac?'':'none';
+  document.getElementById('text-wrap').style.display=isTxt?'':'none';
+  document.getElementById('yn-wrap').style.display=isYN?'':'none';
+  document.getElementById('btn-v').style.display=isYN?'none':'';
+
+  if(isFrac){
+    const fn=document.getElementById('ans-n'), fd=document.getElementById('ans-d');
+    fn.value=''; fd.value=''; fn.className='frac-inp'; fd.className='frac-inp';
+    document.getElementById('frac-field').className='frac-field';
+    fn.disabled=false; fd.disabled=false;
+    setTimeout(()=>fn.focus(),30);
+  } else if(isTxt){
+    const t=document.getElementById('ans-txt');
+    t.value=''; t.className='ans-txt'; t.disabled=false;
+    setTimeout(()=>t.focus(),30);
+  } else if(isYN){
+    document.getElementById('btn-oui').disabled=false;
+    document.getElementById('btn-non').disabled=false;
+  } else {
+    const inp=document.getElementById('ans');
+    inp.value=''; inp.className='ans-inp'; inp.disabled=false;
+    inp.step=CM.ansType==='decimal'?'any':'1';
+    inp.inputMode=CM.ansType==='decimal'?'decimal':'numeric';
+    setTimeout(()=>inp.focus(),30);
+  }
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('btn-v').disabled=false;
+  const card=document.getElementById('q-card');
+  card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+  startTimer();
+}
+
+/* ══ TIMER ══ */
+function startTimer(){
+  clearInterval(tInt); left=CM.time; updateTimer(left);
+  tInt=setInterval(()=>{ left--; updateTimer(left); if(left<=0){clearInterval(tInt);process(null,null,null,true);}},1000);
+}
+function updateTimer(t){
+  const circ=2*Math.PI*37, arc=document.getElementById('t-arc'), num=document.getElementById('t-num');
+  arc.style.strokeDashoffset=circ*(1-t/CM.time);
+  const c=t<=3?'var(--red)':t<=5?'var(--orange)':'var(--qc)';
+  arc.style.stroke=c; num.style.color=c; num.textContent=t;
+}
+
+/* ══ VALIDATE ══ */
+function valider(){
+  if(done) return;
+  if(CM.ansType==='fraction'){
+    const vn=document.getElementById('ans-n').value.trim();
+    const vd=document.getElementById('ans-d').value.trim();
+    if(vn===''||vd==='') return;
+    process(parseInt(vn),parseInt(vd),null,false);
+  } else if(CM.ansType==='text'){
+    const v=document.getElementById('ans-txt').value.trim();
+    if(v==='') return;
+    process(null,null,v,false);
+  } else {
+    const v=document.getElementById('ans').value.trim();
+    if(v==='') return;
+    process(CM.ansType==='decimal'?parseFloat(v):parseInt(v),null,null,false);
+  }
+}
+
+function process(val,valD,valTxt,timeout){
+  if(done) return;
+  clearInterval(tInt); done=true;
+  const q=questions[cur];
+  let ok=false;
+
+  if(CM.ansType==='fraction'){
+    if(!timeout&&val!==null&&valD!==null&&valD!==0)
+      ok=(val*q.ans.d===valD*q.ans.n);
+  } else if(CM.ansType==='yesno'){
+    if(!timeout&&valTxt)
+      ok=valTxt.toLowerCase()===q.ans.toLowerCase();
+  } else if(CM.ansType==='text'){
+    if(!timeout&&valTxt)
+      ok=polyEqual(valTxt, q.ans);
+  } else if(CM.ansType==='decimal'){
+    const tol=CM.tol??0.001;
+    if(!timeout&&val!==null)
+      ok=Math.abs(val-q.ans)<tol+Math.abs(q.ans)*0.0001;
+  } else {
+    ok=!timeout&&val!==null&&val===q.ans;
+  }
+
+  if(ok) good++;
+  const fb=document.getElementById('feedback');
+  fb.className='feedback '+(ok?'good':'bad');
+
+  let corrStr='';
+  if(CM.ansType==='fraction') corrStr=fmtFrac(q.ans.n,q.ans.d);
+  else if(CM.ansType==='decimal') corrStr=q.ans.toString();
+  else if(CM.ansType==='text'||CM.ansType==='yesno') corrStr=q.ans.toUpperCase();
+  else corrStr=q.ans.toString();
+
+  if(CM.ansType==='yesno'){
+    document.getElementById('btn-oui').disabled=true;
+    document.getElementById('btn-non').disabled=true;
+    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
+  } else if(CM.ansType==='fraction'){
+    document.getElementById('frac-field').className='frac-field '+(ok?'good':'bad');
+    document.getElementById('ans-n').disabled=true;
+    document.getElementById('ans-d').disabled=true;
+    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
+  } else if(CM.ansType==='text'){
+    const t=document.getElementById('ans-txt');
+    t.disabled=true; t.className='ans-txt '+(ok?'good':'bad');
+    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
+  } else {
+    const inp=document.getElementById('ans');
+    inp.disabled=true; inp.className='ans-inp '+(ok?'good':'bad');
+    fb.textContent=ok?'✓ Bravo !':(timeout?`⏱ Temps ! Réponse : ${corrStr}`:`✗ Réponse : ${corrStr}`);
+  }
+  document.getElementById('btn-v').disabled=true;
+  log.push({q,val,valD,valTxt,ok});
+  setTimeout(()=>{ cur++; cur<questions.length?loadQ():showResults(); },1400);
+}
+
+/* ══ RESULTS ══ */
+function showResults(){
+  show('s-results');
+  const nb=questions.length, pct=good/nb;
+  const arc=document.getElementById('sr-arc'), circ=2*Math.PI*65;
+  arc.style.strokeDashoffset=circ*(1-pct);
+  arc.style.stroke=pct===1?'var(--green)':pct>=.7?'var(--qc)':'var(--red)';
+  const sc=document.getElementById('sr-score');
+  sc.textContent=`${good}/${nb}`;
+  sc.style.color=pct===1?'var(--green)':pct>=.7?'var(--qc)':'var(--red)';
+  document.getElementById('res-title').textContent=CM.title+' 🎯';
+
+  const m=document.getElementById('mention');
+  if(pct===1)     {m.textContent='🏆 Parfait !';                        m.className='mention p';}
+  else if(pct>=.8){m.textContent='🌟 Très bien ! Continue !';            m.className='mention b';}
+  else if(pct>=.6){m.textContent='💪 Pas mal, continue à t\'entraîner.'; m.className='mention m';}
+  else            {m.textContent='📚 Il faut encore travailler !';        m.className='mention e';}
+
+  function getCorr(q){
+    if(CM.ansType==='fraction') return fmtFrac(q.ans.n,q.ans.d);
+    if(CM.ansType==='decimal')  return q.ans.toString();
+    if(CM.ansType==='yesno')    return q.ans.toUpperCase();
+    if(CM.ansType==='text')     return q.ans;
+    return q.ans.toString();
+  }
+  function getGiven({val,valD,valTxt}){
+    if(CM.ansType==='fraction') return (val!==null&&valD!==null)?`${val}/${valD}`:'—';
+    if(CM.ansType==='text'||CM.ansType==='yesno') return valTxt?valTxt.toUpperCase():'—';
+    return val!==null?val.toString():'—';
+  }
+
+  document.getElementById('recap').innerHTML=log.map(({q,val,valD,valTxt,ok})=>`
+    <div class="rrow">
+      <div class="rop">${q.html} =</div>
+      <div class="rbadges">
+        ${ok?`<span class="bk ok">✓ ${getCorr(q)}</span>`
+            :`<span class="bk ko">${getGiven({val,valD,valTxt})}</span>
+              <span class="bk ans">→ ${getCorr(q)}</span>`}
+      </div>
+    </div>`).join('');
+}
+
+/* ══ NAV ══ */
+function goMenu(){ clearInterval(tInt); show('s-menu'); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+</script>
+</body>
+</html>
