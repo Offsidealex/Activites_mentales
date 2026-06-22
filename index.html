@@ -1300,8 +1300,20 @@ function process(val,valD,valTxt,timeout){
       ok=(val*q.ans.d===valD*q.ans.n);
   } else if(CM.ansType==='yesno'){
     if(!timeout&&valTxt) ok=valTxt.toLowerCase()===q.ans.toLowerCase();
-  } else if(CM.ansType==='text'){
-    if(!timeout&&valTxt) ok=polyEqual(valTxt, q.ans);
+ } else if(CM.ansType==='text'){
+    if(!timeout&&valTxt) {
+      if(CM.key==='notif_sci'){
+        // accepte 4.5e-3, 4,5e-3, 4.5×10^-3
+        try{
+          const s=valTxt.replace(/,/g,'.').replace(/[×x\*]/g,'*').replace(/\s/g,'').toLowerCase();
+          const vs=new Function('return '+s.replace(/\^/g,'**'))();
+          const vc=parseFloat(q.ans);
+          ok=Math.abs(vs-vc)<Math.abs(vc)*0.01;
+        }catch(e){ok=false;}
+      } else {
+        ok=polyEqual(valTxt, q.ans);
+      }
+    }
   } else if(CM.ansType==='decimal'){
     const tol=CM.tol??0.001;
     if(!timeout&&val!==null) ok=Math.abs(val-q.ans)<tol+Math.abs(q.ans)*0.0001;
