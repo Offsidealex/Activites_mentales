@@ -1196,7 +1196,7 @@ let tInt=null, left=0, done=false;
 
 /* ══ LAUNCH ══ */
 function launchQuiz(key){
-  CM=MODULES[key]; CMKey=key;
+  CM=MODULES[key]; CMKey=key; CM.key=key; 
   document.documentElement.style.setProperty('--qc',CM.color);
   questions=CM.gen(); cur=0; good=0; log=[];
   show('s-quiz'); loadQ();
