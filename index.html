@@ -1016,17 +1016,20 @@ let tInt=null, left=0, done=false;
       d.className='card'; d.style.setProperty('--cc',m.color);
       const timeTag=m.tags.find(t=>t.includes('⏱'));
       const otherTags=m.tags.filter(t=>!t.includes('⏱'));
-      d.innerHTML=`
-        <div class="card-head">
-          <div class="card-icon">${m.icon}</div>
-          ${timeTag?`<div class="card-time">${timeTag}</div>`:''}
-        </div>
-        <div class="card-title">${m.title}</div>
-        <div class="card-desc">${m.desc}</div>
-        <div class="tags">${otherTags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-        <div class="arrow">→</div>`;
-      d.onclick=()=>launchQuiz(key); grid.appendChild(d);
-    }
+      d.dataset.module = m.title;
+     d.innerHTML=`
+  <div class="card-head">
+    <div class="card-icon">${m.icon}</div>
+    ${timeTag?`<div class="card-time">${timeTag}</div>`:''}
+  </div>
+  <div class="card-title">${m.title}</div>
+  <div class="card-desc">${m.desc}</div>
+  <div class="tags">${otherTags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+  <div class="score-badge" style="margin-top:.3rem;display:flex;align-items:center;justify-content:space-between;padding:.28rem .6rem;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);font-size:.75rem;gap:.4rem;">
+    <span style="color:var(--muted);font-weight:700;font-size:.7rem">Meilleur</span>
+    <span style="color:var(--muted);font-weight:600;font-size:.72rem;font-style:italic">Non fait</span>
+  </div>
+  <div class="arrow">→</div>`;
     root.appendChild(grid);
   }
 })();
