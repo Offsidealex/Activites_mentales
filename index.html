@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+<script src="backend.js"></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1218,6 +1219,29 @@ function showResults(){
               <span class="bk ans">${getCorr(q)}</span>`}
       </div>
     </div>`).join('');
+
+  // ── Envoi Supabase ──
+  if(window.AM && window.AM.currentEleve()) {
+    const reponses = log.map((entry, i) => ({
+      numero_question : i + 1,
+      enonce          : entry.q.html.replace(/<[^>]*>/g,''),
+      reponse_eleve   : (CM.ansType==='fraction')
+                          ? (entry.val!==null ? entry.val+'/'+entry.valD : '—')
+                          : (CM.ansType==='text'||CM.ansType==='yesno')
+                            ? (entry.valTxt||'—')
+                            : (entry.val!==null ? String(entry.val) : '—'),
+      correct         : entry.ok,
+      temps_ms        : null
+    }));
+    window.AM.sendSession({
+      exercice      : CM.title,
+      score         : good,
+      nb_questions  : questions.length,
+      duree_totale_ms: null,
+      reponses
+    });
+  }
+  
 }
 
 /* ══ NAV ══ */
