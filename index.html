@@ -1420,7 +1420,7 @@ function showResults(){
 }
 
 /* ══ NAV ══ */
-function goMenu(){ clearInterval(tInt); show('s-menu'); }
+function goMenu(){ clearInterval(tInt); show('s-menu'); if(window.AM && window.AM.loadMenuScores) window.AM.loadMenuScores(); }
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 </script>
 </body>
