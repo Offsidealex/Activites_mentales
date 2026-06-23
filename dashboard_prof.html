@@ -530,35 +530,43 @@ function renderExercicesTab(data) {
 //   + bonus qualité : +50 si 100%, +30 si ≥80%, +10 si ≥60%
 //   + bonus régularité : +5 pts par série jouée
 // ============================================
-function calcPoints(sessions) {
+function calcPoints(bestPerExercice) {
+  // bestPerExercice : liste des meilleurs scores par exercice
   let pts = 0;
-  sessions.forEach(s => {
+  bestPerExercice.forEach(s => {
     pts += s.score * 10;
     const pct = s.pourcentage;
     if (pct === 100) pts += 50;
     else if (pct >= 80) pts += 30;
     else if (pct >= 60) pts += 10;
-    pts += 5; // bonus régularité
+    pts += 5; // bonus : exercice fait au moins une fois
   });
   return pts;
 }
 
 function renderClassementTab(data) {
-  // Grouper les sessions par élève
+  // Grouper par élève, puis par exercice on ne garde que le meilleur score
   const map = {};
   data.forEach(s => {
-    if (!map[s.prenom]) map[s.prenom] = { prenom: s.prenom, classe: s.classe, sessions: [] };
+    if (!map[s.prenom]) map[s.prenom] = { prenom: s.prenom, classe: s.classe, sessions: [], byExo: {} };
     map[s.prenom].sessions.push(s);
+    const exo = s.exercice;
+    if (!map[s.prenom].byExo[exo] || s.pourcentage > map[s.prenom].byExo[exo].pourcentage)
+      map[s.prenom].byExo[exo] = s;
   });
 
-  const eleves = Object.values(map).map(e => ({
-    prenom: e.prenom,
-    classe: e.classe,
-    nb_series: e.sessions.length,
-    points: calcPoints(e.sessions),
-    moy: Math.round(e.sessions.reduce((a,b) => a + b.pourcentage, 0) / e.sessions.length),
-    nb_parfait: e.sessions.filter(s => s.pourcentage === 100).length,
-  })).sort((a, b) => b.points - a.points);
+  const eleves = Object.values(map).map(e => {
+    const best = Object.values(e.byExo);
+    return {
+      prenom: e.prenom,
+      classe: e.classe,
+      nb_series: e.sessions.length,
+      nb_exos: best.length,
+      points: calcPoints(best),
+      moy: Math.round(best.reduce((a,b) => a + b.pourcentage, 0) / best.length),
+      nb_parfait: best.filter(s => s.pourcentage === 100).length,
+    };
+  }).sort((a, b) => b.points - a.points);
 
   if (eleves.length === 0) {
     document.getElementById('classement-content').innerHTML = '<div class="empty">Aucune donnée.</div>';
@@ -571,11 +579,11 @@ function renderClassementTab(data) {
   <div style="margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap">
     <div style="background:#16213e;border:0.5px solid #1e3a6e;border-radius:10px;padding:10px 16px;font-size:12px;color:#aaa;line-height:1.8">
       <strong style="color:#e0e0e0">Formule de points</strong><br>
-      10 pts × bonnes réponses<br>
+      10 pts × bonnes réponses (meilleur score par exercice)<br>
       + 50 pts si série parfaite (100%)<br>
       + 30 pts si ≥ 80%<br>
       + 10 pts si ≥ 60%<br>
-      + 5 pts par série jouée
+      + 5 pts par exercice fait au moins une fois
     </div>
   </div>
   <div class="table-wrap"><table>
@@ -584,6 +592,7 @@ function renderClassementTab(data) {
       <th>Élève</th>
       <th>Classe</th>
       <th style="text-align:center">Séries</th>
+      <th style="text-align:center">Exercices</th>
       <th style="text-align:center">🏆 Points</th>
       <th style="text-align:center">Score moy.</th>
       <th style="text-align:center">⭐ Parfaits</th>
@@ -601,6 +610,7 @@ function renderClassementTab(data) {
       <td><strong>${e.prenom}</strong></td>
       <td>${e.classe}</td>
       <td style="text-align:center">${e.nb_series}</td>
+      <td style="text-align:center">${e.nb_exos}</td>
       <td style="text-align:center">
         <span style="font-size:1.1rem;font-weight:800;color:${ptColor}">${e.points}</span>
         <span style="font-size:11px;color:#666;margin-left:2px">pts</span>
