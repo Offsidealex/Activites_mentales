@@ -194,6 +194,7 @@
       <button class="tab-btn active" data-tab="eleves">Par élève</button>
       <button class="tab-btn" data-tab="sessions">Dernières séries</button>
       <button class="tab-btn" data-tab="exercices">Par exercice</button>
+      <button class="tab-btn" data-tab="classement">🏆 Classement</button>
     </div>
 
     <!-- Tab : par élève -->
@@ -206,6 +207,11 @@
         <h3 id="detail-title"></h3>
         <div id="detail-content"></div>
       </div>
+    </div>
+
+    <!-- Tab : classement -->
+    <div id="tab-classement" class="tab-content" style="display:none;">
+      <div id="classement-content"><div class="loading">Chargement…</div></div>
     </div>
 
     <!-- Tab : dernières séries -->
@@ -225,8 +231,8 @@
 // ============================================
 // CONFIG — même valeurs que backend.js
 // ============================================
-const SUPABASE_URL     = 'https://hxfdlujpedxuumqfewvn.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZmRsdWpwZWR4dXVtcWZld3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjcyMzAsImV4cCI6MjA5NzcwMzIzMH0.mM0xBhLGWG3vDgE06bEla8b4BhH7v6dvZ-BWn4ZOP0Q';
+const SUPABASE_URL     = 'https://XXXXXXXX.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGci...';
 const PROF_PASSWORD    = 'Diderot2026';
 
 // ============================================
@@ -320,6 +326,7 @@ function renderAll() {
   renderElevesTab(data);
   renderSessionsTab(data);
   renderExercicesTab(data);
+  renderClassementTab(data);
 }
 
 document.getElementById('refresh-btn').addEventListener('click', loadAll);
@@ -512,6 +519,99 @@ function renderExercicesTab(data) {
 
   html += '</tbody></table></div>';
   document.getElementById('exercices-content').innerHTML = html;
+}
+
+
+// ============================================
+// TAB : CLASSEMENT (système de points)
+// ============================================
+// Formule par série :
+//   10 pts × bonnes réponses
+//   + bonus qualité : +50 si 100%, +30 si ≥80%, +10 si ≥60%
+//   + bonus régularité : +5 pts par série jouée
+// ============================================
+function calcPoints(sessions) {
+  let pts = 0;
+  sessions.forEach(s => {
+    pts += s.score * 10;
+    const pct = s.pourcentage;
+    if (pct === 100) pts += 50;
+    else if (pct >= 80) pts += 30;
+    else if (pct >= 60) pts += 10;
+    pts += 5; // bonus régularité
+  });
+  return pts;
+}
+
+function renderClassementTab(data) {
+  // Grouper les sessions par élève
+  const map = {};
+  data.forEach(s => {
+    if (!map[s.prenom]) map[s.prenom] = { prenom: s.prenom, classe: s.classe, sessions: [] };
+    map[s.prenom].sessions.push(s);
+  });
+
+  const eleves = Object.values(map).map(e => ({
+    prenom: e.prenom,
+    classe: e.classe,
+    nb_series: e.sessions.length,
+    points: calcPoints(e.sessions),
+    moy: Math.round(e.sessions.reduce((a,b) => a + b.pourcentage, 0) / e.sessions.length),
+    nb_parfait: e.sessions.filter(s => s.pourcentage === 100).length,
+  })).sort((a, b) => b.points - a.points);
+
+  if (eleves.length === 0) {
+    document.getElementById('classement-content').innerHTML = '<div class="empty">Aucune donnée.</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+
+  let html = `
+  <div style="margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap">
+    <div style="background:#16213e;border:0.5px solid #1e3a6e;border-radius:10px;padding:10px 16px;font-size:12px;color:#aaa;line-height:1.8">
+      <strong style="color:#e0e0e0">Formule de points</strong><br>
+      10 pts × bonnes réponses<br>
+      + 50 pts si série parfaite (100%)<br>
+      + 30 pts si ≥ 80%<br>
+      + 10 pts si ≥ 60%<br>
+      + 5 pts par série jouée
+    </div>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr>
+      <th style="text-align:center">#</th>
+      <th>Élève</th>
+      <th>Classe</th>
+      <th style="text-align:center">Séries</th>
+      <th style="text-align:center">🏆 Points</th>
+      <th style="text-align:center">Score moy.</th>
+      <th style="text-align:center">⭐ Parfaits</th>
+    </tr></thead><tbody>`;
+
+  eleves.forEach((e, i) => {
+    const rank = i < 3 ? medals[i] : `${i+1}`;
+    const badgeM = e.moy >= 70 ? 'badge-green' : e.moy >= 40 ? 'badge-yellow' : 'badge-red';
+    const rowBg = i === 0 ? 'background:rgba(255,215,0,0.06)' :
+                  i === 1 ? 'background:rgba(192,192,192,0.06)' :
+                  i === 2 ? 'background:rgba(205,127,50,0.06)' : '';
+    const ptColor = i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#e94560';
+    html += `<tr style="${rowBg}">
+      <td style="font-size:1.3rem;text-align:center">${rank}</td>
+      <td><strong>${e.prenom}</strong></td>
+      <td>${e.classe}</td>
+      <td style="text-align:center">${e.nb_series}</td>
+      <td style="text-align:center">
+        <span style="font-size:1.1rem;font-weight:800;color:${ptColor}">${e.points}</span>
+        <span style="font-size:11px;color:#666;margin-left:2px">pts</span>
+      </td>
+      <td style="text-align:center"><span class="badge ${badgeM}">${e.moy}%</span></td>
+      <td style="text-align:center">${e.nb_parfait > 0 ? `<span style="color:#ffd700">⭐ ${e.nb_parfait}</span>` : '<span style="color:#444">—</span>'}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('classement-content').innerHTML = html;
 }
 
 // Filtres réactifs
