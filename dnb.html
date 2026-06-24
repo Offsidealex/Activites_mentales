@@ -623,9 +623,16 @@ const themeData={};
 
 /* ══ INIT ══ */
 function init(){
-  // Récupérer les infos de session (même mécanisme que index.html via backend.js)
-  const nom   = sessionStorage.getItem('eleve_nom')   || localStorage.getItem('eleve_nom')   || '';
-  const classe= sessionStorage.getItem('eleve_classe') || localStorage.getItem('eleve_classe') || '';
+  // Récupérer les infos de session via backend.js (clé am_eleve)
+  let nom = '', classe = '';
+  try {
+    const stored = sessionStorage.getItem('am_eleve');
+    if (stored) {
+      const eleve = JSON.parse(stored);
+      nom    = eleve.nom    || eleve.name  || '';
+      classe = eleve.classe || eleve.class || '';
+    }
+  } catch(e) {}
 
   const banner  = document.getElementById('user-banner');
   const avatar  = document.getElementById('user-avatar');
@@ -820,7 +827,7 @@ function showResults(){
   else { m.className='mention e'; m.textContent='💪 Continue !'; }
 
   // Titre
-  const nom=sessionStorage.getItem('eleve_nom')||localStorage.getItem('eleve_nom')||'';
+  let nom='';try{const s=sessionStorage.getItem('am_eleve');if(s){const e=JSON.parse(s);nom=e.nom||e.name||'';}}catch(e){}
   document.getElementById('res-title').innerHTML=nom
     ? `Bravo <em>${nom}</em> !`
     : 'Parcours <em>terminé</em> !';
