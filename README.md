@@ -1,21 +1,23 @@
-# 🧮 Activités Mentales
+# 🧮 Activités Mentales — Lycée Denis Diderot
 
-Application web d'entraînement aux mathématiques pour les élèves du **Lycée Denis Diderot — Belfort**.
-26 modules d'activités mentales chronométrées, de la table de multiplication au développement de polynômes, en passant par Pythagore, les fractions et les probabilités.
+Application web d'entraînement aux mathématiques pour les élèves du **Lycée Denis Diderot — Belfort** (Académie de Besançon).
 
-🔗 **[Lancer l'application](https://offsidealex.github.io/activites-mentales/)** *(remplace par ton URL GitHub Pages)*
+🔗 **[Lancer l'application](https://offsidealex.github.io/Activites_mentales/)**
+📝 **[Parcours DNB Pro — 50 questions](https://offsidealex.github.io/Activites_mentales/dnb.html)**
+📊 **[Dashboard professeur](https://offsidealex.github.io/Activites_mentales/dashboard_prof.html)**
 
 ---
 
 ## ✨ Fonctionnalités
 
-- **26 modules** couvrant les programmes de la 3ème à la Terminale
+- **35+ modules** répartis en 11 thèmes, de la table de multiplication au développement double
 - **Chronomètre** par question (10 à 50 secondes selon la difficulté)
 - **Correction immédiate** avec affichage de la bonne réponse
 - **Récapitulatif final** avec score, pourcentage et liste des questions
 - **Plusieurs types de réponses** : entiers, décimaux, fractions, expressions algébriques, oui/non
 - **Responsive** — fonctionne sur téléphone, tablette et ordinateur
-- **Aucune dépendance** — un seul fichier HTML, pas de serveur
+- **Suivi Supabase** — sessions et scores enregistrés par élève
+- **Parcours DNB Pro** — 50 automatismes sans chrono, avec corrections détaillées
 
 ---
 
@@ -24,6 +26,9 @@ Application web d'entraînement aux mathématiques pour les élèves du **Lycée
 ### Calcul de base
 - ✖️ Tables de multiplication (× 2 à × 9)
 - × Multiplier par 10, 100, 1 000
+- ÷ Diviser par 10, 100, 1 000
+- ×10 Notation scientifique
+- ?÷ Critères de divisibilité
 
 ### Nombres relatifs
 - ➕ Addition de relatifs
@@ -34,19 +39,28 @@ Application web d'entraînement aux mathématiques pour les élèves du **Lycée
 - 🎯 Arrondir au dixième
 - ➕ Addition de fractions
 - ✖️ Multiplication de fractions
+- ½× Fraction d'un nombre
 
-### Stats & mesures
+### Statistiques
 - 📊 Calcul de moyenne
 - 📐 Étendue d'une série
-- 📏 Conversions de longueurs
+- M Médiane d'une série
 
-### Proportionnalité & pourcentages
+### Mesures & conversions
+- 📏 Conversions de longueurs
+- ⇄ Conversions masses, volumes, aires
+- □ Aires de figures
+
+### Proportionnalité & %
 - % Pourcentages (proportion)
+- % Pourcentages simples (50 %, 25 %, 10 %, 1 %)
 - % Calculer un pourcentage (arrondi)
+- ↑% Augmentation / diminution en %
 - ⚖️ Produit en croix (3 niveaux)
 
 ### Probabilités
-- 🃏 Probabilités sur un jeu de 32 cartes
+- 🎲 Probabilités — Dés (1 ou 2 dés)
+- 🃏 Probabilités — 32 cartes
 
 ### Algèbre
 - 🔣 Calcul d'expressions
@@ -55,65 +69,71 @@ Application web d'entraînement aux mathématiques pour les élèves du **Lycée
 - 📐 Développement double
 
 ### Équations
-- ✔️ Vérification d'équation (oui / non)
+- ✔️ Vérification d'équation (oui/non)
 - 🔢 Résolution d'équations
 
 ### Pythagore & racines
+- x² Calculer un carré
 - √ Racine carrée
-- 📐 Vérifier Pythagore
+- 📐 Vérifier Pythagore (oui/non)
 - 📐 Calculer l'hypoténuse
 
----
-
-## 🚀 Mise en ligne (GitHub Pages)
-
-1. **Renomme** le fichier en `index.html`
-2. **Pousse** sur ton dépôt GitHub
-3. Va dans **Settings → Pages**
-4. Source : branche `main`, dossier `/ (root)`
-5. **Save** — l'URL apparaît en haut de la page après 1–2 minutes
-
-L'application sera accessible à : `https://<ton-pseudo>.github.io/<nom-du-repo>/`
+### Géométrie
+- ∠ Angles dans un triangle
 
 ---
 
-## 💻 Utilisation locale
+## 📝 Parcours DNB Pro
 
-Aucune installation, aucun serveur : double-clique sur `index.html` pour l'ouvrir dans ton navigateur.
+Fichier `dnb.html` — 50 questions d'automatismes dans le style de l'épreuve officielle DNB série professionnelle (session 2026), inspiré des sujets zéro publiés par le ministère.
+
+- **Sans chronomètre** — focus sur la compréhension
+- **Correction détaillée** après chaque question
+- **Bilan par thème** en fin de parcours
+- **Login partagé** avec l'application principale via `backend.js`
+- 3 formats : QCM, réponse libre, Vrai/Faux
+- 9 thèmes couverts : Fractions, Proportionnalité, Pourcentages, Statistiques, Probabilités, Géométrie, Algèbre, Fonctions, Trigonométrie, Conversions, Algorithmique
 
 ---
 
 ## 🛠️ Stack technique
 
-- **HTML / CSS / JavaScript** vanilla — aucune librairie
-- Polices Google Fonts : `Bebas Neue` (titres) et `Open Sans` (corps)
-- Système de design **Lycée Denis Diderot** (`blue-700` primaire, palette Tailwind)
-- Compatibilité : tous les navigateurs modernes (Chrome, Firefox, Safari, Edge)
+| Composant | Technologie |
+|---|---|
+| Frontend | HTML / CSS / JavaScript vanilla |
+| Polices | Google Fonts — Bebas Neue + Open Sans |
+| Base de données | Supabase (PostgreSQL) |
+| Hébergement | GitHub Pages |
+| Backend API | `backend.js` — client Supabase léger |
+
+Aucune dépendance npm, aucun bundler — un seul fichier HTML par page.
 
 ---
 
-## 📝 Personnalisation
+## 🚀 Déploiement
 
-Tous les modules sont définis dans l'objet `MODULES` du fichier HTML. Pour ajouter un nouvel exercice :
+1. Cloner le repo
+2. Pousser sur la branche `main`
+3. Activer **Settings → Pages → Source : `main` / `root`**
+4. L'app est accessible à `https://offsidealex.github.io/Activites_mentales/`
 
-```js
-mon_module:{
-  color:'#1d4ed8',                 // couleur d'accent
-  icon:'🧮',                       // emoji
-  title:'Mon exercice',
-  desc:'Description courte',
-  tags:['catégorie','⏱ 20s'],
-  time:20,                         // temps par question (s)
-  ansType:'int',                   // 'int' | 'decimal' | 'fraction' | 'text' | 'yesno'
-  gen(){
-    const p=[
-      {html:'2 + 3', ans:5},
-      // …au moins 10 questions
-    ];
-    shuffle(p);
-    return p.slice(0,10);
-  }
-},
+Variables Supabase à configurer dans `backend.js` :
+```
+SUPABASE_URL      = 'https://xxxx.supabase.co'
+SUPABASE_ANON_KEY = 'eyJ...'
+```
+
+---
+
+## 📁 Structure des fichiers
+
+```
+Activites_mentales/
+├── index.html          — Application principale (35+ modules)
+├── dnb.html            — Parcours DNB Pro (50 questions)
+├── dashboard_prof.html — Dashboard enseignant (Supabase)
+├── backend.js          — Client Supabase + gestion sessions
+└── README.md
 ```
 
 ---
@@ -121,10 +141,11 @@ mon_module:{
 ## 👨‍🏫 Auteur
 
 **Alexis RUIZ** — Professeur de mathématiques, physique-chimie et informatique
-🏫 Lycée Denis Diderot, Belfort
+🏫 Lycée Denis Diderot, Belfort — Académie de Besançon
 
 ---
 
 ## 📄 Licence
 
 Libre d'usage pédagogique. Réutilisation et adaptation encouragées dans un cadre scolaire.
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr)
