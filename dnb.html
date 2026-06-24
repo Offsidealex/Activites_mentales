@@ -849,15 +849,43 @@ function showResults(){
 
   // Enregistrer dans Supabase via backend.js si la fonction existe
   try{
-    if(typeof saveSession==='function'){
-      saveSession('dnb_pro_50', score, QUESTIONS.length);
+    if(window.AM && window.AM.currentEleve()){
+      window.AM.sendSession({exercice:"DNB Pro — 50 automatismes",score:score,nb_questions:QUESTIONS.length,duree_totale_ms:null,reponses:[]});
     }
   }catch(e){}
 }
 
 function restart(){ startDNB(); }
 
-window.addEventListener('load', init);
+// backend.js gère le login via injectLoginScreen()
+// On attend que window.AM soit prêt avant d'appeler init()
+document.addEventListener('DOMContentLoaded', () => {
+  const waitAM = setInterval(() => {
+    if(window.AM){ clearInterval(waitAM); init(); }
+  }, 50);
+});
+
+function init(){
+  const eleve = window.AM ? window.AM.currentEleve() : null;
+  const nom = eleve ? (eleve.prenom || eleve.nom || '') : '';
+  const banner = document.getElementById('user-banner');
+  const avatar = document.getElementById('user-avatar');
+  const nameEl = document.getElementById('user-name');
+  const classEl= document.getElementById('user-class');
+  if(nom){
+    banner.classList.remove('warn');
+    avatar.style.background='var(--green)';
+    avatar.textContent = nom.charAt(0).toUpperCase();
+    nameEl.textContent = nom;
+    classEl.textContent = 'Connecté(e) ✓';
+  }
+  const themes=[...new Set(QUESTIONS.map(q=>q.theme))];
+  themes.forEach(t=>{ themeData[t]={ok:0,tot:0}; });
+  QUESTIONS.forEach(q=>themeData[q.theme].tot++);
+  const tl=document.getElementById('themes-list');
+  tl.innerHTML='';
+  themes.forEach(t=>{ tl.innerHTML+=`<span class="theme-pill">${t}</span>`; });
+}
 </script>
 </body>
 </html>
