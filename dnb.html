@@ -623,7 +623,9 @@ const themeData={};
 
 /* ══ INIT ══ */
 function init(){
-  // Récupérer les infos de session via backend.js (clé am_eleve)
+  // Appeler loadEleve() de backend.js s'il existe
+  if(typeof loadEleve === 'function') loadEleve();
+
   let nom = '', classe = '';
   try {
     const stored = sessionStorage.getItem('am_eleve');
@@ -633,7 +635,6 @@ function init(){
       classe = eleve.classe || eleve.class || '';
     }
   } catch(e) {}
-
   const banner  = document.getElementById('user-banner');
   const avatar  = document.getElementById('user-avatar');
   const nameEl  = document.getElementById('user-name');
