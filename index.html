@@ -497,6 +497,81 @@ body{
     <div class="brand-eyebrow">🏫 Lycée Denis Diderot · Belfort</div>
     <h1 class="menu-title">Activités <em>Mentales</em></h1>
     <p class="menu-sub">Choisis un exercice. Réponds vite et juste — chaque série fait 10 questions.</p>
+<!-- ═══════════════════════════════════════════════════════════
+     PATCH index.html — Section DNB Pro
+     À coller juste AVANT la fermeture </div> de <div id="sections">
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Séparateur DNB -->
+<div class="section-head" style="margin-top:1.4rem">
+  <h2>Préparation DNB</h2>
+  <div class="line"></div>
+  <span class="count">nouveau</span>
+</div>
+
+<!-- Bannière DNB Pro -->
+<a href="dnb.html" style="text-decoration:none;display:block;width:100%">
+  <div style="
+    background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 60%,#3b82f6 100%);
+    border-radius:20px;
+    padding:1.4rem 1.6rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    box-shadow:0 8px 24px rgba(29,78,216,.25);
+    cursor:pointer;
+    transition:transform .18s,box-shadow .18s;
+    position:relative;
+    overflow:hidden;
+  "
+  onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 14px 32px rgba(29,78,216,.35)'"
+  onmouseout="this.style.transform='none';this.style.boxShadow='0 8px 24px rgba(29,78,216,.25)'"
+  >
+    <!-- Motif de fond subtil -->
+    <div style="position:absolute;right:-20px;top:-20px;width:120px;height:120px;
+      background:rgba(255,255,255,.05);border-radius:50%;pointer-events:none"></div>
+    <div style="position:absolute;right:30px;bottom:-30px;width:80px;height:80px;
+      background:rgba(255,255,255,.04);border-radius:50%;pointer-events:none"></div>
+
+    <div style="display:flex;align-items:center;gap:1rem;position:relative">
+      <div style="
+        width:52px;height:52px;border-radius:14px;
+        background:rgba(255,255,255,.15);
+        display:flex;align-items:center;justify-content:center;
+        font-size:1.6rem;flex-shrink:0;
+      ">📝</div>
+      <div>
+        <div style="
+          font-family:'Open Sans',sans-serif;font-weight:800;
+          font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+          color:rgba(255,255,255,.65);margin-bottom:.25rem;
+        ">Automatismes · Série professionnelle</div>
+        <div style="
+          font-family:'Bebas Neue',sans-serif;
+          font-size:1.5rem;letter-spacing:.03em;color:#fff;line-height:1;
+        ">DNB Pro — 50 Questions</div>
+        <div style="
+          font-size:.78rem;font-weight:600;color:rgba(255,255,255,.7);
+          margin-top:.3rem;
+        ">9 thèmes · QCM, réponse libre, Vrai/Faux · Corrections détaillées</div>
+      </div>
+    </div>
+
+    <div style="
+      display:flex;align-items:center;gap:.5rem;
+      background:rgba(255,255,255,.15);
+      border:1px solid rgba(255,255,255,.25);
+      padding:.55rem 1.1rem;border-radius:999px;
+      font-family:'Open Sans',sans-serif;font-weight:800;
+      font-size:.85rem;color:#fff;white-space:nowrap;
+      flex-shrink:0;position:relative;
+    ">
+      Commencer <span style="font-size:1rem">→</span>
+    </div>
+  </div>
+</a>
+    
   </div>
   <div id="sections"></div>
 </div>
