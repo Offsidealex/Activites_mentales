@@ -623,18 +623,17 @@ const themeData={};
 
 /* ══ INIT ══ */
 function init(){
-  // Appeler loadEleve() de backend.js s'il existe
-  if(typeof loadEleve === 'function') loadEleve();
-
+  // Récupérer les infos de session via backend.js (clé am_eleve)
   let nom = '', classe = '';
   try {
     const stored = sessionStorage.getItem('am_eleve');
     if (stored) {
       const eleve = JSON.parse(stored);
-      nom    = eleve.nom    || eleve.name  || '';
-      classe = eleve.classe || eleve.class || '';
+      nom    = eleve.prenom || eleve.nom || eleve.name || '';
+      classe = '';
     }
   } catch(e) {}
+
   const banner  = document.getElementById('user-banner');
   const avatar  = document.getElementById('user-avatar');
   const nameEl  = document.getElementById('user-name');
@@ -646,7 +645,7 @@ function init(){
     banner.classList.add('');
     avatar.textContent = nom.charAt(0).toUpperCase();
     nameEl.textContent = nom;
-    classEl.textContent = classe + ' — connecté(e)';
+    classEl.textContent = 'Connecté(e) ✓';
     btnStart.disabled = false;
   } else {
     nameEl.textContent  = 'Non connecté(e)';
