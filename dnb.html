@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<script src="backend.js"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNB Pro — 50 automatismes · Lycée Denis Diderot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f8fc;
+  --bg-grad-1:#eef3ff;
+  --bg-grad-2:#f6f8fc;
+  --surface:#ffffff;
+  --surface-2:#f1f5fb;
+  --accent:#1d4ed8;
+  --accent-2:#1e40af;
+  --accent-soft:#dbeafe;
+  --green:#16a34a;
+  --green-soft:#ecfdf3;
+  --red:#dc2626;
+  --red-soft:#fef2f2;
+  --orange:#ea580c;
+  --orange-soft:#fff3e8;
+  --amber:#d97706;
+  --amber-soft:#fef3c7;
+  --text:#0f172a;
+  --text-2:#334155;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --line-2:#cbd5e1;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.04),0 1px 3px rgba(15,23,42,.06);
+  --shadow:0 4px 16px rgba(29,78,216,.08),0 2px 6px rgba(15,23,42,.04);
+  --shadow-lg:0 18px 42px rgba(29,78,216,.16),0 6px 16px rgba(15,23,42,.06);
+  --radius-sm:10px;
+  --radius:14px;
+  --radius-lg:20px;
+  --radius-xl:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{-webkit-font-smoothing:antialiased}
+body{
+  font-family:'Open Sans','Segoe UI',system-ui,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%,var(--bg-grad-1) 0%,transparent 60%),
+    radial-gradient(900px 500px at 100% 0%,#fff5ec 0%,transparent 55%),
+    var(--bg-grad-2);
+  color:var(--text);
+  min-height:100vh;
+}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;align-items:center;justify-content:flex-start;
+  min-height:100vh;padding:1.25rem 1rem 3rem;gap:1.4rem}
+.screen.active{display:flex;animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── ÉCRAN INTRO ── */
+#s-intro{max-width:560px;margin:0 auto;width:100%;padding-top:3rem}
+.intro-eyebrow{
+  font-family:'Open Sans',sans-serif;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;font-size:.7rem;
+  color:var(--accent);background:var(--accent-soft);
+  padding:.32rem .8rem;border-radius:999px;
+  align-self:center;
+}
+.intro-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.6rem,8vw,4rem);
+  letter-spacing:.025em;line-height:.95;color:var(--text);
+  text-align:center;
+}
+.intro-title em{font-style:normal;color:var(--accent)}
+.intro-sub{
+  color:var(--muted);font-weight:600;font-size:.95rem;
+  max-width:40ch;line-height:1.55;text-align:center;
+}
+.intro-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius-xl);box-shadow:var(--shadow);
+  padding:1.6rem 1.4rem;width:100%;
+  display:flex;flex-direction:column;gap:1rem;
+}
+.intro-card h2{
+  font-family:'Bebas Neue',sans-serif;font-size:1.3rem;
+  letter-spacing:.04em;color:var(--text-2);
+}
+.stats-row{display:flex;gap:.75rem}
+.stat-chip{
+  flex:1;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:.75rem;text-align:center;
+}
+.stat-chip strong{
+  display:block;font-family:'Bebas Neue',sans-serif;
+  font-size:1.8rem;color:var(--accent);line-height:1;
+}
+.stat-chip span{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.themes-list{
+  display:flex;flex-wrap:wrap;gap:.4rem;
+}
+.theme-pill{
+  font-size:.72rem;font-weight:700;padding:.25rem .7rem;
+  border-radius:999px;background:var(--accent-soft);color:var(--accent-2);
+  letter-spacing:.02em;
+}
+.user-banner{
+  display:flex;align-items:center;gap:.75rem;
+  background:var(--green-soft);border:1px solid color-mix(in srgb,var(--green) 25%,transparent);
+  border-radius:var(--radius);padding:.9rem 1.1rem;
+}
+.user-avatar{
+  width:38px;height:38px;border-radius:999px;
+  background:var(--green);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:1.2rem;flex-shrink:0;
+}
+.user-info{display:flex;flex-direction:column}
+.user-name{font-weight:800;font-size:.95rem;color:var(--text)}
+.user-class{font-size:.75rem;color:var(--muted);font-weight:600}
+.user-banner.warn{
+  background:var(--amber-soft);
+  border-color:color-mix(in srgb,var(--amber) 25%,transparent);
+}
+.user-banner.warn .user-avatar{background:var(--amber)}
+.btn-start{
+  width:100%;padding:1rem;border-radius:var(--radius);border:none;
+  background:var(--accent);color:#fff;
+  font-family:'Open Sans',sans-serif;font-weight:800;
+  font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase;
+  cursor:pointer;transition:transform .12s,filter .15s,box-shadow .15s;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 30%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.15);
+}
+.btn-start:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn-back-link{
+  align-self:center;font-size:.8rem;font-weight:600;color:var(--muted);
+  text-decoration:none;transition:color .15s;
+  display:flex;align-items:center;gap:.3rem;
+}
+.btn-back-link:hover{color:var(--accent)}
+
+/* ── QUIZ ── */
+#s-quiz{max-width:560px;margin:0 auto;width:100%;padding-top:1rem}
+.btn-back{
+  align-self:flex-start;background:var(--surface);
+  border:1px solid var(--line);color:var(--text-2);
+  font-family:'Open Sans',sans-serif;font-weight:700;font-size:.82rem;
+  cursor:pointer;letter-spacing:.01em;padding:.45rem .75rem;
+  border-radius:10px;transition:.15s;box-shadow:var(--shadow-sm);
+}
+.btn-back:hover{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
+.quiz-head{
+  width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius-lg);padding:.85rem 1rem;
+  box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:.7rem;
+}
+.quiz-top{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.q-mod{display:flex;align-items:center;gap:.5rem;min-width:0}
+.q-mod-ico{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent-soft);font-size:1rem;
+}
+.q-mod-txt{display:flex;flex-direction:column;min-width:0}
+.q-label{font-weight:800;font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.q-theme{font-weight:700;font-size:.85rem;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.score-pill{
+  display:flex;align-items:center;gap:.4rem;
+  background:var(--green-soft);color:var(--green);
+  border:1px solid color-mix(in srgb,var(--green) 25%,transparent);
+  padding:.32rem .65rem;border-radius:999px;
+  font-weight:800;font-size:.85rem;
+}
+.progress-track{
+  width:100%;height:6px;background:var(--line);
+  border-radius:999px;overflow:hidden;
+}
+.progress-fill{
+  height:100%;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 60%,white));
+  border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1);width:0%;
+}
+
+/* ── QUESTION CARD ── */
+.q-card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius-xl);box-shadow:var(--shadow);
+  padding:1.6rem 1.4rem 1.5rem;
+  width:100%;display:flex;flex-direction:column;gap:1rem;
+  position:relative;overflow:hidden;
+}
+.q-card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 50%,white));
+}
+.q-card.pop{animation:pop .32s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+.operation{
+  font-family:'Open Sans',sans-serif;font-weight:700;
+  font-size:clamp(1.05rem,3.5vw,1.25rem);
+  line-height:1.55;color:var(--text);
+}
+.q-context-box{
+  font-size:.82rem;color:var(--text-2);font-weight:500;
+  background:var(--surface-2);border-radius:10px;
+  padding:.7rem .9rem;line-height:1.6;
+}
+
+/* ── QCM ── */
+.options{display:flex;flex-direction:column;gap:.55rem}
+.opt-btn{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.75rem 1rem;border:1.5px solid var(--line);
+  border-radius:10px;background:var(--surface);
+  cursor:pointer;font-family:'Open Sans',sans-serif;font-size:.9rem;
+  text-align:left;transition:border-color .15s,background .15s;width:100%;
+}
+.opt-btn:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt-btn:disabled{cursor:default}
+.opt-letter{
+  font-family:'Bebas Neue',sans-serif;font-size:.9rem;
+  min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--surface-2);color:var(--muted);
+  flex-shrink:0;transition:background .15s,color .15s;
+}
+.opt-btn.correct{border-color:var(--green);background:var(--green-soft)}
+.opt-btn.correct .opt-letter{background:var(--green);color:#fff}
+.opt-btn.wrong{border-color:var(--red);background:var(--red-soft)}
+.opt-btn.wrong .opt-letter{background:var(--red);color:#fff}
+.opt-btn.reveal{border-color:var(--green);background:var(--green-soft)}
+.opt-btn.reveal .opt-letter{background:var(--green);color:#fff}
+
+/* ── INPUT ── */
+.ans-inp{
+  width:100%;max-width:220px;padding:.75rem;border-radius:14px;
+  border:2px solid var(--line);background:var(--surface-2);
+  font-family:'Bebas Neue',sans-serif;font-size:2rem;
+  text-align:center;color:var(--text);outline:none;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+  -moz-appearance:textfield;letter-spacing:.02em;align-self:center;
+}
+.ans-inp::-webkit-outer-spin-button,.ans-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.ans-inp:focus{border-color:var(--accent);background:#fff;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+.ans-inp.good{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+.ans-inp.bad{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+
+.ans-txt{
+  width:100%;padding:.75rem 1rem;border-radius:14px;
+  border:2px solid var(--line);background:var(--surface-2);
+  font-family:'Open Sans',sans-serif;font-weight:700;font-size:1.1rem;
+  text-align:center;color:var(--text);outline:none;transition:.15s;
+}
+.ans-txt:focus{border-color:var(--accent);background:#fff;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+.ans-txt.good{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+.ans-txt.bad{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+
+/* ── VRAI/FAUX ── */
+.yn-row{display:flex;gap:.85rem;width:100%}
+.btn-yn{
+  flex:1;padding:1rem;border-radius:14px;border:none;
+  font-family:'Open Sans',sans-serif;font-weight:800;
+  font-size:1.1rem;letter-spacing:.03em;
+  cursor:pointer;transition:transform .12s,filter .15s;color:#fff;
+  display:flex;align-items:center;justify-content:center;gap:.4rem;
+}
+.btn-yn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.btn-yn.yes{background:var(--green);box-shadow:0 6px 18px color-mix(in srgb,var(--green) 28%,transparent)}
+.btn-yn.no{background:var(--red);box-shadow:0 6px 18px color-mix(in srgb,var(--red) 28%,transparent)}
+.btn-yn:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ── FEEDBACK ── */
+.feedback{
+  font-weight:700;font-size:.88rem;line-height:1.5;
+  padding:.8rem 1rem;border-radius:10px;display:none;
+}
+.feedback.good{display:block;background:var(--green-soft);color:#14532d;
+  border-left:3px solid var(--green)}
+.feedback.bad{display:block;background:var(--red-soft);color:#7f1d1d;
+  border-left:3px solid var(--red)}
+
+/* ── BTN VALIDER / SUIVANT ── */
+.btn-valider{
+  width:100%;padding:.95rem;border-radius:14px;border:none;
+  background:var(--accent);color:#fff;
+  font-family:'Open Sans',sans-serif;font-weight:800;
+  font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase;
+  cursor:pointer;transition:transform .12s,filter .15s,box-shadow .15s;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 30%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.15);
+}
+.btn-valider:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn-valider:active{transform:translateY(0)}
+.btn-valider:disabled{opacity:.4;cursor:default;transform:none;box-shadow:none}
+
+/* ── RESULTS ── */
+#s-results{max-width:560px;margin:0 auto;width:100%;padding-top:2rem}
+.res-eyebrow{
+  font-family:'Open Sans',sans-serif;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;font-size:.72rem;color:var(--muted);
+}
+.res-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2rem,7vw,3rem);color:var(--text);text-align:center;
+  line-height:1;letter-spacing:.02em;
+}
+.res-title em{font-style:normal;color:var(--accent)}
+.score-card{
+  width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius-xl);box-shadow:var(--shadow);
+  padding:1.4rem 1.4rem 1.5rem;
+  display:flex;flex-direction:column;align-items:center;gap:1rem;
+  position:relative;overflow:hidden;
+}
+.score-card::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:4px;
+  background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 50%,white));
+}
+.score-ring{position:relative;width:160px;height:160px}
+.sr-svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+.sr-bg{fill:none;stroke:var(--line);stroke-width:10}
+.sr-arc{fill:none;stroke-width:10;stroke-linecap:round;
+  stroke-dasharray:471.2;stroke-dashoffset:471.2;
+  transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1),stroke .5s}
+.sr-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.05rem}
+.sr-score{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;line-height:1;letter-spacing:.02em}
+.sr-pct{font-weight:800;font-size:.95rem;color:var(--muted)}
+.sr-lbl{font-size:.66rem;font-weight:800;color:var(--muted);letter-spacing:.14em;margin-top:.25rem}
+.mention{
+  font-size:.95rem;font-weight:800;padding:.55rem 1.2rem;border-radius:999px;
+  display:inline-flex;align-items:center;gap:.4rem;border:1px solid transparent;
+}
+.mention.p{background:var(--green-soft);color:var(--green);border-color:color-mix(in srgb,var(--green) 25%,transparent)}
+.mention.b{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 22%,transparent)}
+.mention.m{background:var(--orange-soft);color:var(--orange);border-color:color-mix(in srgb,var(--orange) 25%,transparent)}
+.mention.e{background:var(--red-soft);color:var(--red);border-color:color-mix(in srgb,var(--red) 22%,transparent)}
+
+.theme-recap{
+  width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.recap-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.65rem 1rem;background:var(--surface-2);border-bottom:1px solid var(--line);
+  font-size:.7rem;font-weight:800;color:var(--text-2);letter-spacing:.12em;text-transform:uppercase;
+}
+.theme-rows{max-height:280px;overflow-y:auto}
+.trow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.65rem 1rem;border-bottom:1px solid var(--line);font-size:.85rem;gap:.6rem;
+}
+.trow:last-child{border-bottom:none}
+.trow .t-name{color:var(--text-2);font-weight:600;flex:1}
+.trow .t-bar{
+  height:6px;border-radius:999px;background:var(--line);
+  width:80px;overflow:hidden;flex-shrink:0;
+}
+.trow .t-fill{height:100%;border-radius:999px;transition:width .6s}
+.trow .t-score{font-weight:800;font-size:.82rem;min-width:36px;text-align:right}
+.t-score.ok{color:var(--green)} .t-score.mid{color:var(--amber)} .t-score.ko{color:var(--red)}
+
+.btn-row{display:flex;gap:.7rem;width:100%}
+.btn-replay,.btn-menu{
+  flex:1;padding:.95rem;border-radius:14px;
+  font-family:'Open Sans',sans-serif;font-weight:800;
+  font-size:.95rem;letter-spacing:.04em;text-transform:uppercase;
+  cursor:pointer;transition:.15s;
+  display:flex;align-items:center;justify-content:center;gap:.4rem;
+}
+.btn-replay{
+  border:none;background:var(--accent);color:#fff;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 28%,transparent);
+}
+.btn-replay:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn-menu{border:2px solid var(--line);background:var(--surface);color:var(--text-2)}
+.btn-menu:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+.footer{margin-top:auto;padding-top:1.5rem;font-size:.72rem;color:var(--muted);text-align:center;font-weight:600}
+.footer span{color:var(--accent);font-weight:700}
+
+@media(max-width:480px){.stats-row{flex-wrap:wrap} .stat-chip{min-width:calc(50% - .375rem)}}
+</style>
+</head>
+<body>
+
+<!-- ── INTRO ── -->
+<div id="s-intro" class="screen active">
+  <div class="intro-eyebrow">🏫 Lycée Denis Diderot · Belfort</div>
+  <h1 class="intro-title">DNB <em>Pro</em></h1>
+  <p class="intro-sub">50 automatismes dans le style de l'épreuve officielle — sans chrono, avec corrections détaillées.</p>
+
+  <div class="intro-card">
+    <h2>Présentation du parcours</h2>
+    <div class="stats-row">
+      <div class="stat-chip"><strong>50</strong><span>QUESTIONS</span></div>
+      <div class="stat-chip"><strong>9</strong><span>THÈMES</span></div>
+      <div class="stat-chip"><strong>3</strong><span>FORMATS</span></div>
+    </div>
+    <div class="themes-list" id="themes-list"></div>
+  </div>
+
+  <div id="user-banner" class="user-banner warn">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <div class="user-info">
+      <div class="user-name" id="user-name">Chargement…</div>
+      <div class="user-class" id="user-class">Connecte-toi d'abord sur Activités Mentales</div>
+    </div>
+  </div>
+
+  <button class="btn-start" id="btn-start" onclick="startDNB()">Commencer le parcours →</button>
+  <a href="index.html" class="btn-back-link">← Retour aux Activités Mentales</a>
+</div>
+
+<!-- ── QUIZ ── -->
+<div id="s-quiz" class="screen">
+  <button class="btn-back" onclick="goIntro()">← Abandon</button>
+  <div class="quiz-head">
+    <div class="quiz-top">
+      <div class="q-mod">
+        <div class="q-mod-ico">📝</div>
+        <div class="q-mod-txt">
+          <div class="q-label" id="q-label">Question 1 / 50</div>
+          <div class="q-theme" id="q-theme">—</div>
+        </div>
+      </div>
+      <div class="score-pill">✓ <span id="score-lv">0</span></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
+  </div>
+
+  <div class="q-card" id="q-card">
+    <div class="operation" id="operation">—</div>
+    <div class="q-context-box" id="q-context" style="display:none"></div>
+    <div id="q-zone"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="btn-valider" id="btn-next" style="display:none" onclick="nextQ()">Question suivante →</button>
+  </div>
+</div>
+
+<!-- ── RESULTS ── -->
+<div id="s-results" class="screen">
+  <div style="text-align:center">
+    <div class="res-eyebrow">Parcours DNB Pro · Bilan</div>
+    <div class="res-title" id="res-title">—</div>
+  </div>
+  <div class="score-card">
+    <div class="score-ring">
+      <svg class="sr-svg" viewBox="0 0 160 160" width="160" height="160">
+        <circle class="sr-bg" cx="80" cy="80" r="75"/>
+        <circle class="sr-arc" id="sr-arc" cx="80" cy="80" r="75"/>
+      </svg>
+      <div class="sr-inner">
+        <div class="sr-score" id="sr-score">0/50</div>
+        <div class="sr-pct" id="sr-pct">0 %</div>
+        <div class="sr-lbl">Réussite</div>
+      </div>
+    </div>
+    <div class="mention" id="mention"></div>
+  </div>
+  <div class="theme-recap">
+    <div class="recap-head">
+      <span>Par thème</span><span id="recap-count">50 questions</span>
+    </div>
+    <div class="theme-rows" id="theme-rows"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-replay" onclick="restart()">🔄 Recommencer</button>
+    <button class="btn-menu" onclick="window.location.href='index.html'">🏠 Activités Mentales</button>
+  </div>
+  <div class="footer">DNB Pro · <span>Lycée Denis Diderot</span></div>
+</div>
+
+<script>
+/* ══ QUESTIONS ══ */
+const QUESTIONS = [
+  // Fractions & nombres (8)
+  {theme:"Fractions & nombres",type:"qcm",q:"Quelle est la valeur de <b>½ + ¼</b> ?",
+   opts:["2/6","3/4","1/6","2/3"],ans:1,
+   expl:"½ = 2/4, donc 2/4 + 1/4 = <b>3/4</b>."},
+  {theme:"Fractions & nombres",type:"input",q:"Donner l'écriture décimale de <b>3/4</b>.",
+   ans:"0.75",accept:["0,75","0.75"],
+   expl:"3 ÷ 4 = <b>0,75</b>."},
+  {theme:"Fractions & nombres",type:"input",q:"Simplifier la fraction <b>12/18</b>.",
+   ans:"2/3",accept:["2/3"],
+   expl:"12 et 18 sont tous deux divisibles par 6 : 12/18 = <b>2/3</b>."},
+  {theme:"Fractions & nombres",type:"qcm",q:"Laquelle de ces fractions est égale à <b>0,4</b> ?",
+   opts:["4/100","2/5","4/9","1/4"],ans:1,
+   expl:"0,4 = 4/10 = <b>2/5</b>."},
+  {theme:"Fractions & nombres",type:"tf",q:"<b>Vrai ou faux ?</b> Un kilomètre est égal à 1 000 mètres.",
+   ans:"Vrai",expl:"<b>Vrai.</b> 1 km = 1 000 m, par définition du préfixe kilo."},
+  {theme:"Fractions & nombres",type:"tf",q:"<b>Vrai ou faux ?</b> Un litre correspond à 1 m³.",
+   ans:"Faux",expl:"<b>Faux.</b> 1 litre = 1 dm³ = 0,001 m³."},
+  {theme:"Fractions & nombres",type:"input",q:"Quelle est la moitié de 50 ?",
+   ans:"25",accept:["25"],expl:"50 ÷ 2 = <b>25</b>."},
+  {theme:"Fractions & nombres",type:"input",q:"Convertir <b>2,5 heures</b> en minutes.",
+   ans:"150",accept:["150"],expl:"2,5 × 60 = <b>150 minutes</b>."},
+  // Proportionnalité (5)
+  {theme:"Proportionnalité",type:"input",q:"Sur une carte, 1 cm représente 3 km. Deux villages sont distants de <b>5 cm</b> sur la carte. Quelle est la distance réelle (en km) ?",
+   ans:"15",accept:["15"],expl:"5 × 3 = <b>15 km</b>."},
+  {theme:"Proportionnalité",type:"qcm",q:"Un article coûte 12 € pour 3 unités. Combien coûtent <b>7 unités</b> ?",
+   opts:["24 €","28 €","30 €","36 €"],ans:1,
+   expl:"Prix unitaire = 4 €. 7 × 4 = <b>28 €</b>."},
+  {theme:"Proportionnalité",type:"qcm",q:"Le coefficient pour passer des pouces aux mm est 25,4. Un écran mesure <b>6 pouces</b>. Quelle est sa diagonale en mm ?",
+   opts:["139,7 mm","127 mm","152,4 mm","165 mm"],ans:2,
+   expl:"6 × 25,4 = <b>152,4 mm</b>."},
+  {theme:"Proportionnalité",type:"input",q:"Un vélo roule à vitesse constante : 54 km en 3 heures. Quelle distance en <b>5 heures</b> ?",
+   ans:"90",accept:["90"],expl:"18 km/h × 5 = <b>90 km</b>."},
+  {theme:"Proportionnalité",type:"tf",q:"<b>Vrai ou faux ?</b> Si y est proportionnel à x et que x double, alors y double aussi.",
+   ans:"Vrai",expl:"<b>Vrai.</b> C'est la définition de la proportionnalité : y = kx."},
+  // Pourcentages (4)
+  {theme:"Pourcentages",type:"qcm",q:"Un village de <b>800 habitants</b> connaît une augmentation de <b>10 %</b>. Quel est le nouveau nombre d'habitants ?",
+   opts:["810","880","900","720"],ans:1,
+   expl:"800 × 1,10 = <b>880 habitants</b>."},
+  {theme:"Pourcentages",type:"input",q:"Un article coûte <b>60 €</b>, soldé à <b>25 %</b>. Quel est le prix après réduction (en €) ?",
+   ans:"45",accept:["45"],expl:"Réduction = 15 €. Prix final = 60 − 15 = <b>45 €</b>."},
+  {theme:"Pourcentages",type:"qcm",q:"Dans une classe de <b>30 élèves</b>, 6 sont absents. Quel pourcentage est absent ?",
+   opts:["6 %","15 %","20 %","25 %"],ans:2,
+   expl:"6/30 × 100 = <b>20 %</b>."},
+  {theme:"Pourcentages",type:"input",q:"Un prix passe de <b>80 €</b> à <b>100 €</b>. Quel est le pourcentage d'augmentation ?",
+   ans:"25",accept:["25"],expl:"(100−80)/80 × 100 = <b>25 %</b>."},
+  // Statistiques (4)
+  {theme:"Statistiques",type:"input",q:"Série : <b>12 ; 8 ; 7 ; 13 ; 11</b>. Donner la <b>médiane</b>.",
+   ans:"11",accept:["11"],expl:"Série triée : 7, 8, <b>11</b>, 12, 13 → médiane = <b>11</b>."},
+  {theme:"Statistiques",type:"input",q:"Série : <b>5 ; 8 ; 10 ; 12</b>. Calculer la <b>moyenne</b>.",
+   ans:"8.75",accept:["8.75","8,75"],expl:"(5+8+10+12)/4 = 35/4 = <b>8,75</b>."},
+  {theme:"Statistiques",type:"input",q:"Série : <b>3 ; 7 ; 11 ; 15 ; 20</b>. Quelle est l'<b>étendue</b> ?",
+   ans:"17",accept:["17"],expl:"Étendue = 20 − 3 = <b>17</b>."},
+  {theme:"Statistiques",type:"qcm",q:"Série : 4 ; 4 ; 6 ; 7 ; 4 ; 9. Quelle est la <b>valeur la plus fréquente</b> (mode) ?",
+   opts:["4","6","7","9"],ans:0,
+   expl:"La valeur <b>4</b> apparaît 3 fois : c'est le mode."},
+  // Probabilités (4)
+  {theme:"Probabilités",type:"qcm",q:"Une roue divisée en <b>10 secteurs identiques</b> numérotés 1 à 10. Probabilité d'obtenir le <b>7</b> ?",
+   opts:["7/10","1/10","1/7","7/100"],ans:1,
+   expl:"1 secteur favorable sur 10 : p = <b>1/10</b>."},
+  {theme:"Probabilités",type:"input",q:"Un sac contient <b>21 jetons</b> numérotés de 1 à 21. Probabilité d'obtenir un nombre <b>≤ 7</b> ? (fraction irréductible)",
+   ans:"1/3",accept:["1/3","7/21"],expl:"7/21 = <b>1/3</b>."},
+  {theme:"Probabilités",type:"qcm",q:"Dé équilibré à 6 faces. Probabilité d'obtenir un nombre <b>pair</b> ?",
+   opts:["1/6","1/3","1/2","2/3"],ans:2,
+   expl:"Faces paires : 2, 4, 6 → p = 3/6 = <b>1/2</b>."},
+  {theme:"Probabilités",type:"input",q:"Urne : 3 rouges, 5 bleues, 2 vertes. Probabilité de tirer une <b>rouge</b> ? (fraction irréductible)",
+   ans:"3/10",accept:["3/10"],expl:"3 rouges sur 10 : p = <b>3/10</b>."},
+  // Géométrie (6)
+  {theme:"Géométrie",type:"qcm",q:"<b>Aire d'un rectangle</b> de longueur 50 m et de largeur 20 m ?",
+   opts:["140 m","70 m²","100 m²","1 000 m²"],ans:3,
+   expl:"50 × 20 = <b>1 000 m²</b>."},
+  {theme:"Géométrie",type:"qcm",q:"<b>Volume d'un pavé droit</b> : longueur 10 cm, largeur 5 cm, hauteur 2 cm ?",
+   opts:["100 cm³","50 cm³","17 cm³","10 cm³"],ans:0,
+   expl:"10 × 5 × 2 = <b>100 cm³</b>."},
+  {theme:"Géométrie",type:"input",q:"Triangle rectangle avec les deux côtés de l'angle droit <b>3 cm et 4 cm</b>. Hypoténuse (en cm) ?",
+   ans:"5",accept:["5"],expl:"√(9+16) = √25 = <b>5 cm</b>."},
+  {theme:"Géométrie",type:"qcm",q:"<b>Aire d'un cercle</b> de rayon 5 cm (arrondie à l'unité) ?",
+   opts:["31 cm²","79 cm²","157 cm²","25 cm²"],ans:1,
+   expl:"π × 5² ≈ <b>78,5 cm²</b> ≈ 79 cm²."},
+  {theme:"Géométrie",type:"input",q:"Un carré a un périmètre de <b>36 cm</b>. Longueur de son côté ?",
+   ans:"9",accept:["9"],expl:"36 ÷ 4 = <b>9 cm</b>."},
+  {theme:"Géométrie",type:"tf",q:"<b>Vrai ou faux ?</b> Le volume d'un cône de rayon 3 cm et de hauteur 4 cm est 12π cm³.",
+   ans:"Vrai",expl:"<b>Vrai.</b> V = (1/3) × π × 9 × 4 = 12π cm³."},
+  // Algèbre (6)
+  {theme:"Algèbre",type:"input",q:"A(x) = 2(x + 3) − 3. Calculer <b>A(2)</b>.",
+   ans:"7",accept:["7"],expl:"2(2+3)−3 = 10−3 = <b>7</b>."},
+  {theme:"Algèbre",type:"input",q:"Développer et réduire : <b>3(x + 4) − 2x</b>.",
+   ans:"x+12",accept:["x+12","x + 12"],expl:"3x+12−2x = <b>x+12</b>."},
+  {theme:"Algèbre",type:"qcm",q:"Solution de l'équation <b>3x − 2 = 4</b> ?",
+   opts:["2/3","2","3","4"],ans:1,
+   expl:"3x = 6 → x = <b>2</b>."},
+  {theme:"Algèbre",type:"input",q:"Résoudre : <b>2x + 5 = 13</b>.",
+   ans:"4",accept:["4","x=4"],expl:"2x = 8 → x = <b>4</b>."},
+  {theme:"Algèbre",type:"tf",q:"<b>Vrai ou faux ?</b> x = 3 est solution de 4x − 1 = 11.",
+   ans:"Vrai",expl:"<b>Vrai.</b> 4×3−1 = 11. ✓"},
+  {theme:"Algèbre",type:"input",q:"Calculer <b>B(−2)</b> pour B(x) = x² − 3x + 1.",
+   ans:"11",accept:["11"],expl:"4+6+1 = <b>11</b>."},
+  // Fonctions & graphiques (4)
+  {theme:"Fonctions & graphiques",type:"qcm",q:"Droite D₁ : <b>y = 25x</b>. Pour x = 3, y vaut :",
+   opts:["28","75","53","8"],ans:1,expl:"25 × 3 = <b>75</b>."},
+  {theme:"Fonctions & graphiques",type:"input",q:"Droite : <b>y = 60 + 10x</b>. Valeur de y pour x = 4 ?",
+   ans:"100",accept:["100"],expl:"60 + 40 = <b>100</b>."},
+  {theme:"Fonctions & graphiques",type:"qcm",q:"Les droites y = 25x et y = 60 + 10x se coupent en E. Abscisse de E ?",
+   opts:["x = 2","x = 3","x = 4","x = 5"],ans:2,
+   expl:"25x = 60+10x → 15x = 60 → x = <b>4</b>."},
+  {theme:"Fonctions & graphiques",type:"input",q:"Un bassin contient 4 m³ et se vide à 1 m³/h. Après combien d'heures reste-t-il <b>1,5 m³</b> ?",
+   ans:"2.5",accept:["2.5","2,5"],expl:"4 − t = 1,5 → t = <b>2,5 h</b>."},
+  // Trigonométrie (3)
+  {theme:"Trigonométrie",type:"qcm",q:"sin α = 0,5. Mesure de α ?",
+   opts:["30°","45°","60°","90°"],ans:0,expl:"sin 30° = 0,5 → α = <b>30°</b>."},
+  {theme:"Trigonométrie",type:"qcm",q:"Triangle ABC rectangle en A, AB = 6 cm, BC = 10 cm. Valeur de <b>cos B</b> ?",
+   opts:["0,6","0,8","0,75","1,67"],ans:0,
+   expl:"cos B = AB/BC = 6/10 = <b>0,6</b>."},
+  {theme:"Trigonométrie",type:"input",q:"Une piste a une pente de 60 %. D'après la table de correspondance du sujet zéro, quel est l'angle (en degrés) ?",
+   ans:"31",accept:["31"],expl:"60 % correspond à <b>31°</b> selon la table officielle."},
+  // Repérage (2)
+  {theme:"Repérage",type:"qcm",q:"Point A(−2 ; 3). Dans quel quadrant se trouve-t-il ?",
+   opts:["Quadrant I (x>0,y>0)","Quadrant II (x<0,y>0)","Quadrant III (x<0,y<0)","Quadrant IV (x>0,y<0)"],ans:1,
+   expl:"x < 0 et y > 0 → <b>quadrant II</b>."},
+  {theme:"Repérage",type:"input",q:"Milieu de [AC] avec A(0;0) et C(6;4). Abscisse du milieu ?",
+   ans:"3",accept:["3"],expl:"(0+6)/2 = <b>3</b>."},
+  // Conversions & mesures (3)
+  {theme:"Conversions & mesures",type:"qcm",q:"Convertir <b>3,2 km</b> en mètres :",
+   opts:["32 m","320 m","3 200 m","32 000 m"],ans:2,
+   expl:"3,2 × 1 000 = <b>3 200 m</b>."},
+  {theme:"Conversions & mesures",type:"input",q:"Convertir <b>45 minutes</b> en heures (décimal).",
+   ans:"0.75",accept:["0.75","0,75"],expl:"45/60 = <b>0,75 h</b>."},
+  {theme:"Conversions & mesures",type:"qcm",q:"Piscine 10 m × 5 m × 2 m. Volume en litres ?",
+   opts:["100 L","1 000 L","10 000 L","100 000 L"],ans:3,
+   expl:"100 m³ × 1 000 L/m³ = <b>100 000 L</b>."},
+  // Algorithmique (3)
+  {theme:"Algorithmique",type:"qcm",q:"prix_total = nb_boites × 8 + masse × 6. Pour nb_boites = 3 et masse = 2, résultat ?",
+   opts:["30 €","36 €","42 €","48 €"],ans:1,
+   expl:"3×8 + 2×6 = 24+12 = <b>36 €</b>."},
+  {theme:"Algorithmique",type:"qcm",q:"Script : retourne <b>2×n + 1</b>. Pour n = 8, résultat ?",
+   opts:["9","15","17","81"],ans:2,
+   expl:"2×8+1 = <b>17</b>."},
+  {theme:"Algorithmique",type:"tf",q:"<b>Vrai ou faux ?</b> <code>Si total > 50 alors réduction ← total × 0,1</code> accorde une réduction de 10 % si le total dépasse 50 €.",
+   ans:"Vrai",expl:"<b>Vrai.</b> Condition > 50, réduction = 10 % du total."},
+];
+
+/* ══ STATE ══ */
+let cur=0, score=0, answered=false;
+const themeData={};
+
+/* ══ INIT ══ */
+function init(){
+  // Récupérer les infos de session (même mécanisme que index.html via backend.js)
+  const nom   = sessionStorage.getItem('eleve_nom')   || localStorage.getItem('eleve_nom')   || '';
+  const classe= sessionStorage.getItem('eleve_classe') || localStorage.getItem('eleve_classe') || '';
+
+  const banner  = document.getElementById('user-banner');
+  const avatar  = document.getElementById('user-avatar');
+  const nameEl  = document.getElementById('user-name');
+  const classEl = document.getElementById('user-class');
+  const btnStart= document.getElementById('btn-start');
+
+  if(nom && classe){
+    banner.classList.remove('warn');
+    banner.classList.add('');
+    avatar.textContent = nom.charAt(0).toUpperCase();
+    nameEl.textContent = nom;
+    classEl.textContent = classe + ' — connecté(e)';
+    btnStart.disabled = false;
+  } else {
+    nameEl.textContent  = 'Non connecté(e)';
+    classEl.textContent = 'Va d\'abord sur Activités Mentales pour te connecter';
+    btnStart.disabled = false; // on laisse quand même accès
+  }
+
+  // Remplir les thèmes
+  const themes=[...new Set(QUESTIONS.map(q=>q.theme))];
+  themes.forEach(t=>{ themeData[t]={ok:0,tot:0}; });
+  QUESTIONS.forEach(q=>themeData[q.theme].tot++);
+
+  const tl=document.getElementById('themes-list');
+  themes.forEach(t=>{ tl.innerHTML+=`<span class="theme-pill">${t}</span>`; });
+}
+
+function startDNB(){
+  cur=0; score=0; answered=false;
+  Object.keys(themeData).forEach(k=>themeData[k].ok=0);
+  showScreen('s-quiz');
+  showQ(0);
+}
+
+function goIntro(){ showScreen('s-intro'); }
+
+/* ══ SCREENS ══ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ══ RENDER QUESTION ══ */
+function showQ(idx){
+  answered=false;
+  const q=QUESTIONS[idx];
+
+  document.getElementById('q-label').textContent=`Question ${idx+1} / ${QUESTIONS.length}`;
+  document.getElementById('q-theme').textContent=q.theme;
+  document.getElementById('score-lv').textContent=score;
+  document.getElementById('pfill').style.width=(idx/QUESTIONS.length*100)+'%';
+  document.getElementById('operation').innerHTML=q.q;
+
+  const ctx=document.getElementById('q-context');
+  if(q.ctx){ ctx.innerHTML=q.ctx; ctx.style.display='block'; }
+  else ctx.style.display='none';
+
+  const fb=document.getElementById('feedback');
+  fb.className='feedback'; fb.innerHTML='';
+  document.getElementById('btn-next').style.display='none';
+
+  const qc=document.getElementById('q-card');
+  qc.classList.remove('pop');
+  void qc.offsetWidth;
+  qc.classList.add('pop');
+
+  const zone=document.getElementById('q-zone');
+  zone.innerHTML='';
+
+  if(q.type==='qcm'){
+    const div=document.createElement('div');
+    div.className='options';
+    q.opts.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='opt-btn';
+      btn.innerHTML=`<span class="opt-letter">${String.fromCharCode(65+i)}</span>${opt}`;
+      btn.onclick=()=>answerQCM(i,btn,div);
+      div.appendChild(btn);
+    });
+    zone.appendChild(div);
+  } else if(q.type==='input'){
+    const inp=document.createElement('input');
+    inp.type='text'; inp.className='ans-inp'; inp.placeholder='?';
+    inp.inputMode='text'; inp.autocomplete='off';
+    inp.onkeydown=e=>{if(e.key==='Enter')answerInput(inp);};
+    zone.appendChild(inp);
+    const btn=document.createElement('button');
+    btn.className='btn-valider'; btn.textContent='Valider';
+    btn.onclick=()=>answerInput(inp);
+    zone.appendChild(btn);
+    setTimeout(()=>inp.focus(),80);
+  } else if(q.type==='tf'){
+    const row=document.createElement('div');
+    row.className='yn-row';
+    ['Vrai','Faux'].forEach((val,i)=>{
+      const btn=document.createElement('button');
+      btn.className='btn-yn '+(i===0?'yes':'no');
+      btn.textContent=val;
+      btn.onclick=()=>answerTF(val,btn,row);
+      row.appendChild(btn);
+    });
+    zone.appendChild(row);
+  }
+}
+
+/* ══ ANSWER HANDLERS ══ */
+function answerQCM(chosen,btn,container){
+  if(answered)return;
+  answered=true;
+  const q=QUESTIONS[cur];
+  container.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  const ok=(chosen===q.ans);
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok) container.querySelectorAll('.opt-btn')[q.ans].classList.add('reveal');
+  registerAnswer(ok,q);
+}
+
+function answerInput(inp){
+  if(answered)return;
+  const raw=inp.value.trim(); if(!raw)return;
+  answered=true;
+  inp.disabled=true;
+  inp.nextSibling && (inp.nextSibling.disabled=true);
+  const q=QUESTIONS[cur];
+  const norm=s=>s.replace(/\s/g,'').replace(',','.').toLowerCase();
+  const ok=[q.ans,...(q.accept||[])].map(norm).includes(norm(raw));
+  inp.classList.add(ok?'good':'bad');
+  if(!ok){
+    const hint=document.createElement('div');
+    hint.style.cssText='font-size:.8rem;color:#b91c1c;margin-top:.4rem;font-weight:700;text-align:center';
+    hint.textContent='Réponse : '+q.ans;
+    inp.insertAdjacentElement('afterend',hint);
+  }
+  registerAnswer(ok,q);
+}
+
+function answerTF(val,btn,row){
+  if(answered)return;
+  answered=true;
+  const q=QUESTIONS[cur];
+  row.querySelectorAll('.btn-yn').forEach(b=>b.disabled=true);
+  const ok=(val===q.ans);
+  btn.style.opacity=ok?'1':'0.4';
+  if(!ok){
+    row.querySelectorAll('.btn-yn').forEach(b=>{
+      if(b.textContent===q.ans) b.style.opacity='1';
+    });
+  }
+  registerAnswer(ok,q);
+}
+
+function registerAnswer(ok,q){
+  if(ok){ score++; themeData[q.theme].ok++; }
+  const fb=document.getElementById('feedback');
+  fb.className='feedback '+(ok?'good':'bad');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+q.expl;
+  const btnNext=document.getElementById('btn-next');
+  btnNext.style.display='block';
+  btnNext.textContent=cur<QUESTIONS.length-1?'Question suivante →':'Voir mon résultat →';
+}
+
+function nextQ(){
+  cur++;
+  if(cur>=QUESTIONS.length){ showResults(); return; }
+  showQ(cur);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ══ RESULTS ══ */
+function showResults(){
+  showScreen('s-results');
+  const pct=Math.round(score/QUESTIONS.length*100);
+  document.getElementById('sr-score').textContent=`${score}/50`;
+  document.getElementById('sr-pct').textContent=pct+' %';
+  document.getElementById('pfill').style.width='100%';
+
+  // Anneau SVG
+  const arc=document.getElementById('sr-arc');
+  const offset=471.2*(1-pct/100);
+  const color=pct>=80?'#16a34a':pct>=60?'#1d4ed8':pct>=40?'#d97706':'#dc2626';
+  setTimeout(()=>{ arc.style.strokeDashoffset=offset; arc.style.stroke=color; },100);
+  document.getElementById('sr-score').style.color=color;
+
+  // Mention
+  const m=document.getElementById('mention');
+  if(pct>=80){ m.className='mention p'; m.textContent='🎓 Très bien !'; }
+  else if(pct>=60){ m.className='mention b'; m.textContent='👍 Bien !'; }
+  else if(pct>=40){ m.className='mention m'; m.textContent='📖 À revoir'; }
+  else { m.className='mention e'; m.textContent='💪 Continue !'; }
+
+  // Titre
+  const nom=sessionStorage.getItem('eleve_nom')||localStorage.getItem('eleve_nom')||'';
+  document.getElementById('res-title').innerHTML=nom
+    ? `Bravo <em>${nom}</em> !`
+    : 'Parcours <em>terminé</em> !';
+
+  // Thèmes
+  const tr=document.getElementById('theme-rows');
+  tr.innerHTML='';
+  Object.entries(themeData).forEach(([th,{ok,tot}])=>{
+    const p2=Math.round(ok/tot*100);
+    const cls=p2>=80?'ok':p2>=50?'mid':'ko';
+    tr.innerHTML+=`
+      <div class="trow">
+        <span class="t-name">${th}</span>
+        <div class="t-bar"><div class="t-fill" style="width:${p2}%;background:${p2>=80?'#16a34a':p2>=50?'#d97706':'#dc2626'}"></div></div>
+        <span class="t-score ${cls}">${ok}/${tot}</span>
+      </div>`;
+  });
+  document.getElementById('recap-count').textContent=`${QUESTIONS.length} questions`;
+
+  // Enregistrer dans Supabase via backend.js si la fonction existe
+  try{
+    if(typeof saveSession==='function'){
+      saveSession('dnb_pro_50', score, QUESTIONS.length);
+    }
+  }catch(e){}
+}
+
+function restart(){ startDNB(); }
+
+init();
+</script>
+</body>
+</html>
