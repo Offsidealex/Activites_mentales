@@ -310,20 +310,15 @@ function initDNB(){
 }
 
 function startDNB(){
-  // Mélanger les questions à chaque nouveau parcours
-  shuffle(QUESTIONS);
-  // Mélanger aussi les options QCM
-  QUESTIONS.forEach(q => {
-    if(q.type === 'qcm'){
-      const zipped = q.opts.map((opt,i) => ({opt, isAns: i===q.ans}));
-      shuffle(zipped);
-      q.opts = zipped.map(z => z.opt);
-      q.ans  = zipped.findIndex(z => z.isAns);
-    }
-  });
-  cur=0; score=0; answered=false;
+  cur=0;score=0;answered=false;
   Object.keys(themeData).forEach(k=>themeData[k].ok=0);
-  showScreen('s-quiz'); showQ(0);
+  showScreen('s-quiz');showQ(0);
+}
+function goIntro(){ showScreen('s-intro'); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function showQ(idx){
@@ -433,7 +428,6 @@ function restart(){ startDNB(); }
 
 // backend.js est chargé juste avant, il a déjà lancé injectLoginScreen() si nécessaire
 // et défini window.AM. On appelle initDNB() directement.
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}}
 initDNB();
 </script>
 </body>
