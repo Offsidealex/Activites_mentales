@@ -433,6 +433,7 @@ function restart(){ startDNB(); }
 
 // backend.js est chargé juste avant, il a déjà lancé injectLoginScreen() si nécessaire
 // et défini window.AM. On appelle initDNB() directement.
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}}
 initDNB();
 </script>
 </body>
