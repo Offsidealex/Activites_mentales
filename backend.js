@@ -1,171 +1,146 @@
-// ============================================
-// backend.js v2 — Patch Activités Mentales
-// ============================================
+/* ============================================================
+   Activités Mentales — écran de connexion (version autonome)
+   ------------------------------------------------------------
+   Aucun serveur : le code de classe est vérifié directement
+   dans le navigateur. Il n'y a donc plus rien à « joindre »,
+   et les élèves ne peuvent plus être bloqués par une panne
+   de connexion.
 
-const SUPABASE_URL     = 'https://hxfdlujpedxuumqfewvn.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZmRsdWpwZWR4dXVtcWZld3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjcyMzAsImV4cCI6MjA5NzcwMzIzMH0.mM0xBhLGWG3vDgE06bEla8b4BhH7v6dvZ-BWn4ZOP0Q';
+   POUR CHANGER LE(S) CODE(S) : modifie la ligne CODES_VALIDES
+   ci-dessous. Tu peux en mettre plusieurs, séparés par des
+   virgules, ex : ["3PM2026", "TRPM2026"].
+   La saisie est insensible à la casse (3pm2026 = 3PM2026).
+   ============================================================ */
 
-// ── STATE ──
-let currentEleve = null;
+(function () {
+  "use strict";
 
-function saveEleve(eleve) {
-  currentEleve = eleve;
-  sessionStorage.setItem('am_eleve', JSON.stringify(eleve));
-}
-function loadEleve() {
-  const stored = sessionStorage.getItem('am_eleve');
-  if (stored) currentEleve = JSON.parse(stored);
-  return currentEleve;
-}
+  // ---- CONFIGURATION -----------------------------------------
+  const CODES_VALIDES = ["3PM2026"];   // code(s) attendu(s)
+  const REDEMANDER_A_CHAQUE_FOIS = true; // true = redemande à chaque ouverture de la page
+  // ------------------------------------------------------------
 
-// ── API ──
-async function sbQuery(table, method = 'GET', body = null, params = '') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, {
-    method,
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'return=representation' : ''
-    },
-    body: body ? JSON.stringify(body) : null
-  });
-  if (!res.ok) { const err = await res.text(); throw new Error(`Supabase ${method} ${table}: ${err}`); }
-  return method === 'DELETE' ? null : res.json();
-}
-
-// ── LOGIN ──
-async function loginEleve(prenom, codeClasse) {
-  prenom = prenom.trim();
-  codeClasse = codeClasse.trim().toUpperCase();
-  const classes = await sbQuery('classes', 'GET', null, `?code=eq.${codeClasse}&select=id,nom`);
-  if (!classes || classes.length === 0) return { error: 'Code classe incorrect.' };
-  const classeId = classes[0].id;
-  const existing = await sbQuery('eleves', 'GET', null,
-    `?prenom=ilike.${encodeURIComponent(prenom)}&classe_id=eq.${classeId}&select=id,prenom,classe_id`);
-  if (existing && existing.length > 0) { saveEleve(existing[0]); return existing[0]; }
-  const created = await sbQuery('eleves', 'POST', { prenom, classe_id: classeId }, '?select=id,prenom,classe_id');
-  if (created && created.length > 0) { saveEleve(created[0]); return created[0]; }
-  return { error: 'Impossible de créer le compte élève.' };
-}
-
-// ── SEND SESSION ──
-async function sendSession(data) {
-  if (!currentEleve) { console.warn('[AM] Pas d\'élève connecté.'); return null; }
-  try {
-    const sessions = await sbQuery('sessions', 'POST', {
-      eleve_id: currentEleve.id,
-      exercice: data.exercice,
-      score: data.score,
-      nb_questions: data.nb_questions,
-      duree_totale_ms: data.duree_totale_ms || null
-    }, '?select=id');
-    if (!sessions || sessions.length === 0) return null;
-    const sessionId = sessions[0].id;
-    if (data.reponses && data.reponses.length > 0) {
-      await sbQuery('reponses', 'POST', data.reponses.map(r => ({
-        session_id: sessionId,
-        numero_question: r.numero_question,
-        enonce: r.enonce || null,
-        reponse_eleve: r.reponse_eleve || null,
-        correct: r.correct,
-        temps_ms: r.temps_ms || null
-      })), '');
-    }
-    return sessionId;
-  } catch(e) { console.error('[AM] Erreur envoi session:', e); return null; }
-}
-
-// ── MENU SCORES ──
-async function loadMenuScores() {
-  if (!currentEleve) return;
-  try {
-    const sessions = await sbQuery('sessions', 'GET', null,
-      `?eleve_id=eq.${currentEleve.id}&select=exercice,score,nb_questions`);
-    if (!sessions || sessions.length === 0) return;
-    const best = {};
-    sessions.forEach(s => {
-      const pct = Math.round(s.score / s.nb_questions * 100);
-      if (!best[s.exercice] || pct > best[s.exercice].pct)
-        best[s.exercice] = { pct, score: s.score, nb: s.nb_questions };
+  function estCodeValide(saisie) {
+    const c = (saisie || "").trim().toUpperCase();
+    return CODES_VALIDES.some(function (v) {
+      return v.trim().toUpperCase() === c;
     });
-    document.querySelectorAll('.card[data-module]').forEach(card => {
-      const title = card.dataset.module;
-      const badge = card.querySelector('.score-badge');
-      if (!badge) return;
-      if (best[title]) {
-        const { pct, score, nb } = best[title];
-        const color = pct === 100 ? 'var(--green)' :
-                      pct >= 70  ? 'var(--accent)' :
-                      pct >= 40  ? 'var(--orange)' : 'var(--red)';
-        badge.innerHTML = `
-          <span style="color:var(--muted);font-weight:700;font-size:.7rem">Meilleur</span>
-          <span style="color:${color};font-weight:800;font-size:.78rem">${score}/${nb} &nbsp;${pct}%</span>`;
-        badge.style.borderColor = `color-mix(in srgb, ${color} 35%, transparent)`;
-        badge.style.background  = `color-mix(in srgb, ${color} 10%, transparent)`;
+  }
+
+  function demarrer() {
+    // Ne pas ré-injecter deux fois
+    if (document.getElementById("aml-overlay")) return;
+
+    // Si on ne redemande pas à chaque fois et qu'une session existe déjà, on n'affiche rien
+    if (!REDEMANDER_A_CHAQUE_FOIS) {
+      try {
+        var dejaCo = sessionStorage.getItem("am_eleve");
+        if (dejaCo) { window.AM_ELEVE = JSON.parse(dejaCo); return; }
+      } catch (e) {}
+    }
+
+    injecterStyles();
+
+    var overlay = document.createElement("div");
+    overlay.id = "aml-overlay";
+    overlay.innerHTML =
+      '<div class="aml-card" role="dialog" aria-label="Connexion">' +
+        '<div class="aml-logo">🏫</div>' +
+        '<div class="aml-title">Activités Mentales</div>' +
+        '<div class="aml-sub">Lycée Denis Diderot</div>' +
+        '<label class="aml-label" for="aml-prenom">Ton prénom</label>' +
+        '<input id="aml-prenom" class="aml-input" type="text" placeholder="ex : Lucas" autocomplete="off" spellcheck="false">' +
+        '<label class="aml-label" for="aml-code">Code de la classe</label>' +
+        '<input id="aml-code" class="aml-input" type="text" placeholder="ex : 3PM2026" autocomplete="off" spellcheck="false">' +
+        '<div id="aml-error" class="aml-error"></div>' +
+        '<button id="aml-start" class="aml-btn" type="button">Commencer →</button>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden"; // bloque le défilement du fond
+
+    var prenom = document.getElementById("aml-prenom");
+    var code   = document.getElementById("aml-code");
+    var erreur = document.getElementById("aml-error");
+    var bouton = document.getElementById("aml-start");
+    var carte  = overlay.querySelector(".aml-card");
+
+    setTimeout(function () { prenom.focus(); }, 50);
+
+    function valider() {
+      var p = prenom.value.trim();
+      erreur.textContent = "";
+
+      if (!p) {
+        erreur.textContent = "Indique ton prénom.";
+        prenom.focus();
+        secouer();
+        return;
       }
-    });
-  } catch(e) { console.warn('[AM] loadMenuScores:', e); }
-}
+      if (!estCodeValide(code.value)) {
+        erreur.textContent = "Code de classe incorrect.";
+        code.focus();
+        code.select();
+        secouer();
+        return;
+      }
 
-// ── LOGIN SCREEN ──
-function injectLoginScreen() {
-  const overlay = document.createElement('div');
-  overlay.id = 'am-login-overlay';
-  overlay.innerHTML = `
-    <div id="am-login-box">
-      <div id="am-login-logo">🏫</div>
-      <h2>Activités Mentales</h2>
-      <p>Lycée Denis Diderot</p>
-      <div class="am-field"><label for="am-prenom">Ton prénom</label>
-        <input type="text" id="am-prenom" placeholder="ex : Lucas" autocomplete="off"/></div>
-      <div class="am-field"><label for="am-code">Code de la classe</label>
-        <input type="text" id="am-code" placeholder="ex : 3PM2026" autocomplete="off"/></div>
-      <button id="am-login-btn">Commencer →</button>
-      <p id="am-login-error"></p>
-    </div>`;
-  const style = document.createElement('style');
-  style.textContent = `
-    #am-login-overlay{position:fixed;inset:0;z-index:9999;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',system-ui,sans-serif}
-    #am-login-box{background:#16213e;border:1px solid #0f3460;border-radius:16px;padding:2.5rem 2rem;max-width:360px;width:90%;text-align:center;color:#e0e0e0;box-shadow:0 8px 32px rgba(0,0,0,.4)}
-    #am-login-logo{font-size:2.5rem;margin-bottom:.5rem}
-    #am-login-box h2{margin:0;font-size:1.4rem;color:#e94560;font-weight:700}
-    #am-login-box p{margin:.2rem 0 1.5rem;font-size:.85rem;color:#888}
-    .am-field{text-align:left;margin-bottom:1rem}
-    .am-field label{display:block;font-size:.8rem;color:#aaa;margin-bottom:.3rem;letter-spacing:.05em;text-transform:uppercase}
-    .am-field input{width:100%;box-sizing:border-box;padding:.7rem 1rem;background:#0f3460;border:1px solid #1a4a80;border-radius:8px;color:#fff;font-size:1rem;outline:none;transition:border-color .2s}
-    .am-field input:focus{border-color:#e94560}
-    #am-login-btn{margin-top:.5rem;width:100%;padding:.8rem;background:#e94560;border:none;border-radius:8px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s}
-    #am-login-btn:hover{background:#c73650}
-    #am-login-btn:disabled{background:#555;cursor:default}
-    #am-login-error{color:#e94560;font-size:.85rem;min-height:1.2em;margin-top:.8rem}`;
-  document.head.appendChild(style);
-  document.body.appendChild(overlay);
-  const btn = document.getElementById('am-login-btn');
-  const errEl = document.getElementById('am-login-error');
-  async function doLogin() {
-    const prenom = document.getElementById('am-prenom').value.trim();
-    const code   = document.getElementById('am-code').value.trim();
-    if (!prenom || !code) { errEl.textContent = 'Remplis les deux champs.'; return; }
-    btn.disabled = true; btn.textContent = 'Connexion…'; errEl.textContent = '';
-    const result = await loginEleve(prenom, code);
-    if (result && result.error) {
-      errEl.textContent = result.error; btn.disabled = false; btn.textContent = 'Commencer →';
-    } else if (result && result.id) {
-      overlay.style.opacity = '0'; overlay.style.transition = 'opacity .3s';
-      setTimeout(() => { overlay.remove(); loadMenuScores(); }, 300);
+      // Connexion réussie
+      var eleve = { prenom: p, classe: code.value.trim().toUpperCase() };
+      window.AM_ELEVE = eleve;               // accessible ailleurs si besoin
+      try { sessionStorage.setItem("am_eleve", JSON.stringify(eleve)); } catch (e) {}
+
+      document.body.style.overflow = "";     // rétablit le défilement
+      overlay.remove();                      // on découvre l'appli
     }
-  }
-  btn.addEventListener('click', doLogin);
-  document.getElementById('am-code').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-}
 
-// ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
-  if (!loadEleve()) {
-    injectLoginScreen();
-  } else {
-    setTimeout(loadMenuScores, 300);
+    function secouer() {
+      carte.classList.remove("aml-shake");
+      // force le reflow pour rejouer l'animation
+      void carte.offsetWidth;
+      carte.classList.add("aml-shake");
+    }
+
+    bouton.addEventListener("click", valider);
+    prenom.addEventListener("keydown", function (e) { if (e.key === "Enter") code.focus(); });
+    code.addEventListener("keydown", function (e) { if (e.key === "Enter") valider(); });
   }
-  window.AM = { sendSession, currentEleve: () => currentEleve, loadMenuScores };
-});
+
+  function injecterStyles() {
+    if (document.getElementById("aml-styles")) return;
+    var s = document.createElement("style");
+    s.id = "aml-styles";
+    s.textContent = [
+      "#aml-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.2rem;",
+      "background:radial-gradient(1000px 600px at 50% -10%, #1a2744 0%, transparent 60%), #0e1626;",
+      "font-family:'Open Sans','Segoe UI',system-ui,sans-serif;}",
+      ".aml-card{width:100%;max-width:380px;background:#16203a;border:1px solid #26304d;border-radius:18px;",
+      "box-shadow:0 24px 60px rgba(0,0,0,.45);padding:2rem 1.8rem 1.9rem;display:flex;flex-direction:column;}",
+      ".aml-logo{font-size:2.4rem;text-align:center;line-height:1;margin-bottom:.5rem;}",
+      ".aml-title{text-align:center;font-weight:800;font-size:1.6rem;color:#f43f5e;letter-spacing:.01em;}",
+      ".aml-sub{text-align:center;font-size:.85rem;color:#93a1ba;margin-top:.15rem;margin-bottom:1.4rem;}",
+      ".aml-label{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#aab4c9;margin:0 0 .4rem 2px;}",
+      ".aml-input{width:100%;padding:.75rem .9rem;margin-bottom:1.1rem;border-radius:11px;border:1px solid #2d3a5b;",
+      "background:#1b2742;color:#e8edf6;font-size:1rem;outline:none;transition:border-color .15s,box-shadow .15s;}",
+      ".aml-input::placeholder{color:#5f6f8c;}",
+      ".aml-input:focus{border-color:#f43f5e;box-shadow:0 0 0 3px rgba(244,63,94,.22);}",
+      ".aml-error{min-height:1.15rem;color:#fca5a5;font-size:.82rem;font-weight:600;text-align:center;margin:-.4rem 0 .6rem;}",
+      ".aml-btn{width:100%;padding:.85rem;border:none;border-radius:11px;cursor:pointer;",
+      "background:linear-gradient(180deg,#f43f5e,#e11d48);color:#fff;font-size:1.05rem;font-weight:800;",
+      "letter-spacing:.02em;box-shadow:0 8px 20px rgba(225,29,72,.35);transition:transform .1s,filter .15s;}",
+      ".aml-btn:hover{filter:brightness(1.06);}",
+      ".aml-btn:active{transform:translateY(1px);}",
+      "@keyframes aml-shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}",
+      "30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}",
+      ".aml-shake{animation:aml-shake .5s cubic-bezier(.36,.07,.19,.97) both;}"
+    ].join("");
+    document.head.appendChild(s);
+  }
+
+  // Le script est chargé avant le <body> : on attend que la page soit prête.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", demarrer);
+  } else {
+    demarrer();
+  }
+})();
