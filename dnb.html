@@ -160,6 +160,7 @@ body{font-family:'Open Sans','Segoe UI',system-ui,sans-serif;background:radial-g
       <div class="user-class" id="user-class"></div>
     </div>
   </div>
+  <button class="btn-start" type="button" onclick="window.AM.openLogin()">Connexion élève</button>
   <button class="btn-start" onclick="startDNB()">Commencer le parcours →</button>
   <a href="index.html" class="btn-back-link">← Retour aux Activités Mentales</a>
 </div>
@@ -429,6 +430,7 @@ function restart(){ startDNB(); }
 // backend.js est chargé juste avant, il a déjà lancé injectLoginScreen() si nécessaire
 // et défini window.AM. On appelle initDNB() directement.
 initDNB();
+document.addEventListener('am:login', initDNB);
 </script>
 </body>
 </html>

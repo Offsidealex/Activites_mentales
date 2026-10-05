@@ -83,7 +83,8 @@
   <div id="login-box">
     <h1>🏫 Dashboard Prof</h1>
     <p>Activités Mentales · Lycée Denis Diderot</p>
-    <input type="password" id="mdp-input" placeholder="Mot de passe"/>
+    <input type="email" id="email-input" placeholder="Adresse e-mail professeur" autocomplete="username"/>
+    <input type="password" id="mdp-input" placeholder="Mot de passe" autocomplete="current-password"/>
     <button id="login-btn">Accéder →</button>
     <p id="login-error"></p>
   </div>
@@ -165,18 +166,29 @@
 <script>
 const SUPABASE_URL      = 'https://hxfdlujpedxuumqfewvn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZmRsdWpwZWR4dXVtcWZld3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjcyMzAsImV4cCI6MjA5NzcwMzIzMH0.mM0xBhLGWG3vDgE06bEla8b4BhH7v6dvZ-BWn4ZOP0Q';
-const PROF_PASSWORD     = 'Diderot2026';
 const DNB_EXERCICE      = 'DNB Pro — 50 automatismes';
 
 // ── AUTH ──
-let isAuth = sessionStorage.getItem('am_prof') === '1';
-document.getElementById('login-btn').addEventListener('click', () => {
-  if(document.getElementById('mdp-input').value === PROF_PASSWORD){
-    sessionStorage.setItem('am_prof','1'); isAuth=true; showDashboard();
-  } else { document.getElementById('login-error').textContent='Mot de passe incorrect.'; }
+let profToken = sessionStorage.getItem('am_prof_token');
+let isAuth = Boolean(profToken);
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email=document.getElementById('email-input').value.trim();
+  const password=document.getElementById('mdp-input').value;
+  const error=document.getElementById('login-error');
+  if(!email||!password){error.textContent='Indique ton e-mail et ton mot de passe.';return;}
+  error.textContent='Connexion…';
+  try{
+    const res=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const data=await res.json();
+    if(!res.ok||!data.access_token)throw new Error();
+    const teacher=await fetch(`${SUPABASE_URL}/rest/v1/enseignants?auth_user_id=eq.${data.user.id}&select=auth_user_id`,{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${data.access_token}`}});
+    const teachers=await teacher.json();
+    if(!teacher.ok||!teachers.length)throw new Error();
+    profToken=data.access_token;sessionStorage.setItem('am_prof_token',profToken);isAuth=true;showDashboard();
+  }catch(e){error.textContent='Accès professeur refusé.';}
 });
 document.getElementById('mdp-input').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-btn').click(); });
-document.getElementById('logout-btn').addEventListener('click', () => { sessionStorage.removeItem('am_prof'); location.reload(); });
+document.getElementById('logout-btn').addEventListener('click', () => { sessionStorage.removeItem('am_prof_token'); location.reload(); });
 if(isAuth) showDashboard();
 
 function showDashboard(){
@@ -188,7 +200,7 @@ function showDashboard(){
 // ── SUPABASE ──
 async function sb(table, params=''){
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, {
-    headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`}
+    headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${profToken}`}
   });
   return res.json();
 }
@@ -263,14 +275,20 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 function renderElevesTab(data){
   const map={};
   data.forEach(s=>{
-    if(!map[s.prenom]) map[s.prenom]={prenom:s.prenom,classe:s.classe,sessions:[],pcts:[]};
-    map[s.prenom].sessions.push(s); map[s.prenom].pcts.push(s.pourcentage);
+    const key=`${s.prenom}|${s.classe}`;
+    if(!map[key]) map[key]={prenom:s.prenom,classe:s.classe,sessions:[],pcts:[]};
+    map[key].sessions.push(s); map[key].pcts.push(s.pourcentage);
+  });
+  allData.eleves.forEach(e=>{
+    const classe=allData.classes.find(c=>c.id===e.classe_id);
+    const key=`${e.prenom}|${classe?.code||''}`;
+    if(!map[key]) map[key]={prenom:e.prenom,classe:classe?.code||'—',sessions:[],pcts:[]};
   });
   const eleves = Object.values(map).sort((a,b)=>a.prenom.localeCompare(b.prenom));
   if(eleves.length===0){ document.getElementById('eleve-list').innerHTML='<div class="empty">Aucune donnée.</div>'; return; }
   let html=`<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Classe</th><th>Séries</th><th>Score moyen</th><th>Dernière activité</th></tr></thead><tbody>`;
   eleves.forEach(e=>{
-    const moy=Math.round(e.pcts.reduce((a,b)=>a+b,0)/e.pcts.length);
+    const moy=e.pcts.length?Math.round(e.pcts.reduce((a,b)=>a+b,0)/e.pcts.length):0;
     const last=e.sessions.sort((a,b)=>b.played_at.localeCompare(a.played_at))[0];
     const lastDate=last?new Date(last.played_at).toLocaleDateString('fr-FR'):'—';
     const badge=moy>=70?'badge-green':moy>=40?'badge-yellow':'badge-red';
@@ -290,7 +308,10 @@ function showEleveDetail(prenom,classe){
   document.getElementById('eleve-detail').style.display='block';
   document.getElementById('detail-title').textContent=`${prenom} — ${classe}`;
   const sessions=allData.sessions.filter(s=>s.prenom===prenom&&s.classe===classe).sort((a,b)=>b.played_at.localeCompare(a.played_at));
-  if(sessions.length===0){ document.getElementById('detail-content').innerHTML='<div class="empty">Aucune session.</div>'; return; }
+  const classRecord=allData.classes.find(c=>c.code===classe||c.nom===classe);
+  const eleve=allData.eleves.find(e=>e.prenom===prenom&&classRecord&&e.classe_id===classRecord.id);
+  const reset=eleve?`<button type="button" onclick="resetStudentPassword('${eleve.id}')" style="margin-bottom:1rem;padding:.5rem .8rem;background:var(--accent);border:0;border-radius:6px;color:#fff;cursor:pointer;font-weight:700">Réinitialiser le mot de passe</button>`:'';
+  if(sessions.length===0){ document.getElementById('detail-content').innerHTML=reset+'<div class="empty">Aucune session.</div>'; return; }
   let html=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Exercice</th><th>Score</th><th>%</th><th>Durée</th></tr></thead><tbody>`;
   sessions.forEach(s=>{
     const date=new Date(s.played_at).toLocaleString('fr-FR');
@@ -305,7 +326,19 @@ function showEleveDetail(prenom,classe){
       <td>${duree}</td></tr>`;
   });
   html+='</tbody></table></div>';
-  document.getElementById('detail-content').innerHTML=html;
+  document.getElementById('detail-content').innerHTML=reset+html;
+}
+
+async function resetStudentPassword(eleveId){
+  const password=prompt('Nouveau mot de passe élève (8 caractères minimum) :');
+  if(password===null)return;
+  if(password.length<8){alert('Le mot de passe doit contenir au moins 8 caractères.');return;}
+  try{
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/student-auth`,{method:'POST',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${profToken}`,'Content-Type':'application/json'},body:JSON.stringify({action:'reset-password',eleveId,password})});
+    const data=await res.json();
+    if(!res.ok||data.error)throw new Error(data.error);
+    alert('Mot de passe réinitialisé.');
+  }catch(e){alert('Réinitialisation impossible.');}
 }
 
 document.getElementById('back-btn').addEventListener('click', showEleveList);

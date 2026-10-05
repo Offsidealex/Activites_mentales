@@ -1,146 +1,159 @@
-/* ============================================================
-   Activités Mentales — écran de connexion (version autonome)
-   ------------------------------------------------------------
-   Aucun serveur : le code de classe est vérifié directement
-   dans le navigateur. Il n'y a donc plus rien à « joindre »,
-   et les élèves ne peuvent plus être bloqués par une panne
-   de connexion.
-
-   POUR CHANGER LE(S) CODE(S) : modifie la ligne CODES_VALIDES
-   ci-dessous. Tu peux en mettre plusieurs, séparés par des
-   virgules, ex : ["3PM2026", "TRPM2026"].
-   La saisie est insensible à la casse (3pm2026 = 3PM2026).
-   ============================================================ */
-
+/* Activités Mentales - client d'authentification élève.
+   Les mots de passe sont traités uniquement par Supabase Auth. */
 (function () {
   "use strict";
 
-  // ---- CONFIGURATION -----------------------------------------
-  const CODES_VALIDES = ["3PM2026"];   // code(s) attendu(s)
-  const REDEMANDER_A_CHAQUE_FOIS = true; // true = redemande à chaque ouverture de la page
-  // ------------------------------------------------------------
+  const SUPABASE_URL = "https://hxfdlujpedxuumqfewvn.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZmRsdWpwZWR4dXVtcWZld3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjcyMzAsImV4cCI6MjA5NzcwMzIzMH0.mM0xBhLGWG3vDgE06bEla8b4BhH7v6dvZ-BWn4ZOP0Q";
+  const CLASS_NAMES = ["3PM", "2TNE1", "2TNE2", "2TNE3", "2REMI1", "2REMI2", "1CAP"];
+  let currentEleve = null;
+  let authSession = null;
 
-  function estCodeValide(saisie) {
-    const c = (saisie || "").trim().toUpperCase();
-    return CODES_VALIDES.some(function (v) {
-      return v.trim().toUpperCase() === c;
+  function saveSession(session, eleve) {
+    authSession = session;
+    currentEleve = eleve;
+    sessionStorage.setItem("am_auth_session", JSON.stringify(session));
+    sessionStorage.setItem("am_eleve", JSON.stringify(eleve));
+  }
+
+  function loadEleve() {
+    if (currentEleve) return currentEleve;
+    try {
+      const session = JSON.parse(sessionStorage.getItem("am_auth_session"));
+      const eleve = JSON.parse(sessionStorage.getItem("am_eleve"));
+      if (session && eleve && session.expires_at * 1000 > Date.now()) {
+        authSession = session;
+        currentEleve = eleve;
+      }
+    } catch (e) {}
+    return currentEleve;
+  }
+
+  async function studentAuth(action, pseudo, classe, password) {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/student-auth`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ action, pseudo, classe, password })
     });
+    const result = await response.json();
+    if (!response.ok || result.error) throw new Error(result.error || "Connexion impossible.");
+    saveSession(result.session, result.eleve);
+    await loadMenuScores();
+    document.dispatchEvent(new Event("am:login"));
   }
 
-  function demarrer() {
-    // Ne pas ré-injecter deux fois
+  async function sbQuery(table, method, body, params) {
+    const eleve = loadEleve();
+    if (!eleve || !authSession) throw new Error("Connexion élève requise.");
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params || ""}`, {
+      method: method || "GET",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${authSession.access_token}`,
+        "Content-Type": "application/json",
+        Prefer: method === "POST" ? "return=representation" : ""
+      },
+      body: body ? JSON.stringify(body) : null
+    });
+    if (!response.ok) throw new Error(await response.text());
+    return response.json();
+  }
+
+  async function sendSession(data) {
+    const eleve = loadEleve();
+    if (!eleve) return null;
+    try {
+      const sessions = await sbQuery("sessions", "POST", {
+        eleve_id: eleve.id,
+        exercice: data.exercice,
+        score: data.score,
+        nb_questions: data.nb_questions,
+        duree_totale_ms: data.duree_totale_ms || null
+      }, "?select=id");
+      if (data.reponses && data.reponses.length) {
+        await sbQuery("reponses", "POST", data.reponses.map(function (reponse) {
+          return { ...reponse, session_id: sessions[0].id, temps_ms: reponse.temps_ms || null };
+        }));
+      }
+      return sessions[0].id;
+    } catch (error) {
+      console.error("[AM] Enregistrement impossible :", error);
+      return null;
+    }
+  }
+
+  async function loadMenuScores() {
+    const eleve = loadEleve();
+    if (!eleve || !authSession) return;
+    try {
+      const sessions = await sbQuery("sessions", "GET", null, `?eleve_id=eq.${eleve.id}&select=exercice,score,nb_questions`);
+      const best = {};
+      sessions.forEach(function (session) {
+        const pct = Math.round(session.score / session.nb_questions * 100);
+        if (!best[session.exercice] || pct > best[session.exercice].pct) best[session.exercice] = { ...session, pct };
+      });
+      document.querySelectorAll(".card[data-module]").forEach(function (card) {
+        const result = best[card.dataset.module];
+        if (!result) return;
+        card.querySelector(".score-badge").innerHTML = `<span style="color:var(--muted);font-weight:700;font-size:.7rem">Meilleur</span><span style="color:var(--accent);font-weight:800;font-size:.78rem">${result.score}/${result.nb_questions} ${result.pct}%</span>`;
+      });
+    } catch (error) {
+      console.warn("[AM] Scores indisponibles :", error);
+    }
+  }
+
+  function openLogin() {
     if (document.getElementById("aml-overlay")) return;
-
-    // Si on ne redemande pas à chaque fois et qu'une session existe déjà, on n'affiche rien
-    if (!REDEMANDER_A_CHAQUE_FOIS) {
-      try {
-        var dejaCo = sessionStorage.getItem("am_eleve");
-        if (dejaCo) { window.AM_ELEVE = JSON.parse(dejaCo); return; }
-      } catch (e) {}
-    }
-
-    injecterStyles();
-
-    var overlay = document.createElement("div");
+    const options = CLASS_NAMES.map(function (classe) { return `<option value="${classe}">${classe}</option>`; }).join("");
+    const overlay = document.createElement("div");
     overlay.id = "aml-overlay";
-    overlay.innerHTML =
-      '<div class="aml-card" role="dialog" aria-label="Connexion">' +
-        '<div class="aml-logo">🏫</div>' +
-        '<div class="aml-title">Activités Mentales</div>' +
-        '<div class="aml-sub">Lycée Denis Diderot</div>' +
-        '<label class="aml-label" for="aml-prenom">Ton prénom</label>' +
-        '<input id="aml-prenom" class="aml-input" type="text" placeholder="ex : Lucas" autocomplete="off" spellcheck="false">' +
-        '<label class="aml-label" for="aml-code">Code de la classe</label>' +
-        '<input id="aml-code" class="aml-input" type="text" placeholder="ex : 3PM2026" autocomplete="off" spellcheck="false">' +
-        '<div id="aml-error" class="aml-error"></div>' +
-        '<button id="aml-start" class="aml-btn" type="button">Commencer →</button>' +
-      '</div>';
-
+    overlay.innerHTML = `<div class="aml-card" role="dialog" aria-modal="true" aria-labelledby="aml-title">
+      <button class="aml-close" type="button" aria-label="Fermer">×</button>
+      <div class="aml-logo">🏫</div><h2 id="aml-title">Connexion élève</h2>
+      <p class="aml-sub">Connecte-toi ou crée ton compte.</p>
+      <label for="aml-pseudo">Pseudo</label><input id="aml-pseudo" maxlength="30" autocomplete="username" placeholder="ex : alexis.r">
+      <label for="aml-class">Classe</label><select id="aml-class">${options}</select>
+      <label for="aml-password">Mot de passe</label><input id="aml-password" type="password" minlength="8" autocomplete="current-password" placeholder="8 caractères minimum">
+      <p id="aml-error" class="aml-error"></p>
+      <button id="aml-login" class="aml-primary" type="button">Se connecter</button>
+      <button id="aml-register" class="aml-secondary" type="button">Créer mon compte</button>
+    </div>`;
     document.body.appendChild(overlay);
-    document.body.style.overflow = "hidden"; // bloque le défilement du fond
+    document.body.style.overflow = "hidden";
+    const pseudo = overlay.querySelector("#aml-pseudo");
+    const password = overlay.querySelector("#aml-password");
+    const error = overlay.querySelector("#aml-error");
+    const buttons = overlay.querySelectorAll("button");
 
-    var prenom = document.getElementById("aml-prenom");
-    var code   = document.getElementById("aml-code");
-    var erreur = document.getElementById("aml-error");
-    var bouton = document.getElementById("aml-start");
-    var carte  = overlay.querySelector(".aml-card");
-
-    setTimeout(function () { prenom.focus(); }, 50);
-
-    function valider() {
-      var p = prenom.value.trim();
-      erreur.textContent = "";
-
-      if (!p) {
-        erreur.textContent = "Indique ton prénom.";
-        prenom.focus();
-        secouer();
-        return;
+    async function submit(action) {
+      error.textContent = "";
+      buttons.forEach(function (button) { button.disabled = true; });
+      try {
+        await studentAuth(action, pseudo.value.trim(), overlay.querySelector("#aml-class").value, password.value);
+        document.body.style.overflow = "";
+        overlay.remove();
+      } catch (exception) {
+        error.textContent = exception.message;
+        buttons.forEach(function (button) { button.disabled = false; });
       }
-      if (!estCodeValide(code.value)) {
-        erreur.textContent = "Code de classe incorrect.";
-        code.focus();
-        code.select();
-        secouer();
-        return;
-      }
-
-      // Connexion réussie
-      var eleve = { prenom: p, classe: code.value.trim().toUpperCase() };
-      window.AM_ELEVE = eleve;               // accessible ailleurs si besoin
-      try { sessionStorage.setItem("am_eleve", JSON.stringify(eleve)); } catch (e) {}
-
-      document.body.style.overflow = "";     // rétablit le défilement
-      overlay.remove();                      // on découvre l'appli
     }
 
-    function secouer() {
-      carte.classList.remove("aml-shake");
-      // force le reflow pour rejouer l'animation
-      void carte.offsetWidth;
-      carte.classList.add("aml-shake");
-    }
-
-    bouton.addEventListener("click", valider);
-    prenom.addEventListener("keydown", function (e) { if (e.key === "Enter") code.focus(); });
-    code.addEventListener("keydown", function (e) { if (e.key === "Enter") valider(); });
+    overlay.querySelector(".aml-close").onclick = function () { document.body.style.overflow = ""; overlay.remove(); };
+    overlay.querySelector("#aml-login").onclick = function () { submit("login"); };
+    overlay.querySelector("#aml-register").onclick = function () { submit("register"); };
+    password.addEventListener("keydown", function (event) { if (event.key === "Enter") submit("login"); });
+    pseudo.focus();
   }
 
-  function injecterStyles() {
-    if (document.getElementById("aml-styles")) return;
-    var s = document.createElement("style");
-    s.id = "aml-styles";
-    s.textContent = [
-      "#aml-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.2rem;",
-      "background:radial-gradient(1000px 600px at 50% -10%, #1a2744 0%, transparent 60%), #0e1626;",
-      "font-family:'Open Sans','Segoe UI',system-ui,sans-serif;}",
-      ".aml-card{width:100%;max-width:380px;background:#16203a;border:1px solid #26304d;border-radius:18px;",
-      "box-shadow:0 24px 60px rgba(0,0,0,.45);padding:2rem 1.8rem 1.9rem;display:flex;flex-direction:column;}",
-      ".aml-logo{font-size:2.4rem;text-align:center;line-height:1;margin-bottom:.5rem;}",
-      ".aml-title{text-align:center;font-weight:800;font-size:1.6rem;color:#f43f5e;letter-spacing:.01em;}",
-      ".aml-sub{text-align:center;font-size:.85rem;color:#93a1ba;margin-top:.15rem;margin-bottom:1.4rem;}",
-      ".aml-label{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#aab4c9;margin:0 0 .4rem 2px;}",
-      ".aml-input{width:100%;padding:.75rem .9rem;margin-bottom:1.1rem;border-radius:11px;border:1px solid #2d3a5b;",
-      "background:#1b2742;color:#e8edf6;font-size:1rem;outline:none;transition:border-color .15s,box-shadow .15s;}",
-      ".aml-input::placeholder{color:#5f6f8c;}",
-      ".aml-input:focus{border-color:#f43f5e;box-shadow:0 0 0 3px rgba(244,63,94,.22);}",
-      ".aml-error{min-height:1.15rem;color:#fca5a5;font-size:.82rem;font-weight:600;text-align:center;margin:-.4rem 0 .6rem;}",
-      ".aml-btn{width:100%;padding:.85rem;border:none;border-radius:11px;cursor:pointer;",
-      "background:linear-gradient(180deg,#f43f5e,#e11d48);color:#fff;font-size:1.05rem;font-weight:800;",
-      "letter-spacing:.02em;box-shadow:0 8px 20px rgba(225,29,72,.35);transition:transform .1s,filter .15s;}",
-      ".aml-btn:hover{filter:brightness(1.06);}",
-      ".aml-btn:active{transform:translateY(1px);}",
-      "@keyframes aml-shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}",
-      "30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}",
-      ".aml-shake{animation:aml-shake .5s cubic-bezier(.36,.07,.19,.97) both;}"
-    ].join("");
-    document.head.appendChild(s);
+  function injectStyles() {
+    const style = document.createElement("style");
+    style.textContent = `#aml-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(15,23,42,.72);font-family:'Open Sans',sans-serif}.aml-card{position:relative;width:min(100%,400px);display:flex;flex-direction:column;gap:.45rem;padding:2rem;background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.3)}.aml-card h2{text-align:center;color:#0f172a}.aml-logo{text-align:center;font-size:2rem}.aml-sub{text-align:center;color:#64748b;margin:0 0 .8rem}.aml-card label{font-weight:800;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:#334155}.aml-card input,.aml-card select{padding:.75rem;border:1px solid #cbd5e1;border-radius:10px;font:inherit}.aml-primary,.aml-secondary{padding:.8rem;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}.aml-primary{margin-top:.6rem;border:0;background:#1d4ed8;color:#fff}.aml-secondary{border:1px solid #1d4ed8;background:#fff;color:#1d4ed8}.aml-close{position:absolute;right:.7rem;top:.45rem;border:0;background:transparent;font-size:1.7rem;cursor:pointer;color:#64748b}.aml-error{min-height:1.2rem;color:#b91c1c;text-align:center;font-size:.82rem;font-weight:700}`;
+    document.head.appendChild(style);
   }
 
-  // Le script est chargé avant le <body> : on attend que la page soit prête.
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", demarrer);
-  } else {
-    demarrer();
-  }
+  injectStyles();
+  window.loadEleve = loadEleve;
+  window.AM = { currentEleve: loadEleve, sendSession, loadMenuScores, openLogin };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", loadMenuScores);
+  else loadMenuScores();
 })();
