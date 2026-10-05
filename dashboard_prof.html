@@ -225,7 +225,7 @@ async function sb(table, params=''){
 }
 
 // ── DATA ──
-let allData = { sessions:[], eleves:[], classes:[] };
+window.allData = { sessions:[], eleves:[], classes:[] };
 
 async function loadAll(){
   const [sessions, eleves, classes] = await Promise.all([
