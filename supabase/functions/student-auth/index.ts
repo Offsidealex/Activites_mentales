@@ -106,6 +106,37 @@ Deno.serve(async (request) => {
       return json({ ok: true });
     }
 
+    if (action === "delete-student") {
+      await authenticateTeacher(request);
+      const eleveId = String(body.eleveId || "");
+      if (!eleveId) return json({ error: "Élève invalide." }, 400);
+
+      const { data: eleve, error: eleveError } = await admin
+        .from("eleves").select("id,prenom,auth_user_id").eq("id", eleveId).maybeSingle();
+      if (eleveError || !eleve) return json({ error: "Compte élève introuvable." }, 404);
+
+      const { data: sessions, error: sessionsError } = await admin
+        .from("sessions").select("id").eq("eleve_id", eleveId);
+      if (sessionsError) throw sessionsError;
+      const sessionIds = (sessions || []).map((session) => session.id);
+
+      if (sessionIds.length) {
+        const { error: responsesError } = await admin.from("reponses").delete().in("session_id", sessionIds);
+        if (responsesError) throw responsesError;
+        const { error: deleteSessionsError } = await admin.from("sessions").delete().eq("eleve_id", eleveId);
+        if (deleteSessionsError) throw deleteSessionsError;
+      }
+
+      const { error: deleteEleveError } = await admin.from("eleves").delete().eq("id", eleveId);
+      if (deleteEleveError) throw deleteEleveError;
+
+      if (eleve.auth_user_id) {
+        const { error: deleteAuthError } = await admin.auth.admin.deleteUser(eleve.auth_user_id);
+        if (deleteAuthError) throw deleteAuthError;
+      }
+      return json({ ok: true, prenom: eleve.prenom });
+    }
+
     return json({ error: "Action inconnue." }, 400);
   } catch (error) {
     console.error(error);
