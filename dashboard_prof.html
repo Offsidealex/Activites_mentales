@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -116,6 +117,7 @@
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="eleves">Par élève</button>
+      <button class="tab-btn" data-tab="classes">👥 Classes</button>
       <button class="tab-btn" data-tab="sessions">Dernières séries</button>
       <button class="tab-btn" data-tab="exercices">Par exercice</button>
       <button class="tab-btn" data-tab="classement">🏆 Classement</button>
@@ -130,7 +132,24 @@
         <div id="detail-content"></div>
       </div>
     </div>
+<div id="tab-classes" class="tab-content" style="display:none;">
+  <div style="margin-bottom:1rem;">
+    <label for="manage-classe">Afficher la classe :</label>
 
+    <select id="manage-classe"
+            style="margin-left:.5rem;padding:.5rem .8rem;
+                   background:var(--surface);
+                   border:1px solid var(--border);
+                   color:var(--text);
+                   border-radius:8px;">
+      <option value="">Toutes les classes</option>
+    </select>
+  </div>
+
+  <div id="classes-content">
+    <div class="loading">Chargement…</div>
+  </div>
+</div>
     <div id="tab-classement" class="tab-content" style="display:none;">
       <div id="classement-content"><div class="loading">Chargement…</div></div>
     </div>
@@ -224,6 +243,17 @@ function populateFilters(){
   const exercices = [...new Set(allData.sessions.map(s=>s.exercice))].filter(Boolean);
   document.getElementById('filter-classe').innerHTML   = '<option value="">Toutes</option>' + classes.map(c=>`<option>${c}</option>`).join('');
   document.getElementById('filter-exercice').innerHTML = '<option value="">Tous</option>'   + exercices.map(e=>`<option>${e}</option>`).join('');
+  const manageClasse = document.getElementById('manage-classe');
+
+if (manageClasse) {
+  manageClasse.innerHTML =
+    '<option value="">Toutes les classes</option>' +
+    allData.classes
+      .slice()
+      .sort((a, b) => a.code.localeCompare(b.code))
+      .map(c => `<option value="${c.id}">${c.code}</option>`)
+      .join('');
+}
 }
 
 function getFiltered(){
@@ -241,6 +271,7 @@ function renderAll(){
   const data = getFiltered();
   renderStats(data);
   renderElevesTab(data);
+  renderClassesTab();
   renderSessionsTab(data);
   renderExercicesTab(data);
   renderClassementTab(data);
@@ -516,6 +547,9 @@ function renderDNBTab(){
 ['filter-classe','filter-exercice','filter-date'].forEach(id=>{
   document.getElementById(id).addEventListener('change',()=>{ showEleveList(); renderAll(); });
 });
+document.getElementById('manage-classe')
+  .addEventListener('change', renderClassesTab);
 </script>
+  <script src="prof-classes.js"></script>
 </body>
 </html>
