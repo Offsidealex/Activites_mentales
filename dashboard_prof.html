@@ -24,6 +24,9 @@
   #login-btn{width:100%;padding:.8rem;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;}
   #login-btn:hover{background:#c73650;}
   #login-error{color:var(--accent);font-size:.85rem;margin-top:.8rem;min-height:1.2em;}
+  #reset-box{display:none;}
+  #reset-box button{width:100%;padding:.8rem;background:var(--green);border:none;border-radius:8px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;}
+  #reset-message{font-size:.85rem;margin-top:.8rem;min-height:1.2em;}
   #dashboard{display:none;}
   header{background:var(--surface);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
   header h1{font-size:1.1rem;color:var(--accent);}
@@ -88,6 +91,13 @@
     <input type="password" id="mdp-input" placeholder="Mot de passe" autocomplete="current-password"/>
     <button id="login-btn">Accéder →</button>
     <p id="login-error"></p>
+    <div id="reset-box">
+      <p style="color:var(--text);margin:1rem 0 .8rem;">Choisis ton nouveau mot de passe</p>
+      <input type="password" id="new-password" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password"/>
+      <input type="password" id="confirm-password" placeholder="Confirmer le mot de passe" autocomplete="new-password"/>
+      <button id="reset-btn">Enregistrer le nouveau mot de passe</button>
+      <p id="reset-message"></p>
+    </div>
   </div>
 </div>
 
@@ -188,6 +198,32 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const DNB_EXERCICE      = 'DNB Pro — 50 automatismes';
 
 // ── AUTH ──
+const recoveryParams = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : location.hash);
+const recoveryToken = recoveryParams.get('access_token');
+const recoveryType = recoveryParams.get('type');
+if(recoveryToken && recoveryType === 'recovery'){
+  document.getElementById('email-input').style.display='none';
+  document.getElementById('mdp-input').style.display='none';
+  document.getElementById('login-btn').style.display='none';
+  document.getElementById('login-error').style.display='none';
+  document.getElementById('reset-box').style.display='block';
+}
+document.getElementById('reset-btn').addEventListener('click', async () => {
+  const password=document.getElementById('new-password').value;
+  const confirm=document.getElementById('confirm-password').value;
+  const message=document.getElementById('reset-message');
+  if(password.length<8){message.style.color='var(--accent)';message.textContent='Le mot de passe doit contenir au moins 8 caractères.';return;}
+  if(password!==confirm){message.style.color='var(--accent)';message.textContent='Les deux mots de passe ne correspondent pas.';return;}
+  message.textContent='Enregistrement…';
+  try{
+    const res=await fetch(SUPABASE_URL+'/auth/v1/user',{method:'PUT',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+recoveryToken,'Content-Type':'application/json'},body:JSON.stringify({password:password})});
+    if(!res.ok)throw new Error();
+    history.replaceState(null,'',location.pathname);
+    message.style.color='var(--green)';
+    message.textContent='Mot de passe modifié. Tu peux maintenant te connecter.';
+    setTimeout(function(){location.reload();},1200);
+  }catch(e){message.style.color='var(--accent)';message.textContent='Lien expiré ou invalide. Renvoie un nouvel e-mail de récupération.';}
+});
 let profToken = sessionStorage.getItem('am_prof_token');
 let isAuth = Boolean(profToken);
 document.getElementById('login-btn').addEventListener('click', async () => {
