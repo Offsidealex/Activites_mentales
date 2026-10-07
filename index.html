@@ -653,6 +653,7 @@ function showResults(){
   document.getElementById('recap').innerHTML=log.map(({q,val,valD,valTxt,ok},i)=>`
     <div class="rrow"><div class="n">${i+1}</div><div class="rop">${q.html}</div>
     <div class="rbadges">${ok?`<span class="bk ok">✓ ${getCorr(q)}</span>`:`<span class="bk ko">${getGiven({val,valD,valTxt})}</span><span class="bk ans">${getCorr(q)}</span>`}</div></div>`).join('');
+  if(window.AM&&window.AM.saveScore)window.AM.saveScore(CM.title,good,questions.length);
   if(window.AM&&window.AM.currentEleve()){
     const reponses=log.map((entry,i)=>({numero_question:i+1,enonce:entry.q.html.replace(/<[^>]*>/g,''),reponse_eleve:(CM.ansType==='fraction')?(entry.val!==null?entry.val+'/'+entry.valD:'—'):(CM.ansType==='text'||CM.ansType==='yesno')?(entry.valTxt||'—'):(entry.val!==null?String(entry.val):'—'),correct:entry.ok,temps_ms:null}));
     window.AM.sendSession({exercice:CM.title,score:good,nb_questions:questions.length,duree_totale_ms:null,reponses});
