@@ -82,7 +82,32 @@
     }
   }
 
+  function loadLocalScores() {
+    try { return JSON.parse(localStorage.getItem("am_best_scores") || "{}"); }
+    catch (e) { return {}; }
+  }
+
+  function saveScore(exercice, score, nbQuestions) {
+    if (!exercice || !nbQuestions) return;
+    const scores = loadLocalScores();
+    const pct = Math.round(score / nbQuestions * 100);
+    if (!scores[exercice] || pct > scores[exercice].pct) {
+      scores[exercice] = { score: score, nb_questions: nbQuestions, pct: pct };
+      localStorage.setItem("am_best_scores", JSON.stringify(scores));
+    }
+  }
+
+  function renderScores(best) {
+    document.querySelectorAll(".card[data-module]").forEach(function (card) {
+      const result = best[card.dataset.module];
+      if (!result) return;
+      card.querySelector(".score-badge").innerHTML = `<span style="color:var(--muted);font-weight:700;font-size:.7rem">Meilleur</span><span style="color:var(--accent);font-weight:800;font-size:.78rem">${result.score}/${result.nb_questions} ${result.pct}%</span>`;
+    });
+  }
+
   async function loadMenuScores() {
+    const localBest = loadLocalScores();
+    renderScores(localBest);
     const eleve = loadEleve();
     if (!eleve || !authSession) return;
     try {
@@ -92,11 +117,7 @@
         const pct = Math.round(session.score / session.nb_questions * 100);
         if (!best[session.exercice] || pct > best[session.exercice].pct) best[session.exercice] = { ...session, pct };
       });
-      document.querySelectorAll(".card[data-module]").forEach(function (card) {
-        const result = best[card.dataset.module];
-        if (!result) return;
-        card.querySelector(".score-badge").innerHTML = `<span style="color:var(--muted);font-weight:700;font-size:.7rem">Meilleur</span><span style="color:var(--accent);font-weight:800;font-size:.78rem">${result.score}/${result.nb_questions} ${result.pct}%</span>`;
-      });
+      renderScores({ ...localBest, ...best });
     } catch (error) {
       console.warn("[AM] Scores indisponibles :", error);
     }
@@ -153,7 +174,7 @@
 
   injectStyles();
   window.loadEleve = loadEleve;
-  window.AM = { currentEleve: loadEleve, sendSession, loadMenuScores, openLogin };
+  window.AM = { currentEleve: loadEleve, sendSession, loadMenuScores, openLogin, saveScore };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", loadMenuScores);
   else loadMenuScores();
 })();
