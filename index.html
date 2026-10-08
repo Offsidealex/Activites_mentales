@@ -285,6 +285,7 @@ body{
 </div>
 
 <script src="backend.js"></script>
+<script>if(new URLSearchParams(location.search).has("connexion"))window.addEventListener("DOMContentLoaded",()=>window.AM.openLogin());</script>
 <script>
 const F=(n,d)=>`<span class="fr"><span class="n">${n}</span><span class="d">${d}</span></span>`;
 const FB=d=>F(`<span class="blk">?</span>`,d);
