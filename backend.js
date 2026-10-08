@@ -75,6 +75,7 @@
           return { ...reponse, session_id: sessions[0].id, temps_ms: reponse.temps_ms || null };
         }));
       }
+      document.dispatchEvent(new Event("am:session-saved"));
       return sessions[0].id;
     } catch (error) {
       console.error("[AM] Enregistrement impossible :", error);
