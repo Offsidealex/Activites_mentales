@@ -320,6 +320,7 @@ function populateFilters(){
   document.getElementById('filter-classe').innerHTML   = '<option value="">Toutes</option>' + classes.map(c=>`<option>${c}</option>`).join('');
   document.getElementById('filter-exercice').innerHTML = '<option value="">Tous</option>'   + exercices.map(e=>`<option>${e}</option>`).join('');
   const manageClasse = document.getElementById('manage-classe');
+  const previousClass = manageClasse?.value || '';
 
 if (manageClasse) {
   manageClasse.innerHTML =
@@ -329,6 +330,7 @@ if (manageClasse) {
       .sort((a, b) => a.code.localeCompare(b.code))
       .map(c => `<option value="${c.id}">${c.code}</option>`)
       .join('');
+  if (previousClass && [...manageClasse.options].some(o=>o.value===previousClass)) manageClasse.value=previousClass;
 }
 }
 
@@ -626,6 +628,6 @@ function renderDNBTab(){
 document.getElementById('manage-classe')
   .addEventListener('change', renderClassesTab);
 </script>
-  <script src="prof-classes.js"></script>
+  <script src="prof-classes.js?v=20261008-2"></script>
 </body>
 </html>
