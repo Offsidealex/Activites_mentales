@@ -91,6 +91,8 @@
     <input type="password" id="mdp-input" placeholder="Mot de passe" autocomplete="current-password"/>
     <button id="login-btn">Accéder →</button>
     <p id="login-error"></p>
+    <button id="forgot-password" type="button" style="background:transparent;color:#93c5fd;border:0;text-decoration:underline;cursor:pointer">Mot de passe oublié ?</button>
+    <p id="forgot-status" role="status"></p>
     <div id="reset-box">
       <p style="color:var(--text);margin:1rem 0 .8rem;">Choisis ton nouveau mot de passe</p>
       <input type="password" id="new-password" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password"/>
@@ -223,6 +225,23 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
     message.textContent='Mot de passe modifié. Tu peux maintenant te connecter.';
     setTimeout(function(){location.reload();},1200);
   }catch(e){message.style.color='var(--accent)';message.textContent='Lien expiré ou invalide. Renvoie un nouvel e-mail de récupération.';}
+});
+document.getElementById('forgot-password').addEventListener('click', async () => {
+  const email = document.getElementById('email-input').value.trim();
+  const status = document.getElementById('forgot-status');
+  if (!email) { status.textContent = 'Saisis ton adresse e-mail professeur ci-dessus.'; return; }
+  status.textContent = 'Demande en cours…';
+  try {
+    const redirect = location.origin + location.pathname;
+    const res = await fetch(SUPABASE_URL + '/auth/v1/recover?redirect_to=' + encodeURIComponent(redirect), {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.msg || data.message || 'Envoi impossible.');
+    status.textContent = 'Si cette adresse possède un compte, un e-mail de récupération va arriver. Utilise le lien le plus récent.';
+  } catch (error) { status.textContent = error.message; }
 });
 let profToken = sessionStorage.getItem('am_prof_token');
 let isAuth = Boolean(profToken);
