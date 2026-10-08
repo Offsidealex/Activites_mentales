@@ -9,9 +9,12 @@
     const root=document.getElementById("classes-content");
     if(!select||!root||!window.allData)return;
     const filter=select.value;
-    const students=allData.eleves.filter(e=>!filter||e.classe_id===filter).map(e=>({...e,classe:allData.classes.find(c=>c.id===e.classe_id)?.code||"—"})).sort((a,b)=>a.classe.localeCompare(b.classe)||a.prenom.localeCompare(b.prenom,"fr"));
-    if(!students.length){root.innerHTML='<div class="empty">Aucun compte élève dans cette classe.</div>';return;}
-    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Classe</th><th style="text-align:center">Action</th></tr></thead><tbody>'+students.map(e=>'<tr><td><strong>'+esc(e.prenom)+'</strong></td><td>'+esc(e.classe)+'</td><td style="text-align:center"><button class="trash-btn" type="button" title="Supprimer ce compte" aria-label="Supprimer '+esc(e.prenom)+'" onclick="removeStudentAccount(\''+e.id+'\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z"/></svg></button></td></tr>').join("")+'</tbody></table></div>';
+    const selectedCode=select.options[select.selectedIndex]?.textContent?.trim()||"";
+    const students=allData.eleves.filter(e=>!filter||String(e.classe_id)===filter||allData.classes.some(c=>String(c.id)===String(e.classe_id)&&c.code===filter)).map(e=>({...e,classe:allData.classes.find(c=>c.id===e.classe_id)?.code||"—"})).sort((a,b)=>a.classe.localeCompare(b.classe)||a.prenom.localeCompare(b.prenom,"fr"));
+    // Safety net: selected class label must match every displayed row.
+    const visible=filter ? students.filter(e=>e.classe===selectedCode || String(allData.classes.find(c=>c.code===e.classe)?.id)===filter) : students;
+    if(!visible.length){root.innerHTML='<div class="empty">Aucun compte élève dans cette classe.</div>';return;}
+    root.innerHTML='<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Classe</th><th style="text-align:center">Action</th></tr></thead><tbody>'+visible.map(e=>'<tr><td><strong>'+esc(e.prenom)+'</strong></td><td>'+esc(e.classe)+'</td><td style="text-align:center"><button class="trash-btn" type="button" title="Supprimer ce compte" aria-label="Supprimer '+esc(e.prenom)+'" onclick="removeStudentAccount(\''+e.id+'\')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z"/></svg></button></td></tr>').join("")+'</tbody></table></div>';
   };
   window.removeStudentAccount=async function(eleveId){
     const e=allData.eleves.find(x=>x.id===eleveId); if(!e)return;
