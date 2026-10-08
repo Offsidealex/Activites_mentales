@@ -1109,8 +1109,8 @@ document.getElementById('input-code').addEventListener('keydown',e=>{ if(e.key==
 // ═══════════════════════════════════════════════════
 (function init(){
   const eleve=window.AM && window.AM.currentEleve();
-  if(eleve){user={name:eleve.pseudo || eleve.nom || 'Élève',classId:eleve.classe || 'UPE2A'};showMenu();}
-  else {show('login');document.querySelector('#screen-login .space-y-4').innerHTML='<p class="text-center text-gray-600">Connecte-toi depuis Activités mentales pour enregistrer tes résultats.</p><a class="block text-center bg-blue-600 text-white rounded-xl p-3" href="index.html">Retour à Activités mentales</a>';}
+  if(eleve){user={name:eleve.prenom || eleve.pseudo || 'Élève',classId:eleve.classe || 'UPE2A'};showMenu();}
+  else { window.location.replace('index.html?connexion=1'); }
 })();
 </script>
 </body>
