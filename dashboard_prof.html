@@ -201,8 +201,29 @@ const DNB_EXERCICE      = 'DNB Pro — 50 automatismes';
 
 // ── AUTH ──
 const recoveryParams = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : location.hash);
-const recoveryToken = recoveryParams.get('access_token');
+let recoveryToken = recoveryParams.get('access_token');
 const recoveryType = recoveryParams.get('type');
+const recoveryQuery = new URLSearchParams(location.search);
+const recoveryHashToken = recoveryQuery.get('token_hash');
+if (!recoveryToken && recoveryHashToken && recoveryQuery.get('type') === 'recovery') {
+  fetch(SUPABASE_URL + '/auth/v1/verify', {
+    method: 'POST',
+    headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'recovery', token_hash: recoveryHashToken })
+  }).then(async response => {
+    const data = await response.json();
+    if (!response.ok || !data.access_token) throw new Error(data.msg || data.message || 'Lien invalide ou expiré.');
+    recoveryToken = data.access_token;
+    document.getElementById('email-input').style.display='none';
+    document.getElementById('mdp-input').style.display='none';
+    document.getElementById('login-btn').style.display='none';
+    document.getElementById('forgot-password').style.display='none';
+    document.getElementById('reset-box').style.display='block';
+    history.replaceState(null, '', location.pathname);
+  }).catch(error => {
+    document.getElementById('login-error').textContent = error.message;
+  });
+}
 if(recoveryToken && recoveryType === 'recovery'){
   document.getElementById('email-input').style.display='none';
   document.getElementById('mdp-input').style.display='none';
@@ -219,12 +240,12 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
   message.textContent='Enregistrement…';
   try{
     const res=await fetch(SUPABASE_URL+'/auth/v1/user',{method:'PUT',headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+recoveryToken,'Content-Type':'application/json'},body:JSON.stringify({password:password})});
-    if(!res.ok)throw new Error();
+    if(!res.ok){const data=await res.json().catch(()=>({}));throw new Error(data.msg||data.message||'Lien expiré ou invalide.');}
     history.replaceState(null,'',location.pathname);
     message.style.color='var(--green)';
     message.textContent='Mot de passe modifié. Tu peux maintenant te connecter.';
     setTimeout(function(){location.reload();},1200);
-  }catch(e){message.style.color='var(--accent)';message.textContent='Lien expiré ou invalide. Renvoie un nouvel e-mail de récupération.';}
+  }catch(e){message.style.color='var(--accent)';message.textContent=e.message+' Demande un nouveau lien si nécessaire.';}
 });
 document.getElementById('forgot-password').addEventListener('click', async () => {
   const email = document.getElementById('email-input').value.trim();
