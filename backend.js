@@ -5,7 +5,7 @@
 
   const SUPABASE_URL = "https://hxfdlujpedxuumqfewvn.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZmRsdWpwZWR4dXVtcWZld3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjcyMzAsImV4cCI6MjA5NzcwMzIzMH0.mM0xBhLGWG3vDgE06bEla8b4BhH7v6dvZ-BWn4ZOP0Q";
-  const CLASS_NAMES = ["3PM", "2TNE1", "2TNE2", "2TNE3", "2REMI1", "2REMI2", "1CAP"];
+  const CLASS_NAMES = ["3PM", "2TNE1", "2TNE2", "2TNE3", "2REMI1", "2REMI2", "1CAP", "UPE2A"];
   let currentEleve = null;
   let authSession = null;
 
