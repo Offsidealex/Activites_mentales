@@ -625,9 +625,20 @@ function renderDNBTab(){
 ['filter-classe','filter-exercice','filter-date'].forEach(id=>{
   document.getElementById(id).addEventListener('change',()=>{ showEleveList(); renderAll(); });
 });
-document.getElementById('manage-classe')
-  .addEventListener('change', renderClassesTab);
+document.getElementById('manage-classe').addEventListener('change', function(){
+  // Filtre indépendant du rendu : garantit que les lignes affichées
+  // correspondent toujours à la classe choisie, même avec un ancien script en cache.
+  renderClassesTab();
+  const chosen=this.options[this.selectedIndex]?.textContent.trim();
+  const table=document.querySelector('#classes-content table');
+  if(!table)return;
+  table.querySelectorAll('tbody tr').forEach(row=>{
+    const rowClass=row.cells[1]?.textContent.trim();
+    row.hidden=!!this.value && rowClass!==chosen;
+    row.style.display=row.hidden?'none':'';
+  });
+});
 </script>
-  <script src="prof-classes.js?v=20261008-2"></script>
+  <script src="prof-classes.js?v=20261008-3"></script>
 </body>
 </html>
