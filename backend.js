@@ -202,7 +202,7 @@
     try {
       const sessions = await sbQuery("sessions", "GET", null,
         "?eleve_id=eq." + encodeURIComponent(eleve.id) +
-        "&select=exercice,score,nb_questions,created_at&order=created_at.desc&limit=200");
+        "&select=exercice,score,nb_questions,played_at&order=played_at.desc&limit=200");
       if (!document.getElementById("am-student-results")) return;
       if (!sessions.length) {
         content.innerHTML = '<p class="am-empty">Aucun résultat pour le moment. Termine un exercice pour voir ta progression ici !</p>';
@@ -222,7 +222,7 @@
           '<div class="am-result"><div><strong>' + escapeText(name) + '</strong><small>' + v.score + '/' + v.questions + ' · Meilleur score</small></div><b>' + v.percent + '%</b><div class="am-progress"><span style="width:' + Math.max(0,Math.min(100,v.percent)) + '%"></span></div></div>'
         ).join("") +
         '<h3>Mes dernières séances</h3>' + sessions.slice(0,12).map(x => {
-          const date = x.created_at ? new Date(x.created_at).toLocaleDateString("fr-FR") : "";
+          const date = x.played_at ? new Date(x.played_at).toLocaleDateString("fr-FR") : "";
           return '<div class="am-history"><span>' + escapeText(x.exercice) + '<small>' + escapeText(date) + '</small></span><strong>' + Number(x.score) + '/' + Number(x.nb_questions) + '</strong></div>';
         }).join("");
     } catch(error) {
