@@ -202,7 +202,7 @@
     try {
       const sessions = await sbQuery("sessions", "GET", null,
         "?eleve_id=eq." + encodeURIComponent(eleve.id) +
-        "&select=exercice,score,nb_questions,played_at&order=played_at.desc&limit=200");
+        "&select=exercice,score,nb_questions,played_at,duree_totale_ms&order=played_at.desc&limit=200");
       if (!document.getElementById("am-student-results")) return;
       if (!sessions.length) {
         content.innerHTML = '<p class="am-empty">Aucun résultat pour le moment. Termine un exercice pour voir ta progression ici !</p>';
@@ -216,14 +216,14 @@
         const percent = Math.round(100 * Number(x.score) / Number(x.nb_questions));
         if (!best[x.exercice] || percent > best[x.exercice].percent) best[x.exercice] = {percent, score:x.score, questions:x.nb_questions};
       });
-      const items = Object.entries(best).sort((a,b) => a[0].localeCompare(b[0],"fr"));
+      const items = Object.entries(best).sort((a,b) => (latest[b[0]] || "").localeCompare(latest[a[0]] || "")).slice(0,5);
       content.innerHTML = '<div class="am-stats"><div><strong>' + total + '</strong><span>Séries réalisées</span></div><div><strong>' + average + '%</strong><span>Réussite moyenne</span></div><div><strong>' + items.length + '</strong><span>Exercices pratiqués</span></div></div>' +
         '<h3>Mes meilleurs scores</h3>' + items.map(([name,v]) =>
           '<div class="am-result"><div><strong>' + escapeText(name) + '</strong><small>' + v.score + '/' + v.questions + ' · Meilleur score</small></div><b>' + v.percent + '%</b><div class="am-progress"><span style="width:' + Math.max(0,Math.min(100,v.percent)) + '%"></span></div></div>'
         ).join("") +
         '<h3>Mes dernières séances</h3>' + sessions.slice(0,12).map(x => {
           const date = x.played_at ? new Date(x.played_at).toLocaleDateString("fr-FR") : "";
-          return '<div class="am-history"><span>' + escapeText(x.exercice) + '<small>' + escapeText(date) + '</small></span><strong>' + Number(x.score) + '/' + Number(x.nb_questions) + '</strong></div>';
+          return '<div class="am-history"><span>' + escapeText(x.exercice) + '<small>' + escapeText(date) + (Number.isFinite(Number(x.duree_totale_ms)) && Number(x.duree_totale_ms)>0 ? ' · ' + Math.floor(Number(x.duree_totale_ms)/60000) + ' min ' + String(Math.floor(Number(x.duree_totale_ms)/1000)%60).padStart(2,'0') + ' s' : '') + '</small></span><strong>' + Number(x.score) + '/' + Number(x.nb_questions) + '</strong></div>';
         }).join("");
     } catch(error) {
       content.textContent = "Impossible de charger les résultats. Réessaie plus tard.";
