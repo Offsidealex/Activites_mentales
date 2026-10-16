@@ -355,8 +355,8 @@ async function loadAll(){
     sb('eleves','?select=id,prenom,classe_id'),
     sb('classes','?select=id,code,nom')
   ]);
-  allData = { sessions, eleves, classes };
   if (!Array.isArray(sessions) || !Array.isArray(eleves) || !Array.isArray(classes)) throw new Error('Format de données inattendu');
+  allData = { sessions, eleves, classes };
   populateFilters();
   renderAll();
   } catch (error) {
