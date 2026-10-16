@@ -212,7 +212,9 @@
       const total = valid.length;
       const average = total ? Math.round(valid.reduce((sum,x) => sum + 100 * Number(x.score) / Number(x.nb_questions),0) / total) : 0;
       const best = {};
+      const latest = {};
       valid.forEach(x => {
+        if (!latest[x.exercice]) latest[x.exercice] = x.played_at || "";
         const percent = Math.round(100 * Number(x.score) / Number(x.nb_questions));
         if (!best[x.exercice] || percent > best[x.exercice].percent) best[x.exercice] = {percent, score:x.score, questions:x.nb_questions};
       });
