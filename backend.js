@@ -218,7 +218,7 @@
         const percent = Math.round(100 * Number(x.score) / Number(x.nb_questions));
         if (!best[x.exercice] || percent > best[x.exercice].percent) best[x.exercice] = {percent, score:x.score, questions:x.nb_questions};
       });
-      const items = Object.entries(best).sort((a,b) => (latest[b[0]] || "").localeCompare(latest[a[0]] || "")).slice(0,5);
+      const items = Object.entries(best).sort((a,b) => b[1].percent - a[1].percent || (latest[b[0]] || "").localeCompare(latest[a[0]] || "")).slice(0,5);
       content.innerHTML = '<div class="am-stats"><div><strong>' + total + '</strong><span>Séries réalisées</span></div><div><strong>' + average + '%</strong><span>Réussite moyenne</span></div><div><strong>' + items.length + '</strong><span>Exercices pratiqués</span></div></div>' +
         '<h3>Mes meilleurs scores</h3>' + items.map(([name,v]) =>
           '<div class="am-result"><div><strong>' + escapeText(name) + '</strong><small>' + v.score + '/' + v.questions + ' · Meilleur score</small></div><b>' + v.percent + '%</b><div class="am-progress"><span style="width:' + Math.max(0,Math.min(100,v.percent)) + '%"></span></div></div>'
