@@ -296,15 +296,20 @@ function returnToLogin(message) {
 
 async function restoreTeacherSession() {
   if (!profToken) return;
+  const restoringToken = profToken;
+  const generation = sessionGeneration;
   try {
-    if (!await verifyTeacherToken(profToken)) {
+    const authorized = await verifyTeacherToken(restoringToken);
+    if (generation !== sessionGeneration || restoringToken !== profToken) return;
+    if (!authorized) {
       returnToLogin('Session expirée ou accès professeur non autorisé. Reconnecte-toi.');
       return;
     }
     isAuth = true;
     showDashboard();
   } catch (error) {
-    returnToLogin('Impossible de vérifier la session. Reconnecte-toi.');
+    if (generation === sessionGeneration && restoringToken === profToken)
+      returnToLogin('Impossible de vérifier la session. Reconnecte-toi.');
   }
 }
 
