@@ -266,6 +266,7 @@ document.getElementById('forgot-password').addEventListener('click', async () =>
 });
 let profToken = sessionStorage.getItem('am_prof_token');
 let isAuth = false;
+let sessionGeneration = 0;
 
 async function verifyTeacherToken(token) {
   if (!token) return false;
@@ -284,6 +285,7 @@ async function verifyTeacherToken(token) {
 }
 
 function returnToLogin(message) {
+  sessionGeneration++;
   profToken = null;
   isAuth = false;
   sessionStorage.removeItem('am_prof_token');
@@ -319,6 +321,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     const teacher=await fetch(`${SUPABASE_URL}/rest/v1/enseignants?auth_user_id=eq.${data.user.id}&select=auth_user_id`,{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':`Bearer ${data.access_token}`}});
     const teachers=await teacher.json();
     if(!teacher.ok||!teachers.length)throw new Error();
+    sessionGeneration++;
     profToken=data.access_token;sessionStorage.setItem('am_prof_token',profToken);isAuth=true;showDashboard();
   }catch(e){error.textContent='Accès professeur refusé.';}
 });
@@ -349,18 +352,21 @@ async function sb(table, params=''){
 window.allData = { sessions:[], eleves:[], classes:[] };
 
 async function loadAll(){
+  const generation = sessionGeneration;
+  const tokenAtStart = profToken;
   try {
   const [sessions, eleves, classes] = await Promise.all([
     sb('vue_dashboard'),
     sb('eleves','?select=id,prenom,classe_id'),
     sb('classes','?select=id,code,nom')
   ]);
+  if (generation !== sessionGeneration || tokenAtStart !== profToken || !isAuth) return;
   if (!Array.isArray(sessions) || !Array.isArray(eleves) || !Array.isArray(classes)) throw new Error('Format de données inattendu');
   allData = { sessions, eleves, classes };
   populateFilters();
   renderAll();
   } catch (error) {
-    if (!isAuth) return;
+    if (!isAuth || generation !== sessionGeneration || tokenAtStart !== profToken) return;
     console.error('[AM] Chargement professeur :', error);
     alert('Impossible de charger les données du tableau de bord. Réessaie avec Actualiser.');
   }
