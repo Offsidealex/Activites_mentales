@@ -333,6 +333,25 @@ function maybeSpeak(text) {
 const CLASS_CODES = { 'UPE2A': 'UPE2A', 'DIDEROT': 'Lycée Denis Diderot', 'MATHS1': 'Groupe 1', 'MATHS2': 'Groupe 2' };
 const LS_USER = 'upe2a_user';
 const LS_SESSIONS = 'upe2a_sessions';
+const LS_UNLOCKS = 'upe2a_unlocks';
+function newGuest(){
+  const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return {name:'Invité',classId:'INVITE',className:'Parcours libre',guestId:id};
+}
+function progressionKey(u){ return u.classId==='INVITE' ? `guest:${u.guestId}` : `student:${u.classId}:${u.name}`; }
+function getUnlocks(){ try { return JSON.parse(localStorage.getItem(LS_UNLOCKS)) || {}; } catch { return {}; } }
+function earnUnlock(type,level){
+  const sequence=LEVEL_SEQUENCES[type];
+  const next=sequence && sequence[sequence.indexOf(String(level))+1];
+  if(!next)return;
+  try {
+    const all=getUnlocks(), key=progressionKey(user);
+    if(!all[key])all[key]={};
+    if(!all[key][type])all[key][type]=[];
+    if(!all[key][type].includes(next))all[key][type].push(next);
+    localStorage.setItem(LS_UNLOCKS,JSON.stringify(all));
+  } catch(e){ console.warn('Progression non enregistrée :',e); }
+}
 
 function saveUser(u) { localStorage.setItem(LS_USER, JSON.stringify(u)); }
 function loadUser() { try { return JSON.parse(localStorage.getItem(LS_USER)); } catch { return null; } }
@@ -341,10 +360,11 @@ function getSessions() { try { return JSON.parse(localStorage.getItem(LS_SESSION
 function saveSession(session) {
   const sessions = getSessions();
   sessions.unshift({ ...session, completed_at: new Date().toISOString() });
-  localStorage.setItem(LS_SESSIONS, JSON.stringify(sessions.slice(0, 200)));
+  try { localStorage.setItem(LS_SESSIONS, JSON.stringify(sessions.slice(0, 200))); }
+  catch(e){ console.warn('Historique non enregistré :',e); }
 }
 function getStudentSessions(name, classId) {
-  return getSessions().filter(s => s.student_name === name && s.class_id === classId);
+  return getSessions().filter(s => s.student_name === name && s.class_id === classId && (classId !== 'INVITE' || (user && s.guest_id === user.guestId)));
 }
 
 // ═══════════════════════════════════════════════════
@@ -423,7 +443,7 @@ function doLogin() {
   showMenu();
 }
 function showErr(el,msg) { el.textContent=msg; el.classList.remove('hidden'); }
-function logout() { user={name:'Invité',classId:'INVITE',className:'Parcours libre'};clearUser(); document.getElementById('input-name').value=''; showMenu(); }
+function logout() { if(window.AM && window.AM.logoutStudent)window.AM.logoutStudent(); user=newGuest();clearUser(); document.getElementById('input-name').value=''; showMenu(); }
 
 // ═══════════════════════════════════════════════════
 // MENU
@@ -509,6 +529,7 @@ function levelUnlocked(type,level) {
   const index=sequence.indexOf(String(level));
   if(index<=0)return true;
   const previous=sequence[index-1];
+  if((getUnlocks()[progressionKey(user)]?.[type] || []).includes(String(level)))return true;
   return getStudentSessions(user.name,user.classId).some(s=>
     s.exercise_type===type && String(s.level)===previous &&
     Number(s.total)>0 && Number(s.score)/Number(s.total)>=0.8);
@@ -1138,8 +1159,9 @@ function finishQuiz(){
   const {score,questions,type,level}=quiz;
   const total=questions.length;
   const pct=score/total;
-  saveSession({student_name:user.name,class_id:user.classId,exercise_type:type,level,score,total});
-  if(window.AM && window.AM.currentEleve()) window.AM.sendSession({exercice:`UPE2A | ${type} | Niveau ${level}`,score,nb_questions:total,duree_totale_ms:null,reponses:[]});
+  if(total>0 && pct>=0.8)earnUnlock(type,level);
+  saveSession({student_name:user.name,class_id:user.classId,guest_id:user.guestId || null,exercise_type:type,level,score,total});
+  if(user.classId !== 'INVITE' && window.AM && window.AM.currentEleve()) window.AM.sendSession({exercice:`UPE2A | ${type} | Niveau ${level}`,score,nb_questions:total,duree_totale_ms:null,reponses:[]});
   document.getElementById('result-score').textContent=score;
   document.getElementById('result-total').textContent=total;
   if(pct>=0.9){ document.getElementById('result-emoji').textContent='🏆'; document.getElementById('result-message').textContent='Excellent ! Tu maîtrises très bien !'; document.getElementById('result-stars').textContent='⭐⭐⭐'; }
@@ -1163,7 +1185,7 @@ document.getElementById('input-code').addEventListener('keydown',e=>{ if(e.key==
 (function init(){
   const eleve=window.AM && window.AM.currentEleve();
   if(eleve){user={name:eleve.prenom || eleve.pseudo || 'Élève',classId:eleve.classe || 'UPE2A'};showMenu();}
-  else { user={name:'Invité',classId:'INVITE',className:'Parcours libre'};showMenu(); }
+  else { user=newGuest();showMenu(); }
 })();
 </script>
 </body>
