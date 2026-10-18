@@ -1,151 +1,134 @@
-# 🧮 Activités Mentales — Lycée Denis Diderot
+# 🧮 Activités mentales
 
-Application web d'entraînement aux mathématiques pour les élèves du **Lycée Denis Diderot — Belfort** (Académie de Besançon).
+### Des mathématiques pour s'entraîner, progresser et gagner en autonomie
 
-🔗 **[Lancer l'application](https://offsidealex.github.io/Activites_mentales/)**
-📝 **[Parcours DNB Pro — 50 questions](https://offsidealex.github.io/Activites_mentales/dnb.html)**
-📊 **[Dashboard professeur](https://offsidealex.github.io/Activites_mentales/dashboard_prof.html)**
+Application pédagogique gratuite et accessible depuis un navigateur, développée pour les élèves du **lycée Denis Diderot de Belfort** (académie de Besançon). Elle propose des exercices courts, des parcours adaptés et un suivi des résultats pour accompagner les apprentissages.
 
----
-
-## ✨ Fonctionnalités
-
-- **35+ modules** répartis en 11 thèmes, de la table de multiplication au développement double
-- **Chronomètre** par question (10 à 50 secondes selon la difficulté)
-- **Correction immédiate** avec affichage de la bonne réponse
-- **Récapitulatif final** avec score, pourcentage et liste des questions
-- **Plusieurs types de réponses** : entiers, décimaux, fractions, expressions algébriques, oui/non
-- **Responsive** — fonctionne sur téléphone, tablette et ordinateur
-- **Suivi Supabase** — sessions et scores enregistrés par élève
-- **Parcours DNB Pro** — 50 automatismes sans chrono, avec corrections détaillées
+[![Application](https://img.shields.io/badge/Ouvrir-l'application-2563eb?style=for-the-badge)](https://offsidealex.github.io/Activites_mentales/)
+[![Parcours UPE2A](https://img.shields.io/badge/Parcours-UPE2A-16a34a?style=for-the-badge)](https://offsidealex.github.io/Activites_mentales/upe2a.html)
+[![DNB Pro](https://img.shields.io/badge/R%C3%A9viser-le_DNB_Pro-ea580c?style=for-the-badge)](https://offsidealex.github.io/Activites_mentales/dnb.html)
 
 ---
 
-## 📚 Modules disponibles
+## 🎯 Objectifs pédagogiques
 
-### Calcul de base
-- ✖️ Tables de multiplication (× 2 à × 9)
-- × Multiplier par 10, 100, 1 000
-- ÷ Diviser par 10, 100, 1 000
-- ×10 Notation scientifique
-- ?÷ Critères de divisibilité
+- **S'entraîner régulièrement** grâce à des séries courtes de questions.
+- **Différencier les apprentissages** avec plusieurs niveaux de difficulté.
+- **Favoriser l'autonomie** par des consignes claires et une correction immédiate.
+- **Visualiser les progrès** à travers les scores et l'historique des séances.
+- **Accompagner les enseignants** avec un tableau de bord de suivi.
 
-### Nombres relatifs
-- ➕ Addition de relatifs
-- ✖️ Multiplication de relatifs
+L'application fonctionne sur **ordinateur, tablette et smartphone**, sans installation.
 
-### Fractions
-- 🔢 Fractions équivalentes
-- 🎯 Arrondir au dixième
-- ➕ Addition de fractions
-- ✖️ Multiplication de fractions
-- ½× Fraction d'un nombre
+## 📚 Les activités proposées
 
-### Statistiques
-- 📊 Calcul de moyenne
-- 📐 Étendue d'une série
-- M Médiane d'une série
-
-### Mesures & conversions
-- 📏 Conversions de longueurs
-- ⇄ Conversions masses, volumes, aires
-- □ Aires de figures
-
-### Proportionnalité & %
-- % Pourcentages (proportion)
-- % Pourcentages simples (50 %, 25 %, 10 %, 1 %)
-- % Calculer un pourcentage (arrondi)
-- ↑% Augmentation / diminution en %
-- ⚖️ Produit en croix (3 niveaux)
-
-### Probabilités
-- 🎲 Probabilités — Dés (1 ou 2 dés)
-- 🃏 Probabilités — 32 cartes
-
-### Algèbre
-- 🔣 Calcul d'expressions
-- ✏️ Réductions d'expressions
-- 📐 Développement simple
-- 📐 Développement double
-
-### Équations
-- ✔️ Vérification d'équation (oui/non)
-- 🔢 Résolution d'équations
-
-### Pythagore & racines
-- x² Calculer un carré
-- √ Racine carrée
-- 📐 Vérifier Pythagore (oui/non)
-- 📐 Calculer l'hypoténuse
-
-### Géométrie
-- ∠ Angles dans un triangle
-
----
-
-## 📝 Parcours DNB Pro
-
-Fichier `dnb.html` — 50 questions d'automatismes dans le style de l'épreuve officielle DNB série professionnelle (session 2026), inspiré des sujets zéro publiés par le ministère.
-
-- **Sans chronomètre** — focus sur la compréhension
-- **Correction détaillée** après chaque question
-- **Bilan par thème** en fin de parcours
-- **Login partagé** avec l'application principale via `backend.js`
-- 3 formats : QCM, réponse libre, Vrai/Faux
-- 9 thèmes couverts : Fractions, Proportionnalité, Pourcentages, Statistiques, Probabilités, Géométrie, Algèbre, Fonctions, Trigonométrie, Conversions, Algorithmique
-
----
-
-## 🛠️ Stack technique
-
-| Composant | Technologie |
+| Domaine | Exemples d'activités |
 |---|---|
-| Frontend | HTML / CSS / JavaScript vanilla |
-| Polices | Google Fonts — Bebas Neue + Open Sans |
-| Base de données | Supabase (PostgreSQL) |
+| Calcul de base | Tables de multiplication, puissances de 10, divisibilité, notation scientifique |
+| Nombres relatifs | Additions, multiplications et exercices progressifs |
+| Fractions | Fractions équivalentes, opérations, fraction d'une quantité |
+| Statistiques | Moyenne, médiane, étendue |
+| Mesures et conversions | Longueurs, masses, volumes, aires |
+| Proportionnalité et pourcentages | Pourcentages, évolutions, produit en croix |
+| Probabilités | Dés, cartes et situations variées |
+| Algèbre | Expressions littérales, réduction, développement |
+| Équations | Résolution progressive d'équations |
+| Géométrie | Angles, périmètres, aires, échelles |
+| Pythagore et racines | Carrés, racines, théorème de Pythagore |
+
+Les activités comprennent notamment des **questions générées aléatoirement** et des niveaux de difficulté croissante. Selon l'exercice, la réponse peut être un nombre entier, un décimal, une fraction, une expression ou un choix.
+
+## 👩‍🎓 Côté élève
+
+- Séries courtes, généralement de **10 questions**.
+- Chronomètre adapté à la difficulté selon les exercices.
+- Correction et résultat en fin de série.
+- Historique des séances et affichage des **cinq meilleurs scores**.
+- Enregistrement des résultats pour les élèves connectés.
+- **Mode clair / mode sombre** avec mémorisation du choix.
+
+### 📘 Parcours UPE2A — Mathématiques
+
+[Accéder au parcours UPE2A](https://offsidealex.github.io/Activites_mentales/upe2a.html)
+
+Un parcours spécifique pour travailler progressivement les bases : nombres en français, calculs, tables, monnaie, lecture de l'heure, géométrie, mesures et carrés magiques.
+
+### 📝 Parcours DNB série professionnelle
+
+[Accéder aux 50 automatismes DNB Pro](https://offsidealex.github.io/Activites_mentales/dnb.html)
+
+Un entraînement de **50 questions**, sans chronomètre, avec corrections détaillées et bilan final. Il s'inspire des automatismes attendus au DNB série professionnelle ; il ne constitue pas un sujet officiel.
+
+## 👨‍🏫 Côté enseignant
+
+[Ouvrir le tableau de bord professeur](https://offsidealex.github.io/Activites_mentales/dashboard_prof.html)
+
+L'espace professeur permet de :
+
+- Consulter les résultats et les séances enregistrées.
+- Filtrer les données par classe, élève et exercice.
+- Visualiser les performances et les classements.
+- Gérer les classes et les comptes élèves selon les autorisations disponibles.
+- Utiliser une interface en mode clair ou sombre.
+
+Les données des comptes connectés sont gérées avec **Supabase**. L'accès aux opérations réservées aux enseignants est contrôlé côté serveur.
+
+## 🧪 Évolutions en cours
+
+Ces fonctionnalités sont **en préparation et ne sont pas encore déployées** :
+
+- Suppression des doublons dans les équations, avec une progression sur **10 niveaux**.
+- Accès au parcours UPE2A sans connexion, en mode invité.
+- Déblocage du niveau suivant après **80 % de réussite** au niveau précédent dans les activités UPE2A concernées.
+- Réglage du seuil de réussite depuis l'interface professeur, à terme par classe ou par parcours.
+
+Ces évolutions sont suivies dans les Pull Requests du dépôt ; leur comportement sera confirmé après tests et fusion.
+
+## 🛠️ Technologies
+
+| Élément | Technologie |
+|---|---|
+| Interface | HTML, CSS, JavaScript |
+| Base de données et authentification | Supabase / PostgreSQL |
 | Hébergement | GitHub Pages |
-| Backend API | `backend.js` — client Supabase léger |
+| Gestion du code | GitHub |
+| Revue automatisée | CodeRabbit (sur certaines Pull Requests) |
 
-Aucune dépendance npm, aucun bundler — un seul fichier HTML par page.
+L'application est construite sans framework JavaScript lourd ni étape de compilation obligatoire.
 
----
+## 🚀 Installation et contribution
 
-## 🚀 Déploiement
+Le projet est consultable et modifiable depuis ce dépôt. Pour proposer une amélioration :
 
-1. Cloner le repo
-2. Pousser sur la branche `main`
-3. Activer **Settings → Pages → Source : `main` / `root`**
-4. L'app est accessible à `https://offsidealex.github.io/Activites_mentales/`
+1. Créer une branche à partir de `main`.
+2. Modifier les fichiers concernés.
+3. Ouvrir une Pull Request.
+4. Vérifier les changements et les tester avant fusion.
 
-Variables Supabase à configurer dans `backend.js` :
-```
-SUPABASE_URL      = 'https://xxxx.supabase.co'
-SUPABASE_ANON_KEY = 'eyJ...'
-```
+Le déploiement public s'effectue via GitHub Pages. Les clés publiques Supabase ne doivent jamais être confondues avec les clés de service secrètes : **aucune clé `service_role` ne doit être publiée dans le dépôt**.
 
----
+## 📁 Fichiers principaux
 
-## 📁 Structure des fichiers
-
-```
+```text
 Activites_mentales/
-├── index.html          — Application principale (35+ modules)
-├── dnb.html            — Parcours DNB Pro (50 questions)
-├── dashboard_prof.html — Dashboard enseignant (Supabase)
-├── backend.js          — Client Supabase + gestion sessions
-└── README.md
+├── index.html            # Activités mentales
+├── upe2a.html            # Parcours UPE2A
+├── dnb.html              # Automatismes DNB Pro
+├── dashboard_prof.html   # Interface professeur
+├── prof-classes.js       # Gestion des classes
+├── backend.js            # Connexion et suivi Supabase
+└── README.md             # Présentation du projet
 ```
 
----
+## ✍️ Auteur
 
-## 👨‍🏫 Auteur
+**Alexis RUIZ**  
+Enseignant en mathématiques et sciences physiques  
+**Lycée Denis Diderot — Belfort**  
+Académie de Besançon
 
-**Alexis RUIZ** — Professeur de mathématiques, physique-chimie et informatique
-🏫 Lycée Denis Diderot, Belfort — Académie de Besançon
-
----
+Projet conçu dans un objectif pédagogique, avec une attention particulière à l'entraînement régulier, à la différenciation et à l'autonomie des élèves.
 
 ## 📄 Licence
 
-Libre d'usage pédagogique. Réutilisation et adaptation encouragées dans un cadre scolaire.
-[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr)
+Le dépôt présente une licence [Creative Commons BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr). Consulter les conditions de la licence avant toute réutilisation ou modification diffusée.
