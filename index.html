@@ -192,9 +192,49 @@ body{
   .card{padding:.95rem}.card-title{font-size:.92rem}.card-icon{width:34px;height:34px;font-size:1.3rem}
   .dnb-banner{flex-direction:column;align-items:flex-start;}.dnb-banner-btn{align-self:stretch;justify-content:center;}
 }
+
+/* Thème sombre élève, choix enregistré localement */
+:root[data-theme="dark"]{
+ --bg:#0b1220;--bg-grad-1:#142541;--bg-grad-2:#0b1220;
+ --surface:#172338;--surface-2:#22314a;
+ --accent:#82adff;--accent-2:#a4c5ff;--accent-soft:#203a63;
+ --orange:#ffae70;--orange-soft:#412b22;
+ --green:#70df9a;--green-soft:#173e31;
+ --red:#ff8795;--red-soft:#462430;
+ --text:#f2f6ff;--text-2:#d2def0;--muted:#a7b8d0;
+ --line:#33445e;--line-2:#4b5d76;
+ --shadow-sm:0 2px 6px rgba(0,0,0,.15);
+ --shadow:0 6px 18px rgba(0,0,0,.2);
+ --shadow-lg:0 16px 36px rgba(0,0,0,.3);
+}
+:root[data-theme="dark"] body{background:radial-gradient(900px 500px at 10% -10%,var(--bg-grad-1),transparent 65%),var(--bg-grad-2)}
+:root[data-theme="dark"] .card-icon,:root[data-theme="dark"] .q-mod-ico{background:color-mix(in srgb,var(--cc,var(--qc,var(--accent))) 22%,var(--surface))}
+:root[data-theme="dark"] #s-menu>a[href="upe2a.html"]{background:var(--surface)!important;color:var(--accent)!important;border-color:var(--line)!important}
+:root[data-theme="dark"] #s-menu>a[href="upe2a.html"] span{color:var(--muted)!important}
+#student-theme-toggle{position:fixed;top:12px;left:12px;z-index:1100;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:.55rem .85rem;font:700 .78rem 'Open Sans',sans-serif;box-shadow:var(--shadow-sm);cursor:pointer}
+#student-theme-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#s-menu{padding-top:3.8rem}
+@media(max-width:640px){#student-theme-toggle{top:8px;left:8px;padding:.5rem .65rem}}
 </style>
 </head>
 <body>
+<button id="student-theme-toggle" type="button" aria-label="Activer le mode sombre">🌙 Mode sombre</button>
+<script>
+(function(){
+  const key='am_student_theme';
+  const button=document.getElementById('student-theme-toggle');
+  let theme='light';
+  try{theme=localStorage.getItem(key)==='dark'?'dark':'light'}catch(e){}
+  function apply(value){
+    document.documentElement.dataset.theme=value;
+    button.textContent=value==='dark'?'☀️ Mode clair':'🌙 Mode sombre';
+    button.setAttribute('aria-label',value==='dark'?'Activer le mode clair':'Activer le mode sombre');
+    button.setAttribute('aria-pressed',String(value==='dark'));
+  }
+  apply(theme);
+  button.addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';apply(theme);try{localStorage.setItem(key,theme)}catch(e){}});
+})();
+</script>
 
 <div id="s-menu" class="screen active">
   <div class="brand">
