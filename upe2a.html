@@ -501,7 +501,7 @@ function selectTable(n) {
 const LEVEL_SEQUENCES = {
  additions:['1','2','3','4'],soustractions:['1','2','3','4'],
  nombres:['10','20','100','1000'],magic:['1','2','3','4'],
- heure:['1','2','3','4'],geo:['1','2','3','4'],mesures:['1','2','3','4']
+ heure:['1','2','3'],geo:['1','2','3'],mesures:['1','2','3','4'],monnaie:['1','2','3']
 };
 function levelUnlocked(type,level) {
   const sequence=LEVEL_SEQUENCES[type];
@@ -664,6 +664,7 @@ function showHeureLevels() {
     {id:3,label:'Niveau 3 — Minutes',sub:'Toutes les 5 minutes, heure numérique → analogique'},
   ];
   document.getElementById('levels-list').innerHTML=niveaux.map(n=>`<button onclick="startHeureQuiz(${n.id})" class="w-full bg-white rounded-2xl shadow p-5 text-left card-hover border-2 border-transparent hover:border-yellow-300"><div class="flex items-center justify-between"><div><p class="font-bold text-gray-800 text-lg">${n.label}</p><p class="text-sm text-gray-400 mt-0.5">${n.sub}</p></div><span class="text-yellow-400 text-2xl">›</span></div></button>`).join('');
+  updateLevelLocks('heure',['1','2','3']);
   show('levels');
 }
 
@@ -762,6 +763,7 @@ function showMonnaieLevels() {
     {id:3,label:'Niveau 3 — Mélange',sub:'Euros et centimes, rendre la monnaie'},
   ];
   document.getElementById('levels-list').innerHTML=niveaux.map(n=>`<button onclick="startMonnaieQuiz(${n.id})" class="w-full bg-white rounded-2xl shadow p-5 text-left card-hover border-2 border-transparent hover:border-emerald-300"><div class="flex items-center justify-between"><div><p class="font-bold text-gray-800 text-lg">${n.label}</p><p class="text-sm text-gray-400 mt-0.5">${n.sub}</p></div><span class="text-emerald-400 text-2xl">›</span></div></button>`).join('');
+  updateLevelLocks('monnaie',['1','2','3']);
   show('levels');
 }
 
@@ -791,6 +793,7 @@ function makeMonnaieQuestion(level) {
 }
 
 function startMonnaieQuiz(level) {
+  if(!requireUnlocked('monnaie',level))return;
   lastQuizConfig={type:'monnaie',level:level.toString()};
   const questions=Array.from({length:6},()=>makeMonnaieQuestion(level));
   beginQuiz(questions,'monnaie',level.toString());
@@ -859,6 +862,7 @@ function showGeoLevels(){
     {id:3,label:'Niveau 3 — Propriétés',sub:'Identifier les caractéristiques des formes'},
   ];
   document.getElementById('levels-list').innerHTML=niveaux.map(n=>`<button onclick="startGeoQuiz(${n.id})" class="w-full bg-white rounded-2xl shadow p-5 text-left card-hover border-2 border-transparent hover:border-pink-300"><div class="flex items-center justify-between"><div><p class="font-bold text-gray-800 text-lg">${n.label}</p><p class="text-sm text-gray-400 mt-0.5">${n.sub}</p></div><span class="text-pink-400 text-2xl">›</span></div></button>`).join('');
+  updateLevelLocks('geo',['1','2','3']);
   show('levels');
 }
 
@@ -936,6 +940,7 @@ function showMesuresLevels(){
     {id:4,label:'Niveau 4 — Températures',sub:'°C — lire et comprendre'},
   ];
   document.getElementById('levels-list').innerHTML=niveaux.map(n=>`<button onclick="startMesuresQuiz(${n.id})" class="w-full bg-white rounded-2xl shadow p-5 text-left card-hover border-2 border-transparent hover:border-cyan-300"><div class="flex items-center justify-between"><div><p class="font-bold text-gray-800 text-lg">${n.label}</p><p class="text-sm text-gray-400 mt-0.5">${n.sub}</p></div><span class="text-cyan-400 text-2xl">›</span></div></button>`).join('');
+  updateLevelLocks('mesures',['1','2','3','4']);
   show('levels');
 }
 
