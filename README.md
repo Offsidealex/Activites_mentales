@@ -124,7 +124,7 @@ Activites_mentales/
 
 **Alexis RUIZ**  
 Enseignant en mathématiques et sciences physiques  
-**Lycée Denis Diderot — Belfort**  
+**Lycée Denis Diderot — Bavilliers**  
 Académie de Besançon
 
 Projet conçu dans un objectif pédagogique, avec une attention particulière à l'entraînement régulier, à la différenciation et à l'autonomie des élèves.
