@@ -219,7 +219,8 @@ describe('local history and profile isolation', () => {
     const app = loadApp();
     const own = session({ student_name: 'Invité', class_id: 'INVITE', guest_id: 'guest-1' });
     app.put('upe2a_sessions', [own,
-      { ...own, guest_id: 'guest-2' }, { ...own, guest_id: undefined },
+      // Keep historical identities separate from the fixture's next UUID on logout.
+      { ...own, guest_id: 'historical-guest' }, { ...own, guest_id: undefined },
       { ...own, class_id: 'UPE2A' }, { ...own, student_name: 'Someone else' },
     ]);
     assert.deepEqual(app.read("getStudentSessions(user.name, user.classId)"), [own]);
@@ -570,5 +571,58 @@ describe('quiz completion', () => {
       class_id: user.classId, exercise_type:'tables',level:'2_A',score:0,total:10})`);
     assert.equal(app.evaluate("getSessions().some(s => s.exercise_type === 'magic')"), false);
     assert.equal(app.evaluate("levelUnlocked('magic', 2)"), true);
+  });
+});
+
+describe('independent persistence failures and absent identity', () => {
+  test('a saved unlock survives a failed history write and a student reload', () => {
+    const app = loadApp({ eleve: student });
+    app.localStorage.setItem.mock.mockImplementation((key, value) => {
+      if (key === 'upe2a_sessions') throw new Error('history quota exceeded');
+      app.storage.set(key, String(value));
+    });
+
+    assert.doesNotThrow(() => finish(app));
+    assert.equal(app.warnings.mock.callCount(), 1);
+    assert.equal(app.storage.has('upe2a_sessions'), false);
+    assert.equal(app.evaluate("levelUnlocked('additions', 2)"), true);
+    assert.equal(app.getElement('screen-result').classList.contains('hidden'), false);
+
+    const reloaded = loadApp({ eleve: student, storage: app.storage });
+    assert.equal(reloaded.evaluate("levelUnlocked('additions', 2)"), true);
+  });
+
+  test('passing history still unlocks a level when the unlock write fails', () => {
+    const app = loadApp({ eleve: student });
+    app.localStorage.setItem.mock.mockImplementation((key, value) => {
+      if (key === 'upe2a_unlocks') throw new Error('unlock quota exceeded');
+      app.storage.set(key, String(value));
+    });
+
+    assert.doesNotThrow(() => finish(app));
+    assert.equal(app.warnings.mock.callCount(), 1);
+    assert.equal(app.storage.has('upe2a_unlocks'), false);
+    assert.equal(app.evaluate('getSessions().length'), 1);
+    assert.equal(app.evaluate("levelUnlocked('additions', 2)"), true);
+    assert.equal(app.getElement('screen-result').classList.contains('hidden'), false);
+  });
+
+  test('guest history cannot be read without an active user', () => {
+    const app = loadApp();
+    app.put('upe2a_sessions', [session({
+      student_name: 'Invité', class_id: 'INVITE', guest_id: app.evaluate('user.guestId'),
+    })]);
+    app.evaluate('user = null');
+    assert.deepEqual(app.read("getStudentSessions('Invité', 'INVITE')"), []);
+  });
+
+  test('logout still creates an isolated guest when the backend has no logout method', () => {
+    const app = loadApp();
+    const previous = app.evaluate('user.guestId');
+    delete app.AM.logoutStudent;
+    assert.doesNotThrow(() => app.evaluate('logout()'));
+    assert.equal(app.evaluate('user.classId'), 'INVITE');
+    assert.notEqual(app.evaluate('user.guestId'), previous);
+    assert.equal(app.getElement('screen-menu').classList.contains('hidden'), false);
   });
 });

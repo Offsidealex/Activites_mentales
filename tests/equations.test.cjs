@@ -118,3 +118,28 @@ test('level 10 returns a new question set on replay without mutating previous re
   assert.notDeepEqual(second.map(q => q.html), first.map(q => q.html));
   assertValidQuestions(second);
 });
+
+test('level 10 remains valid at both boundaries of the shuffle random input', () => {
+  for (const random of [0, 1 - Number.EPSILON]) {
+    const app = loadCatalogue();
+    app.evaluate(`Math.random = () => ${random}`);
+    assertValidQuestions(app.evaluate('MODULES.eq_niv10.gen()'));
+  }
+});
+
+test('mutating a question from one series cannot change a replayed series', () => {
+  const app = loadCatalogue();
+  // Repeat the same shuffle so the replay includes the mutated question.
+  app.evaluate('Math.random = () => 0; globalThis.first = MODULES.eq_niv10.gen();');
+  const first = app.evaluate('first');
+  const originalEquation = first[0].html;
+  const originalAnswer = first[0].ans;
+  first[0].html = 'corrupted equation';
+  first[0].ans = 999;
+
+  const replay = app.evaluate('MODULES.eq_niv10.gen()');
+  assert.notStrictEqual(replay[0], first[0]);
+  assert.equal(replay[0].html, originalEquation);
+  assert.equal(replay[0].ans, originalAnswer);
+  assertValidQuestions(replay);
+});
