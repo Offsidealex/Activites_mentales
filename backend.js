@@ -110,7 +110,8 @@
     if (!(percent >= 80)) return;
     const stored = readProgress();
     stored[exercice] = Math.max(Number(stored[exercice]) || 0, percent);
-    localStorage.setItem(progressStorageKey(), JSON.stringify(stored));
+    try { localStorage.setItem(progressStorageKey(), JSON.stringify(stored)); }
+    catch (error) { console.warn('[AM] Stockage local progression indisponible :', error); }
     progressBest = { ...progressBest, ...stored };
     publishProgress();
   }
@@ -131,8 +132,9 @@
             stored[session.exercice] = Math.max(Number(stored[session.exercice]) || 0, percent);
           }
         }
-        localStorage.setItem(progressStorageKey(), JSON.stringify(stored));
-        progressBest = stored;
+        try { localStorage.setItem(progressStorageKey(), JSON.stringify(stored)); }
+        catch (error) { console.warn('[AM] Stockage local progression indisponible :', error); }
+        progressBest = { ...progressBest, ...stored };
       } catch (error) {
         console.warn("[AM] Synchronisation progression indisponible :", error);
       }
