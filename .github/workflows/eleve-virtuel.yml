@@ -5,7 +5,6 @@ on:
     paths:
       - 'index.html'
       - 'upe2a.html'
-      - 'upe2a.html'
       - 'tests/browser-eleve-virtuel.test.cjs'
       - '.github/workflows/eleve-virtuel.yml'
   push:
@@ -13,6 +12,7 @@ on:
       - test/eleve-virtuel-niveau10
     paths:
       - 'index.html'
+      - 'upe2a.html'
       - 'tests/browser-eleve-virtuel.test.cjs'
       - '.github/workflows/eleve-virtuel.yml'
   workflow_dispatch:
