@@ -219,12 +219,13 @@ for (const scenario of [
 
 
 async function completeUpe2aActivity(page, { label, start, menu, level, total, correctCount, mode }) {
-  if (menu) await page.evaluate(name => window[name](), menu);
-  if (start) await page.evaluate(startCode => {
-    if (startCode === 'table') { showTablesLevels(); selectTable(4); startTablesQuiz(4, 'A'); }
-    if (startCode === 'table-numbers') { showTablesLevels(); selectTable(4); startTablesQuiz(4, 'B'); }
-    if (startCode === 'table-letters') { showTablesLevels(); selectTable(4); startTablesQuiz(4, 'C'); }
-  }, start);
+  if (menu) await page.locator('[onclick="' + menu + '()"]').click();
+  if (start) {
+    const modeId = { table: 'A', 'table-numbers': 'B', 'table-letters': 'C' }[start];
+    await page.locator('[onclick="showTablesLevels()"]').click();
+    await page.locator('#tbtn-4').click();
+    await page.locator('#levels-list button[onclick="startTablesQuiz(selectedTable,\'' + modeId + '\')"]').click();
+  }
   else {
     const levels = page.locator('#levels-list button');
     assert.equal(await levels.nth(1).isDisabled(), true);
@@ -239,7 +240,104 @@ async function completeUpe2aActivity(page, { label, start, menu, level, total, c
     const qType = await page.evaluate(() => quiz.questions[quiz.current].type);
     if (qType === 'qcm_heure') assert.equal(await page.locator('#q-visual svg').count(), 1, 'clock is visible');
     if (qType === 'qcm_geo') assert.equal(await page.locator('#q-visual svg').count(), 1, 'geometry drawing is visible');
-    if (qType.startsWith('qcm')) {
+    if (start) {
+      // Independent oracle: derive the result from the visible multiplication,
+      // never from quiz.questions[].correctAnswer or isCorrect.
+      const statement = (await page.locator('#q-question').innerText()).trim();
+      const match = statement.match(/^(\\d+)\\s*×\\s*(\\d+)\\s*=\\s*\\?$/);
+      assert.ok(match, 'visible multiplication question: ' + statement);
+      assert.equal(Number(match[1]), 4, 'selected table must be table 4');
+      const expected = Number(match[1]) * Number(match[2]);
+      const french = {
+        4:'quatre',8:'huit',12:'douze',16:'seize',20:'vingt',
+        24:'vingt-quatre',28:'vingt-huit',32:'trente-deux',
+        36:'trente-six',40:'quarante'
+      };
+      if (qType === 'qcm') {
+        const expectedLabel = correct ? String(expected) : null;
+        const options = page.locator('#q-choices .choice-btn');
+        if (correct) await options.filter({ hasText: new RegExp('^' + expectedLabel + '
+    await page.locator('#q-next:not(.hidden)').click();
+  }
+  await page.locator('#screen-result:not(.hidden)').waitFor();
+  assert.equal((await page.locator('#result-score').textContent()).trim(), String(correctCount), label);
+  if (menu) {
+    await page.evaluate(name => window[name](), menu);
+    assert.equal(await page.locator('#levels-list button').nth(1).isDisabled(), correctCount / total < .8);
+    const guest = await page.evaluate(() => user.guestId);
+    await page.reload();
+    assert.equal(await page.evaluate(() => user.guestId), guest);
+    await page.evaluate(name => window[name](), menu);
+    assert.equal(await page.locator('#levels-list button').nth(1).isDisabled(), correctCount / total < .8);
+  }
+}
+
+for (const scenario of [
+  { label: 'heure, 75 %', menu: 'showHeureLevels', level: 1, total: 8, correctCount: 6 },
+  { label: 'heure, 87,5 %', menu: 'showHeureLevels', level: 1, total: 8, correctCount: 7 },
+  { label: 'géométrie, 75 %', menu: 'showGeoLevels', level: 1, total: 8, correctCount: 6 },
+  { label: 'géométrie, 87,5 %', menu: 'showGeoLevels', level: 1, total: 8, correctCount: 7 },
+  { label: 'tables de multiplication, QCM', start: 'table', level: '4_A', total: 10, correctCount: 8 },
+  { label: 'tables de multiplication, chiffres', start: 'table-numbers', level: '4_B', total: 10, correctCount: 8 },
+  { label: 'tables de multiplication, lettres', start: 'table-letters', level: '4_C', total: 10, correctCount: 8 },
+]) {
+  test(`élève virtuel UPE2A : ${scenario.label}`, { timeout: 60000 }, async () => {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      await page.goto(pathToFileURL(resolve(__dirname, '..', 'upe2a.html')).href);
+      await completeUpe2aActivity(page, scenario);
+    } finally { await browser.close(); }
+  });
+}
+) }).click();
+        else {
+          const texts = await options.allTextContents();
+          const wrong = texts.find(text => text.trim() !== String(expected));
+          assert.ok(wrong, 'a wrong answer must be offered');
+          await options.filter({ hasText: new RegExp('^' + wrong.trim() + '
+    await page.locator('#q-next:not(.hidden)').click();
+  }
+  await page.locator('#screen-result:not(.hidden)').waitFor();
+  assert.equal((await page.locator('#result-score').textContent()).trim(), String(correctCount), label);
+  if (menu) {
+    await page.evaluate(name => window[name](), menu);
+    assert.equal(await page.locator('#levels-list button').nth(1).isDisabled(), correctCount / total < .8);
+    const guest = await page.evaluate(() => user.guestId);
+    await page.reload();
+    assert.equal(await page.evaluate(() => user.guestId), guest);
+    await page.evaluate(name => window[name](), menu);
+    assert.equal(await page.locator('#levels-list button').nth(1).isDisabled(), correctCount / total < .8);
+  }
+}
+
+for (const scenario of [
+  { label: 'heure, 75 %', menu: 'showHeureLevels', level: 1, total: 8, correctCount: 6 },
+  { label: 'heure, 87,5 %', menu: 'showHeureLevels', level: 1, total: 8, correctCount: 7 },
+  { label: 'géométrie, 75 %', menu: 'showGeoLevels', level: 1, total: 8, correctCount: 6 },
+  { label: 'géométrie, 87,5 %', menu: 'showGeoLevels', level: 1, total: 8, correctCount: 7 },
+  { label: 'tables de multiplication, QCM', start: 'table', level: '4_A', total: 10, correctCount: 8 },
+  { label: 'tables de multiplication, chiffres', start: 'table-numbers', level: '4_B', total: 10, correctCount: 8 },
+  { label: 'tables de multiplication, lettres', start: 'table-letters', level: '4_C', total: 10, correctCount: 8 },
+]) {
+  test(`élève virtuel UPE2A : ${scenario.label}`, { timeout: 60000 }, async () => {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      await page.goto(pathToFileURL(resolve(__dirname, '..', 'upe2a.html')).href);
+      await completeUpe2aActivity(page, scenario);
+    } finally { await browser.close(); }
+  });
+}
+) }).click();
+        }
+      } else {
+        const answer = correct ? (qType === 'input_letters' ? french[expected] : String(expected)) : (qType === 'input_letters' ? 'réponse volontairement incorrecte' : String(expected + 10000));
+        assert.ok(answer, 'independent French fixture exists for ' + expected);
+        await page.locator('#q-input').fill(answer);
+        await page.locator('#q-validate-btn').click();
+      }
+    } else if (qType.startsWith('qcm')) {
       const idx = await page.evaluate(pass => quiz.questions[quiz.current].choices.findIndex(c => c.isCorrect === pass), correct);
       assert.ok(idx >= 0);
       await page.locator('#q-choices .choice-btn').nth(idx).click();
