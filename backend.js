@@ -39,6 +39,7 @@
     if (!response.ok || result.error) throw new Error(result.error || "Connexion impossible.");
     saveSession(result.session, result.eleve);
     await loadMenuScores();
+    await loadProgress();
     document.dispatchEvent(new Event("am:login"));
   }
 
@@ -82,6 +83,64 @@
       return null;
     }
   }
+
+  // Progression v2 : les séances de l'année précédente restent consultables,
+  // mais ne débloquent aucun niveau de la nouvelle progression.
+  const PROGRESSION_START = "2026-10-19T00:00:00Z";
+  const PROGRESSION_PREFIX = "am_progress_v2_";
+  let progressReady = false;
+  let progressBest = {};
+  function progressStorageKey() {
+    const eleve = loadEleve();
+    return PROGRESSION_PREFIX + (eleve ? "eleve_" + eleve.id : "invite");
+  }
+  function readProgress() {
+    try { return JSON.parse(localStorage.getItem(progressStorageKey()) || "{}"); }
+    catch (error) { return {}; }
+  }
+  function publishProgress() {
+    document.dispatchEvent(new Event("am:progress-updated"));
+  }
+  function getProgress() {
+    return { ...progressBest };
+  }
+  function recordProgress(exercice, score, total) {
+    if (!exercice || !(total > 0)) return;
+    const percent = 100 * score / total;
+    if (!(percent >= 80)) return;
+    const stored = readProgress();
+    stored[exercice] = Math.max(Number(stored[exercice]) || 0, percent);
+    localStorage.setItem(progressStorageKey(), JSON.stringify(stored));
+    progressBest = { ...progressBest, ...stored };
+    publishProgress();
+  }
+  async function loadProgress() {
+    progressReady = false;
+    progressBest = readProgress();
+    const eleve = loadEleve();
+    if (eleve && authSession) {
+      try {
+        const query = "?eleve_id=eq." + encodeURIComponent(eleve.id) +
+          "&played_at=gte." + encodeURIComponent(PROGRESSION_START) +
+          "&select=exercice,score,nb_questions&limit=10000";
+        const sessions = await sbQuery("sessions", "GET", null, query);
+        const stored = readProgress();
+        for (const session of sessions) {
+          const percent = 100 * Number(session.score) / Number(session.nb_questions);
+          if (Number.isFinite(percent) && percent >= 80) {
+            stored[session.exercice] = Math.max(Number(stored[session.exercice]) || 0, percent);
+          }
+        }
+        localStorage.setItem(progressStorageKey(), JSON.stringify(stored));
+        progressBest = stored;
+      } catch (error) {
+        console.warn("[AM] Synchronisation progression indisponible :", error);
+      }
+    }
+    progressReady = true;
+    publishProgress();
+  }
+  function isProgressReady() { return progressReady; }
 
   function loadLocalScores() {
     try { return JSON.parse(localStorage.getItem("am_best_scores") || "{}"); }
@@ -192,6 +251,7 @@
     sessionStorage.removeItem("am_auth_session");
     sessionStorage.removeItem("am_eleve");
     updateStudentHeader();
+    loadProgress();
     document.dispatchEvent(new Event("am:logout"));
   }
   async function refreshStudentDrawer() {
@@ -269,7 +329,7 @@
 
   injectStyles();
   window.loadEleve = loadEleve;
-  window.AM = { currentEleve: loadEleve, sendSession, loadMenuScores, openLogin, saveScore, openStudentDrawer, logoutStudent };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ loadMenuScores(); initStudentSpace(); });
+  window.AM = { currentEleve: loadEleve, sendSession, loadMenuScores, openLogin, saveScore, openStudentDrawer, logoutStudent, getProgress, recordProgress, loadProgress, isProgressReady };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ loadMenuScores(); loadProgress(); initStudentSpace(); });
   else { loadMenuScores(); initStudentSpace(); }
 })();
