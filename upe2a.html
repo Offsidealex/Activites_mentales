@@ -334,9 +334,22 @@ const CLASS_CODES = { 'UPE2A': 'UPE2A', 'DIDEROT': 'Lycée Denis Diderot', 'MATH
 const LS_USER = 'upe2a_user';
 const LS_SESSIONS = 'upe2a_sessions';
 const LS_UNLOCKS = 'upe2a_unlocks';
+const LS_GUEST = 'upe2a_guest';
 function newGuest(){
   const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return {name:'Invité',classId:'INVITE',className:'Parcours libre',guestId:id};
+}
+function storeGuest(g){
+  try { localStorage.setItem(LS_GUEST,JSON.stringify(g)); }
+  catch(e){ console.warn('Identité invité non enregistrée :',e); }
+  return g;
+}
+function loadGuest(){
+  try {
+    const g=JSON.parse(localStorage.getItem(LS_GUEST));
+    if(g && g.classId==='INVITE' && typeof g.guestId==='string' && g.guestId) return g;
+  } catch(e){ console.warn('Identité invité non récupérée :',e); }
+  return storeGuest(newGuest());
 }
 function progressionKey(u){ return u.classId==='INVITE' ? `guest:${u.guestId}` : `student:${u.classId}:${u.name}`; }
 function getUnlocks(){ try { return JSON.parse(localStorage.getItem(LS_UNLOCKS)) || {}; } catch { return {}; } }
@@ -443,7 +456,7 @@ function doLogin() {
   showMenu();
 }
 function showErr(el,msg) { el.textContent=msg; el.classList.remove('hidden'); }
-function logout() { if(window.AM && window.AM.logoutStudent)window.AM.logoutStudent(); user=newGuest();clearUser(); document.getElementById('input-name').value=''; showMenu(); }
+function logout() { if(window.AM && window.AM.logoutStudent)window.AM.logoutStudent(); user=storeGuest(newGuest());clearUser(); document.getElementById('input-name').value=''; showMenu(); }
 
 // ═══════════════════════════════════════════════════
 // MENU
@@ -1185,7 +1198,7 @@ document.getElementById('input-code').addEventListener('keydown',e=>{ if(e.key==
 (function init(){
   const eleve=window.AM && window.AM.currentEleve();
   if(eleve){user={name:eleve.prenom || eleve.pseudo || 'Élève',classId:eleve.classe || 'UPE2A'};showMenu();}
-  else { user=newGuest();showMenu(); }
+  else { user=loadGuest();showMenu(); }
 })();
 </script>
 </body>
