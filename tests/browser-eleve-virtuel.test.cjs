@@ -86,3 +86,53 @@ test('élève virtuel UPE2A : 80 % débloque le niveau 2 après rechargement', {
     assert.equal(await page.evaluate(() => quiz.level), '2');
   } finally { await browser.close(); }
 });
+
+
+async function completeUpe2aQcm(page, { menu, firstLevel, nextLevel, score }) {
+  await page.evaluate(menuName => window[menuName](), menu);
+  const levels = page.locator('#levels-list button');
+  assert.equal(await levels.nth(1).isDisabled(), true, 'second level starts locked');
+  await levels.first().click();
+  await page.locator('#screen-quiz:not(.hidden)').waitFor();
+  assert.equal(await page.evaluate(() => String(quiz.level)), String(firstLevel));
+  for (let i = 0; i < 10; i++) {
+    await page.waitForFunction(expected => quiz.current === expected, i);
+    const answerIndex = await page.evaluate(pass => {
+      const question = quiz.questions[quiz.current];
+      return question.choices.findIndex(option => option.isCorrect === pass);
+    }, i < score);
+    assert.ok(answerIndex >= 0, 'question must offer correct and incorrect answers');
+    await page.locator('#q-choices .choice-btn').nth(answerIndex).click();
+    await page.locator('#q-next:not(.hidden)').click();
+  }
+  await page.locator('#screen-result:not(.hidden)').waitFor();
+  assert.equal((await page.locator('#result-score').textContent()).trim(), String(score));
+  await page.evaluate(menuName => window[menuName](), menu);
+  assert.equal(await levels.nth(1).isDisabled(), score < 8, '80 percent threshold');
+  const guestId = await page.evaluate(() => user.guestId);
+  await page.reload();
+  assert.equal(await page.evaluate(() => user.guestId), guestId, 'guest identity persists');
+  await page.evaluate(menuName => window[menuName](), menu);
+  assert.equal(await levels.nth(1).isDisabled(), score < 8, 'level state persists');
+  if (score >= 8) {
+    await levels.nth(1).click();
+    await page.locator('#screen-quiz:not(.hidden)').waitFor();
+    assert.equal(await page.evaluate(() => String(quiz.level)), String(nextLevel));
+  }
+}
+
+for (const scenario of [
+  { label: 'soustractions', menu: 'showSoustractionsLevels', firstLevel: 1, nextLevel: 2 },
+  { label: 'nombres en français', menu: 'showNombresLevels', firstLevel: 10, nextLevel: 20 },
+]) {
+  for (const score of [7, 8]) {
+    test(`élève virtuel UPE2A : ${scenario.label}, ${score}/10 et persistance`, { timeout: 60000 }, async () => {
+      const browser = await chromium.launch({ headless: true });
+      try {
+        const page = await browser.newPage();
+        await page.goto(pathToFileURL(resolve(__dirname, '..', 'upe2a.html')).href);
+        await completeUpe2aQcm(page, { ...scenario, score });
+      } finally { await browser.close(); }
+    });
+  }
+}
