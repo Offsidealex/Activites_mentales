@@ -136,3 +136,81 @@ for (const scenario of [
     });
   }
 }
+
+
+async function runUpe2aScenario(page, { menu, firstLevel, secondLevel, total, score, answerMode }) {
+  await page.evaluate(name => window[name](), menu);
+  const levels = page.locator('#levels-list button');
+  assert.equal(await levels.nth(1).isDisabled(), true);
+  await levels.first().click();
+  await page.locator('#screen-quiz:not(.hidden)').waitFor();
+  assert.equal(await page.evaluate(() => String(quiz.level)), String(firstLevel));
+  for (let i = 0; i < total; i++) {
+    await page.waitForFunction(expected => quiz.current === expected, i);
+    const correct = i < score;
+    if (answerMode === 'input') {
+      const answer = await page.evaluate(pass => {
+        const expected = quiz.questions[quiz.current].correctAnswer;
+        return pass ? String(expected) : String(Number(expected) + 10000);
+      }, correct);
+      await page.locator('#q-input').fill(answer);
+      await page.locator('#q-validate-btn').click();
+    } else if (answerMode === 'money') {
+      const coins = await page.evaluate(pass => {
+        const target = quiz.questions[quiz.current].correctAnswer;
+        if (!pass) return [];
+        const denominations = [...COINS].filter(c => document.getElementById('coin-' + c.val)).map(c => c.val).sort((a,b) => b-a);
+        const chosen = [];
+        let remaining = target;
+        for (const val of denominations) {
+          while (remaining >= val) { chosen.push(val); remaining -= val; }
+        }
+        if (remaining !== 0) throw new Error('Target cannot be formed with available coins');
+        return chosen;
+      }, correct);
+      for (const coin of coins) await page.locator('#coin-' + coin).click();
+      await page.locator('#q-monnaie-btn').click();
+    } else {
+      const index = await page.evaluate(pass => quiz.questions[quiz.current].choices.findIndex(c => c.isCorrect === pass), correct);
+      assert.ok(index >= 0);
+      await page.locator('#q-choices .choice-btn').nth(index).click();
+    }
+    await page.locator('#q-next:not(.hidden)').click();
+  }
+  await page.locator('#screen-result:not(.hidden)').waitFor();
+  assert.equal((await page.locator('#result-score').textContent()).trim(), String(score));
+  await page.evaluate(name => window[name](), menu);
+  assert.equal(await levels.nth(1).isDisabled(), score / total < .8);
+  const guest = await page.evaluate(() => user.guestId);
+  await page.reload();
+  assert.equal(await page.evaluate(() => user.guestId), guest);
+  await page.evaluate(name => window[name](), menu);
+  assert.equal(await levels.nth(1).isDisabled(), score / total < .8);
+  if (score / total >= .8) {
+    await levels.nth(1).click();
+    await page.locator('#screen-quiz:not(.hidden)').waitFor();
+    assert.equal(await page.evaluate(() => String(quiz.level)), String(secondLevel));
+  }
+}
+
+for (const scenario of [
+  { label: 'soustractions avec saisie', menu: 'showSoustractionsLevels', firstLevel: 3, secondLevel: 4, total: 10, score: 8, answerMode: 'input', preUnlock: ['soustractions', 3] },
+  { label: 'mesures', menu: 'showMesuresLevels', firstLevel: 1, secondLevel: 2, total: 8, score: 7, answerMode: 'qcm' },
+  { label: 'monnaie', menu: 'showMonnaieLevels', firstLevel: 1, secondLevel: 2, total: 6, score: 5, answerMode: 'money' },
+]) {
+  test(`élève virtuel UPE2A : ${scenario.label} et progression`, { timeout: 60000 }, async () => {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      await page.goto(pathToFileURL(resolve(__dirname, '..', 'upe2a.html')).href);
+      if (scenario.preUnlock) {
+        await page.evaluate(([type, level]) => {
+          // Prepare prerequisites using the real progression storage, not a bypass of the lock guard.
+          const sequence = LEVEL_SEQUENCES[type];
+          for (const previous of sequence.slice(0, sequence.indexOf(String(level)))) earnUnlock(type, previous);
+        }, scenario.preUnlock);
+      }
+      await runUpe2aScenario(page, scenario);
+    } finally { await browser.close(); }
+  });
+}
