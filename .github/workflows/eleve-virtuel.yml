@@ -1,0 +1,41 @@
+name: Élève virtuel — navigateur
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'upe2a.html'
+      - 'tests/browser-eleve-virtuel.test.cjs'
+      - '.github/workflows/eleve-virtuel.yml'
+  push:
+    branches:
+      - test/eleve-virtuel-niveau10
+    paths:
+      - 'index.html'
+      - 'upe2a.html'
+      - 'tests/browser-eleve-virtuel.test.cjs'
+      - '.github/workflows/eleve-virtuel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run virtual student
+        run: node --test tests/browser-eleve-virtuel.test.cjs

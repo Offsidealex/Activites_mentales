@@ -1,0 +1,39 @@
+name: UPE2A unit tests
+
+on:
+  pull_request:
+    paths:
+      - 'upe2a.html'
+      - 'index.html'
+      - 'tests/**'
+      - '.github/workflows/upe2a-tests.yml'
+  push:
+    branches:
+      - main
+      - feature-upe2a-guest-level-progression
+    paths:
+      - 'upe2a.html'
+      - 'index.html'
+      - 'tests/**'
+      - '.github/workflows/upe2a-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Node.js unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Run equations tests
+        run: node --test tests/equations.test.cjs
+      - name: Run UPE2A tests
+        run: node --test tests/upe2a.test.cjs
