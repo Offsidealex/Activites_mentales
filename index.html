@@ -215,6 +215,11 @@ body{
 #student-theme-toggle:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 #s-menu{padding-top:3.8rem}
 @media(max-width:640px){#student-theme-toggle{top:8px;left:8px;padding:.5rem .65rem}}
+/* Progression 80 % — verrouillage visuel et accessible */
+.card.am-locked{opacity:.56;cursor:not-allowed;filter:grayscale(.35)}
+.card.am-locked .arrow{display:none}
+.card .am-lock-label{font-size:.72rem;font-weight:800;color:var(--muted);margin-top:.35rem}
+.card.am-locked:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 </style>
 </head>
 <body>
@@ -624,6 +629,48 @@ let CM=null,CMKey=null,questions=[],cur=0,good=0,log=[];
 let tInt=null,left=0,done=false;
 let questionStartedAt=0,totalAnswerMs=0;
 
+/* Progression globale : ordre pédagogique explicite par famille.
+   Les tables de multiplication restent libres. Aucun historique antérieur
+   à la nouvelle version n'est utilisé pour déverrouiller les niveaux. */
+const FREE_MODULES = new Set(['mult']);
+const PROGRESSION_GROUPS = {
+  'Calcul de base': ['mult10','div10','notif_sci','divisibilite'],
+  'Nombres relatifs': ['add_rel','mult_rel','sub_rel','chaine_rel','mix_rel'],
+  'Fractions': ['frac_equiv','arrondir','add_frac','mult_frac','frac_nombre'],
+  'Statistiques': ['etendue','moyenne','mediane','effectif_total','moyenne_effectifs'],
+  'Mesures & conversions': ['conv_long','conversions2','aires','perimetres','problemes_conv'],
+  'Proportionnalité & %': ['tableau_prop1','tableau_prop2','tableau_prop3','pourcentages','pct_simples','pct_arrondi','pct_variation','pcx1','pcx2','pcx3'],
+  'Probabilités': ['probas_simples','probas_des','probas','probas_contraire','probas_composees'],
+  'Algèbre': ['expressions','reductions','dev_simple','dev_double','factoriser'],
+  'Équations': ['eq_niv1','eq_niv2','eq_niv3','eq_niv4','eq_niv5','eq_niv6','eq_niv7','eq_niv8','eq_niv9','eq_niv10'],
+  'Pythagore & racines': ['carre','racine','pyth_verif','pyth_hyp','pyth_cote'],
+  'Géométrie': ['angles','geo_perimetre','geo_aire','geo_angles','geo_echelle']
+};
+function isModuleUnlocked(key) {
+  if(FREE_MODULES.has(key)) return true;
+  const module=MODULES[key];
+  if(!module) return false;
+  const levels=PROGRESSION_GROUPS[module.group] || [];
+  const index=levels.indexOf(key);
+  if(index<0) return false;
+  if(index===0) return true;
+  if(!window.AM || !window.AM.isProgressReady()) return false;
+  const progress=window.AM.getProgress();
+  return Number(progress[MODULES[levels[index-1]].title])>=80;
+}
+function updateProgressLocks() {
+  document.querySelectorAll('.card[data-key]').forEach(card=>{
+    const key=card.dataset.key;
+    const locked=!isModuleUnlocked(key);
+    card.classList.toggle('am-locked',locked);
+    card.setAttribute('aria-disabled',String(locked));
+    card.setAttribute('title',locked?'🔒 Obtiens au moins 80 % au niveau précédent':'');
+    const label=card.querySelector('.am-lock-label');
+    if(label) label.textContent=locked?'🔒 Verrouillé · 80 % requis':FREE_MODULES.has(key)?'🔓 Entraînement libre':'🔓 Accessible';
+  });
+}
+if(typeof document.addEventListener==='function') document.addEventListener('am:progress-updated',updateProgressLocks);
+
 /* ══ BUILD MENU ══ */
 (function buildMenu(){
   const groups={};
@@ -653,7 +700,7 @@ let questionStartedAt=0,totalAnswerMs=0;
     const grid=document.createElement('div');grid.className='grid';
     for(const[key,m]of groups[groupName]){
       const d=document.createElement('div');
-      d.className='card';d.dataset.module=m.title;d.style.setProperty('--cc',m.color);
+      d.className='card';d.dataset.module=m.title;d.dataset.key=key;d.tabIndex=0;if(typeof d.setAttribute==='function')d.setAttribute('role','button');d.style.setProperty('--cc',m.color);
       const timeTag=m.tags.find(t=>t.includes('⏱'));
       const otherTags=m.tags.filter(t=>!t.includes('⏱'));
       d.innerHTML=`
@@ -668,8 +715,9 @@ let questionStartedAt=0,totalAnswerMs=0;
           <span style="color:var(--muted);font-weight:700;font-size:.7rem">Meilleur</span>
           <span style="color:var(--muted);font-weight:600;font-size:.72rem;font-style:italic">Non fait</span>
         </div>
-        <div class="arrow">→</div>`;
+        <div class="am-lock-label"></div><div class="arrow">→</div>`;
       d.onclick=()=>launchQuiz(key);
+      d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();launchQuiz(key);}};
       grid.appendChild(d);
     }
     root.appendChild(grid);
@@ -696,16 +744,18 @@ let questionStartedAt=0,totalAnswerMs=0;
       <div class="dnb-banner-btn">Commencer <span>→</span></div>
     </a>`;
   root.appendChild(dnbWrap);
+  if(typeof document.querySelectorAll==='function') updateProgressLocks();
 })();
 
 /* ══ LAUNCH ══ */
 function launchQuiz(key){
+  if(!isModuleUnlocked(key)) { updateProgressLocks(); return false; }
   CM=MODULES[key];CMKey=key;CM.key=key;
   document.documentElement.style.setProperty('--qc',CM.color);
   questions=CM.gen();cur=0;good=0;log=[];totalAnswerMs=0;
   show('s-quiz');loadQ();
 }
-function replayQuiz(){questions=CM.gen();cur=0;good=0;log=[];show('s-quiz');loadQ();}
+function replayQuiz(){if(!CMKey || !isModuleUnlocked(CMKey)) return false;questions=CM.gen();cur=0;good=0;log=[];show('s-quiz');loadQ();}
 
 /* ══ LOAD QUESTION ══ */
 function loadQ(){
@@ -826,6 +876,7 @@ function showResults(){
     <div class="rrow"><div class="n">${i+1}</div><div class="rop">${q.html}</div>
     <div class="rbadges">${ok?`<span class="bk ok">✓ ${getCorr(q)}</span>`:`<span class="bk ko">${getGiven({val,valD,valTxt})}</span><span class="bk ans">${getCorr(q)}</span>`}</div></div>`).join('');
   if(window.AM&&window.AM.saveScore)window.AM.saveScore(CM.title,good,questions.length);
+  if(window.AM&&window.AM.recordProgress)window.AM.recordProgress(CM.title,good,questions.length);
   if(window.AM&&window.AM.currentEleve()){
     const reponses=log.map((entry,i)=>({numero_question:i+1,enonce:entry.q.html.replace(/<[^>]*>/g,''),reponse_eleve:(CM.ansType==='fraction')?(entry.val!==null?entry.val+'/'+entry.valD:'—'):(CM.ansType==='text'||CM.ansType==='yesno')?(entry.valTxt||'—'):(entry.val!==null?String(entry.val):'—'),correct:entry.ok,temps_ms:null}));
     window.AM.sendSession({exercice:CM.title,score:good,nb_questions:questions.length,duree_totale_ms:Math.round(totalAnswerMs),reponses});
