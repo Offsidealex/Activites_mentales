@@ -145,6 +145,21 @@ describe('guest access and identity', () => {
     assert.equal(app.storage.has('upe2a_user'), false);
   });
 
+  test('guest scores and unlocks survive page reload and change rotates identity', () => {
+    const storage = new Map();
+    const first = loadApp({ storage });
+    finish(first, { score: 8 });
+    const guestId = first.evaluate('user.guestId');
+    const reloaded = loadApp({ storage });
+    assert.equal(reloaded.evaluate('user.guestId'), guestId);
+    assert.equal(reloaded.evaluate("levelUnlocked('additions', 2)"), true);
+    assert.equal(reloaded.evaluate('getStudentSessions(user.name,user.classId).length'), 1);
+    reloaded.evaluate('logout()');
+    assert.notEqual(reloaded.evaluate('user.guestId'), guestId);
+    assert.equal(reloaded.evaluate("levelUnlocked('additions', 2)"), false);
+    assert.equal(reloaded.evaluate('getStudentSessions(user.name,user.classId).length'), 0);
+  });
+
   test('does not restore stale local student data when backend authentication is absent', () => {
     const storage = new Map([['upe2a_user', JSON.stringify({ name: 'Old student', classId: 'UPE2A' })]]);
     const app = loadApp({ storage });
@@ -553,17 +568,13 @@ describe('quiz completion', () => {
     assert.equal(app.evaluate('getSessions()[0].exercise_type'), 'tables');
   });
 
-  test('a guest can unlock magic-square level 2 after solving level 1', {
-    todo: 'PR defect: checkCarreMagique saves no guest_id, so guest history cannot unlock the next level.',
-  }, () => {
+  test('a guest can unlock magic-square level 2 after solving level 1', () => {
     const app = loadApp();
     solveMagicSquare(app);
     assert.equal(app.evaluate("levelUnlocked('magic', 2)"), true);
   });
 
-  test('a student magic-square unlock survives history eviction', {
-    todo: 'PR defect: checkCarreMagique never calls earnUnlock, so its unlock disappears when history is evicted.',
-  }, () => {
+  test('a student magic-square unlock survives history eviction', () => {
     const app = loadApp({ eleve: student });
     solveMagicSquare(app);
     assert.equal(app.evaluate("levelUnlocked('magic', 2)"), true, 'history initially unlocks level 2');
