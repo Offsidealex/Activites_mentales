@@ -198,7 +198,9 @@ async function runUpe2aScenario(page, { menu, firstLevel, secondLevel, total, sc
 for (const scenario of [
   { label: 'soustractions avec saisie', menu: 'showSoustractionsLevels', firstLevel: 3, secondLevel: 4, total: 10, score: 8, answerMode: 'input', preUnlock: ['soustractions', 3] },
   { label: 'mesures', menu: 'showMesuresLevels', firstLevel: 1, secondLevel: 2, total: 8, score: 7, answerMode: 'qcm' },
+  { label: 'mesures sous le seuil', menu: 'showMesuresLevels', firstLevel: 1, secondLevel: 2, total: 8, score: 6, answerMode: 'qcm' },
   { label: 'monnaie', menu: 'showMonnaieLevels', firstLevel: 1, secondLevel: 2, total: 6, score: 5, answerMode: 'money' },
+  { label: 'monnaie sous le seuil', menu: 'showMonnaieLevels', firstLevel: 1, secondLevel: 2, total: 6, score: 4, answerMode: 'money' },
 ]) {
   test(`élève virtuel UPE2A : ${scenario.label} et progression`, { timeout: 60000 }, async () => {
     const browser = await chromium.launch({ headless: true });
@@ -222,9 +224,10 @@ async function completeUpe2aActivity(page, { label, start, menu, level, total, c
   if (menu) await page.locator('[onclick="' + menu + '()"]').click();
   if (start) {
     const mode = { table: 'A', 'table-numbers': 'B', 'table-letters': 'C' }[start];
-    await page.locator('[onclick="showTablesLevels()"]').click();
-    await page.locator('#tbtn-4').click();
-    await page.locator('button').filter({ hasText: mode === 'A' ? 'QCM' : mode === 'B' ? 'Chiffres' : 'Lettres' }).last().click();
+    await page.locator('#screen-menu:not(.hidden)').getByText('Tables', { exact: true }).click();
+    await page.locator('#screen-levels:not(.hidden)').getByRole('button', { name: '×4', exact: true }).click();
+    const modeLabel = { A: 'Niveau A — QCM', B: 'Niveau B — Saisie chiffres', C: 'Niveau C — Saisie en lettres' }[mode];
+    await page.locator('#screen-levels:not(.hidden) #levels-list').getByRole('button', { name: new RegExp('^' + modeLabel) }).click();
   } else {
     const levels = page.locator('#levels-list button');
     assert.equal(await levels.nth(1).isDisabled(), true);
