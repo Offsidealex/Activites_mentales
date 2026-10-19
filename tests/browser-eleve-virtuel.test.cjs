@@ -16,7 +16,7 @@ test('progression site : 7/10 verrouille, 8/10 debloque et persiste apres rechar
     const second = page.locator('.card[data-key="mult_rel"]');
     assert.equal(await first.getAttribute('aria-disabled'), 'false');
     assert.equal(await second.getAttribute('aria-disabled'), 'true');
-    await second.click();
+    await second.evaluate(el => el.click());
     assert.equal(await page.locator('#s-quiz.active').count(), 0, 'un niveau verrouille ne peut pas demarrer');
     await page.evaluate(() => window.AM.recordProgress('Addition de relatifs', 7, 10));
     assert.equal(await second.getAttribute('aria-disabled'), 'true');
@@ -52,6 +52,11 @@ test('élève virtuel : termine les 10 équations du niveau 10 dans le navigateu
     await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
     const card = page.locator('.card[data-module="Équations — Niveau 10"]');
     await card.waitFor({ state: 'visible' });
+    // Le test du niveau 10 prépare les neuf niveaux préalables comme déjà réussis.
+    await page.waitForFunction(() => window.AM?.isProgressReady());
+    await page.evaluate(() => {
+      for (let n = 1; n <= 9; n++) window.AM.recordProgress('Équations — Niveau ' + n, 8, 10);
+    });
     await card.click();
     await page.locator('#s-quiz.active').waitFor();
     for (let i = 0; i < 10; i++) {
