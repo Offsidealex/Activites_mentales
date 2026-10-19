@@ -275,6 +275,7 @@ async function completeUpe2aActivity(page, { label, start, menu, level, total, c
   await page.locator('#screen-result:not(.hidden)').waitFor();
   assert.equal((await page.locator('#result-score').textContent()).trim(), String(correctCount), label);
   if (menu) {
+    await page.locator('#screen-result button[onclick="showMenu()"]') .click();
     await page.locator('[onclick="' + menu + '()"]').click();
     assert.equal(await page.locator('#levels-list button').nth(1).isDisabled(), correctCount / total < .8);
     const guest = await page.evaluate(() => user.guestId);
