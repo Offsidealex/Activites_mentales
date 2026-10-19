@@ -141,8 +141,10 @@ for (const scenario of [
 async function runUpe2aScenario(page, { menu, firstLevel, secondLevel, total, score, answerMode }) {
   await page.evaluate(name => window[name](), menu);
   const levels = page.locator('#levels-list button');
-  assert.equal(await levels.nth(1).isDisabled(), true);
-  await levels.first().click();
+  const startIndex = firstLevel === 3 ? 2 : 0;
+  const nextIndex = startIndex + 1;
+  assert.equal(await levels.nth(nextIndex).isDisabled(), true);
+  await levels.nth(startIndex).click();
   await page.locator('#screen-quiz:not(.hidden)').waitFor();
   assert.equal(await page.evaluate(() => String(quiz.level)), String(firstLevel));
   for (let i = 0; i < total; i++) {
@@ -180,14 +182,14 @@ async function runUpe2aScenario(page, { menu, firstLevel, secondLevel, total, sc
   await page.locator('#screen-result:not(.hidden)').waitFor();
   assert.equal((await page.locator('#result-score').textContent()).trim(), String(score));
   await page.evaluate(name => window[name](), menu);
-  assert.equal(await levels.nth(1).isDisabled(), score / total < .8);
+  assert.equal(await levels.nth(nextIndex).isDisabled(), score / total < .8);
   const guest = await page.evaluate(() => user.guestId);
   await page.reload();
   assert.equal(await page.evaluate(() => user.guestId), guest);
   await page.evaluate(name => window[name](), menu);
-  assert.equal(await levels.nth(1).isDisabled(), score / total < .8);
+  assert.equal(await levels.nth(nextIndex).isDisabled(), score / total < .8);
   if (score / total >= .8) {
-    await levels.nth(1).click();
+    await levels.nth(nextIndex).click();
     await page.locator('#screen-quiz:not(.hidden)').waitFor();
     assert.equal(await page.evaluate(() => String(quiz.level)), String(secondLevel));
   }
