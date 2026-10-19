@@ -31,3 +31,58 @@ test('élève virtuel : termine les 10 équations du niveau 10 dans le navigateu
     await browser.close();
   }
 });
+
+
+async function openAdditions(page) {
+  await page.evaluate(() => showAdditionsLevels());
+  await page.locator('#screen-levels:not(.hidden)').waitFor();
+  return page.locator('#levels-list button');
+}
+
+async function completeAdditions(page, correctCount) {
+  const buttons = await openAdditions(page);
+  assert.equal(await buttons.nth(1).isDisabled(), true, 'niveau 2 initially locked');
+  await buttons.first().click();
+  await page.locator('#screen-quiz:not(.hidden)').waitFor();
+  for (let i = 0; i < 10; i++) {
+    await page.waitForFunction(expected => quiz.current === expected, i);
+    const index = await page.evaluate(shouldPass => {
+      const q = quiz.questions[quiz.current];
+      return q.choices.findIndex(choice => choice.isCorrect === shouldPass);
+    }, i < correctCount);
+    assert.ok(index >= 0, 'QCM has a suitable answer');
+    await page.locator('#q-choices .choice-btn').nth(index).click();
+    await page.locator('#q-next:not(.hidden)').click();
+  }
+  await page.locator('#screen-result:not(.hidden)').waitFor();
+  assert.equal((await page.locator('#result-score').textContent()).trim(), String(correctCount));
+  assert.equal((await page.locator('#result-total').textContent()).trim(), '10');
+  await openAdditions(page);
+  return page.locator('#levels-list button').nth(1).isDisabled();
+}
+
+test('élève virtuel UPE2A : 70 % ne débloque pas le niveau 2', { timeout: 60000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'upe2a.html')).href);
+    assert.equal(await completeAdditions(page, 7), true);
+  } finally { await browser.close(); }
+});
+
+test('élève virtuel UPE2A : 80 % débloque le niveau 2 après rechargement', { timeout: 60000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'upe2a.html')).href);
+    assert.equal(await completeAdditions(page, 8), false);
+    const guestId = await page.evaluate(() => user.guestId);
+    await page.reload();
+    assert.equal(await page.evaluate(() => user.guestId), guestId, 'same guest after reload');
+    const buttons = await openAdditions(page);
+    assert.equal(await buttons.nth(1).isDisabled(), false, 'level 2 remains unlocked');
+    await buttons.nth(1).click();
+    await page.locator('#screen-quiz:not(.hidden)').waitFor();
+    assert.equal(await page.evaluate(() => quiz.level), '2');
+  } finally { await browser.close(); }
+});
