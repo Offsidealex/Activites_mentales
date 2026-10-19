@@ -218,15 +218,14 @@ for (const scenario of [
 }
 
 
-async function completeUpe2aActivity(page, { label, start, menu, level, total, correctCount, mode }) {
+async function completeUpe2aActivity(page, { label, start, menu, level, total, correctCount }) {
   if (menu) await page.locator('[onclick="' + menu + '()"]').click();
   if (start) {
-    const modeId = { table: 'A', 'table-numbers': 'B', 'table-letters': 'C' }[start];
+    const mode = { table: 'A', 'table-numbers': 'B', 'table-letters': 'C' }[start];
     await page.locator('[onclick="showTablesLevels()"]').click();
     await page.locator('#tbtn-4').click();
-    await page.locator('#levels-list button[onclick="startTablesQuiz(selectedTable,\'' + modeId + '\')"]').click();
-  }
-  else {
+    await page.locator('button').filter({ hasText: mode === 'A' ? 'QCM' : mode === 'B' ? 'Chiffres' : 'Lettres' }).last().click();
+  } else {
     const levels = page.locator('#levels-list button');
     assert.equal(await levels.nth(1).isDisabled(), true);
     await levels.first().click();
@@ -238,36 +237,50 @@ async function completeUpe2aActivity(page, { label, start, menu, level, total, c
     await page.waitForFunction(index => quiz.current === index, i);
     const correct = i < correctCount;
     const qType = await page.evaluate(() => quiz.questions[quiz.current].type);
-    if (qType === 'qcm_heure') assert.equal(await page.locator('#q-visual svg').count(), 1, 'clock is visible');
-    if (qType === 'qcm_geo') assert.equal(await page.locator('#q-visual svg').count(), 1, 'geometry drawing is visible');
+    if (qType === 'qcm_heure') assert.equal(await page.locator('#q-visual svg').count(), 1);
+    if (qType === 'qcm_geo') assert.equal(await page.locator('#q-visual svg').count(), 1);
     if (start) {
-      // Independent oracle: derive the result from the visible multiplication,
-      // never from quiz.questions[].correctAnswer or isCorrect.
       const statement = (await page.locator('#q-question').innerText()).trim();
-      const match = statement.match(/^(\\d+)\\s*×\\s*(\\d+)\\s*=\\s*\\?$/);
+      const match = statement.match(new RegExp('([0-9]+) *× *([0-9]+)'));
       assert.ok(match, 'visible multiplication question: ' + statement);
-      assert.equal(Number(match[1]), 4, 'selected table must be table 4');
+      assert.equal(Number(match[1]), 4);
       const expected = Number(match[1]) * Number(match[2]);
-      const french = {
-        4:'quatre',8:'huit',12:'douze',16:'seize',20:'vingt',
-        24:'vingt-quatre',28:'vingt-huit',32:'trente-deux',
-        36:'trente-six',40:'quarante'
-      };
-      if (qType === 'qcm') {
-        const expectedLabel = correct ? String(expected) : null;
+      const french = { 4:'quatre',8:'huit',12:'douze',16:'seize',20:'vingt',24:'vingt-quatre',28:'vingt-huit',32:'trente-deux',36:'trente-six',40:'quarante' };
+      if (qType.startsWith('qcm')) {
         const options = page.locator('#q-choices .choice-btn');
-        if (correct) await options.filter({ hasText: new RegExp('^' + expectedLabel + '
+        const labels = (await options.allTextContents()).map(x => x.trim());
+        const idx = labels.findIndex(x => correct ? x === String(expected) : x !== String(expected));
+        assert.ok(idx >= 0, 'independent QCM answer exists');
+        await options.nth(idx).click();
+      } else {
+        const answer = correct ? (qType === 'input_letters' ? french[expected] : String(expected)) : (qType === 'input_letters' ? 'réponse incorrecte' : String(expected + 10000));
+        assert.ok(answer, 'independent fixture exists');
+        await page.locator('#q-input').fill(answer);
+        await page.locator('#q-validate-btn').click();
+      }
+    } else if (qType.startsWith('qcm')) {
+      const idx = await page.evaluate(pass => quiz.questions[quiz.current].choices.findIndex(c => c.isCorrect === pass), correct);
+      assert.ok(idx >= 0);
+      await page.locator('#q-choices .choice-btn').nth(idx).click();
+    } else {
+      const answer = await page.evaluate(pass => {
+        const expected = quiz.questions[quiz.current].correctAnswer;
+        return pass ? String(expected) : quiz.questions[quiz.current].type === 'input_num' ? String(Number(expected) + 10000) : 'réponse volontairement incorrecte';
+      }, correct);
+      await page.locator('#q-input').fill(answer);
+      await page.locator('#q-validate-btn').click();
+    }
     await page.locator('#q-next:not(.hidden)').click();
   }
   await page.locator('#screen-result:not(.hidden)').waitFor();
   assert.equal((await page.locator('#result-score').textContent()).trim(), String(correctCount), label);
   if (menu) {
-    await page.evaluate(name => window[name](), menu);
+    await page.locator('[onclick="' + menu + '()"]').click();
     assert.equal(await page.locator('#levels-list button').nth(1).isDisabled(), correctCount / total < .8);
     const guest = await page.evaluate(() => user.guestId);
     await page.reload();
     assert.equal(await page.evaluate(() => user.guestId), guest);
-    await page.evaluate(name => window[name](), menu);
+    await page.locator('[onclick="' + menu + '()"]').click();
     assert.equal(await page.locator('#levels-list button').nth(1).isDisabled(), correctCount / total < .8);
   }
 }
