@@ -669,7 +669,7 @@ function updateProgressLocks() {
     if(label) label.textContent=locked?'🔒 Verrouillé · 80 % requis':FREE_MODULES.has(key)?'🔓 Entraînement libre':'🔓 Accessible';
   });
 }
-document.addEventListener('am:progress-updated',updateProgressLocks);
+if(typeof document.addEventListener==='function') document.addEventListener('am:progress-updated',updateProgressLocks);
 
 /* ══ BUILD MENU ══ */
 (function buildMenu(){
