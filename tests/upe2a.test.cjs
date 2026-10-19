@@ -76,7 +76,7 @@ function loadApp({ eleve = null, backend = true, storage = new Map(), crypto = u
     assert.ok(elements.has(id), `unknown element: ${id}`);
     return elements.get(id);
   };
-  let guestNumber = 0;
+  let guestNumber = Math.max(0, ...[...storage.values()].flatMap(value => { try { const id = JSON.parse(value)?.guestId; const match = /^guest-(\d+)$/.exec(id); return match ? [Number(match[1])] : []; } catch { return []; } }));
   let seed = 42;
   const math = Object.create(Math);
   math.random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
@@ -173,7 +173,7 @@ describe('guest access and identity', () => {
     assert.doesNotThrow(() => finish(app));
     assert.equal(app.getElement('screen-result').classList.contains('hidden'), false);
     assert.equal(app.getElement('result-score').textContent, 8);
-    assert.equal(app.warnings.mock.callCount(), 2);
+    assert.equal(app.warnings.mock.callCount(), 4, 'guest identity read/write and unlock/history failures are caught');
   });
 
   test('uses a fresh UUID for each guest and scopes progression to that UUID', () => {
@@ -557,7 +557,8 @@ describe('quiz completion', () => {
     assert.doesNotThrow(() => finish(app));
     assert.equal(app.getElement('screen-result').classList.contains('hidden'), false);
     assert.equal(app.getElement('result-score').textContent, 8);
-    assert.equal(app.storage.size, 0);
+    assert.equal(app.storage.has('upe2a_sessions'), false);
+    assert.equal(app.storage.has('upe2a_unlocks'), false);
     assert.equal(app.warnings.mock.callCount(), 2, 'unlock and history failures are caught');
   });
 
