@@ -700,7 +700,7 @@ if(typeof document.addEventListener==='function') document.addEventListener('am:
     const grid=document.createElement('div');grid.className='grid';
     for(const[key,m]of groups[groupName]){
       const d=document.createElement('div');
-      d.className='card';d.dataset.module=m.title;d.dataset.key=key;d.tabIndex=0;d.setAttribute('role','button');d.style.setProperty('--cc',m.color);
+      d.className='card';d.dataset.module=m.title;d.dataset.key=key;d.tabIndex=0;if(typeof d.setAttribute==='function')d.setAttribute('role','button');d.style.setProperty('--cc',m.color);
       const timeTag=m.tags.find(t=>t.includes('⏱'));
       const otherTags=m.tags.filter(t=>!t.includes('⏱'));
       d.innerHTML=`
@@ -744,7 +744,7 @@ if(typeof document.addEventListener==='function') document.addEventListener('am:
       <div class="dnb-banner-btn">Commencer <span>→</span></div>
     </a>`;
   root.appendChild(dnbWrap);
-  updateProgressLocks();
+  if(typeof document.querySelectorAll==='function') updateProgressLocks();
 })();
 
 /* ══ LAUNCH ══ */
