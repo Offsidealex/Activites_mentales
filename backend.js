@@ -90,6 +90,7 @@
   const PROGRESSION_PREFIX = "am_progress_v2_";
   let progressReady = false;
   let progressBest = {};
+  let progressLoadGeneration = 0;
   function progressStorageKey() {
     const eleve = loadEleve();
     return PROGRESSION_PREFIX + (eleve ? "eleve_" + eleve.id : "invite");
@@ -116,6 +117,8 @@
     publishProgress();
   }
   async function loadProgress() {
+    const generation = ++progressLoadGeneration;
+    const identityKey = progressStorageKey();
     progressReady = false;
     progressBest = readProgress();
     const eleve = loadEleve();
@@ -125,6 +128,8 @@
           "&played_at=gte." + encodeURIComponent(PROGRESSION_START) +
           "&select=exercice,score,nb_questions&limit=10000";
         const sessions = await sbQuery("sessions", "GET", null, query);
+        // Never apply a response to another student (or the guest) after logout/login.
+        if (generation !== progressLoadGeneration || identityKey !== progressStorageKey()) return;
         const stored = readProgress();
         for (const session of sessions) {
           const percent = 100 * Number(session.score) / Number(session.nb_questions);
@@ -132,13 +137,15 @@
             stored[session.exercice] = Math.max(Number(stored[session.exercice]) || 0, percent);
           }
         }
-        try { localStorage.setItem(progressStorageKey(), JSON.stringify(stored)); }
+        if (generation !== progressLoadGeneration || identityKey !== progressStorageKey()) return;
+        try { localStorage.setItem(identityKey, JSON.stringify(stored)); }
         catch (error) { console.warn('[AM] Stockage local progression indisponible :', error); }
         progressBest = { ...progressBest, ...stored };
       } catch (error) {
         console.warn("[AM] Synchronisation progression indisponible :", error);
       }
     }
+    if (generation !== progressLoadGeneration || identityKey !== progressStorageKey()) return;
     progressReady = true;
     publishProgress();
   }
