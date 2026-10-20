@@ -416,7 +416,10 @@ async function loadAll(){
 function populateFilters(){
   const classes   = [...new Set(allData.sessions.map(s=>s.classe))].filter(Boolean);
   const exercices = [...new Set(allData.sessions.map(s=>s.exercice))].filter(Boolean);
-  document.getElementById('filter-classe').innerHTML   = '<option value="">Toutes</option>' + classes.map(c=>`<option>${c}</option>`).join('');
+  const filterClasse = document.getElementById('filter-classe');
+  const previousFilter = filterClasse.value;
+  filterClasse.innerHTML = '<option value="">Toutes (hors TEST-IA)</option>' + classes.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if (previousFilter && [...filterClasse.options].some(o=>o.value===previousFilter)) filterClasse.value=previousFilter;
   document.getElementById('filter-exercice').innerHTML = '<option value="">Tous</option>'   + exercices.map(e=>`<option>${e}</option>`).join('');
   const manageClasse = document.getElementById('manage-classe');
   const previousClass = manageClasse?.value || '';
@@ -439,6 +442,7 @@ function getFiltered(){
   const exercice = document.getElementById('filter-exercice').value;
   const date     = document.getElementById('filter-date').value;
   if(classe)   data = data.filter(s=>s.classe===classe);
+  else data = data.filter(s=>s.classe!=='TEST-IA');
   if(exercice) data = data.filter(s=>s.exercice===exercice);
   if(date)     data = data.filter(s=>s.played_at>=date);
   return data;
@@ -489,6 +493,9 @@ function renderElevesTab(data){
   });
   allData.eleves.forEach(e=>{
     const classe=allData.classes.find(c=>c.id===e.classe_id);
+    const selectedClass=document.getElementById('filter-classe').value;
+    if(classe?.code==='TEST-IA' && selectedClass!=='TEST-IA') return;
+    if(selectedClass && classe?.code!==selectedClass) return;
     const key=`${e.prenom}|${classe?.code||''}`;
     if(!map[key]) map[key]={prenom:e.prenom,classe:classe?.code||'—',sessions:[],pcts:[]};
   });
