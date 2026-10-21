@@ -632,3 +632,52 @@ test('audit mathématique indépendant : recalcul des opérations et statistique
     assert.deepEqual(failures,[], 'des réponses mathématiques sont incorrectes');
   } finally { await browser.close(); }
 });
+
+test('audit mathématique indépendant : fractions et probabilité contraire', { timeout: 180000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
+    const result = await page.evaluate(() => {
+      const failures=[],coverage={};
+      const parseFractions = html => {
+        const root=document.createElement('div');root.innerHTML=html;
+        return [...root.querySelectorAll('.fr')].map(el => ({
+          n:Number(el.querySelector('.n')?.textContent.trim()),
+          d:Number(el.querySelector('.d')?.textContent.trim()),
+          missing:!!el.querySelector('.blk')
+        }));
+      };
+      for(const key of ['frac_equiv','add_frac','mult_frac','probas_contraire']) {
+        const m=MODULES[key];let count=0;
+        for(let repeat=0;repeat<15;repeat++)for(const q of m.gen()) {
+          const fr=parseFractions(q.html);
+          let expected=null;
+          if(key==='frac_equiv' && fr.length===2 && fr[1].missing) expected=fr[0].n*fr[1].d/fr[0].d;
+          if(key==='add_frac' || key==='mult_frac') {
+            const root=document.createElement('div');root.innerHTML=q.html;
+            const op=root.textContent.includes('×')?'mult':'add';
+            if(fr.length===2) expected=op==='mult'?fr[0].n/fr[0].d*fr[1].n/fr[1].d:fr[0].n/fr[0].d+fr[1].n/fr[1].d;
+            if(fr.length===1 && op==='add') {
+              const leading=root.textContent.match(/^\s*(\d+)\s*\+/);
+              if(leading) expected=Number(leading[1])+fr[0].n/fr[0].d;
+            }
+          }
+          if(key==='probas_contraire') {
+            const match=q.html.match(/P\(A\)\s*=\s*(\d+)\/(\d+)/);
+            if(match) expected=1-Number(match[1])/Number(match[2]);
+          }
+          if(expected===null||!Number.isFinite(expected))continue;
+          count++;
+          const actual=typeof q.ans==='number'?q.ans:q.ans.n/q.ans.d;
+          if(Math.abs(actual-expected)>1e-9)failures.push({module:key,enonce:q.html,annonce:q.ans,calcule:expected});
+        }
+        coverage[key]=count;
+        if(!count)failures.push({module:key,issue:'aucune question recalculée'});
+      }
+      return {coverage,failures};
+    });
+    console.log('AUDIT FRACTIONS ET PROBABILITÉS:',JSON.stringify(result,null,2));
+    assert.deepEqual(result.failures,[], 'réponses incohérentes avec les calculs indépendants');
+  } finally { await browser.close(); }
+});
