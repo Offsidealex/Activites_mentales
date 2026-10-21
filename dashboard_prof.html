@@ -415,7 +415,14 @@ async function loadAll(){
   const visibleClasses = isTestIaOwner ? classes : classes.filter(c => c.code !== 'TEST-IA' && c.nom !== 'TEST-IA');
   const hiddenIds = new Set(classes.filter(c => c.code === 'TEST-IA' || c.nom === 'TEST-IA').map(c => c.id));
   const visibleEleves = isTestIaOwner ? eleves : eleves.filter(e => !hiddenIds.has(e.classe_id));
-  const visibleSessions = isTestIaOwner ? sessions : sessions.filter(s => s.classe !== 'TEST-IA');
+  // La vue Supabase renvoie le nom de la classe, tandis que les élèves
+  // et les filtres utilisent son code. Uniformiser évite les doublons.
+  const classCodeByName = new Map(classes.flatMap(c => [[c.nom, c.code], [c.code, c.code]]));
+  const normalizedSessions = sessions.map(s => ({
+    ...s,
+    classe: classCodeByName.get(s.classe) || s.classe
+  }));
+  const visibleSessions = isTestIaOwner ? normalizedSessions : normalizedSessions.filter(s => s.classe !== 'TEST-IA');
   allData = { sessions:visibleSessions, eleves:visibleEleves, classes:visibleClasses };
   populateFilters();
   renderAll();
