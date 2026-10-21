@@ -585,3 +585,50 @@ test('audit erreurs élève : mauvaise réponse, champ vide et cas limites sur c
     await browser.close();
   }
 });
+
+test('audit mathématique indépendant : recalcul des opérations et statistiques', { timeout: 180000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  const failures = [], coverage = {};
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
+    const result = await page.evaluate(() => {
+      const checks = {
+        mult: html => { const m = html.match(/(\d+)\s*×\s*(\d+)/); return m ? +m[1] * +m[2] : null; },
+        mult10: html => { const m = html.replace(/\s/g,'').replace(/,/g,'.').match(/^([\d.]+)×([\d.]+)$/); return m ? +m[1] * +m[2] : null; },
+        div10: html => { const m = html.replace(/\s/g,'').replace(/,/g,'.').match(/^([\d.]+)÷([\d.]+)$/); return m ? +m[1] / +m[2] : null; },
+        etendue: html => { const a = html.replace(/[{}]/g,'').split(';').map(x => Number(x.trim().replace(/\s/g,'').replace(',','.'))); return a.length > 1 && a.every(Number.isFinite) ? Math.max(...a)-Math.min(...a) : null; },
+        moyenne: html => { const a = html.replace(/[{}]/g,'').split(';').map(x => Number(x.trim().replace(/\s/g,'').replace(',','.'))); return a.length > 1 && a.every(Number.isFinite) ? a.reduce((x,y)=>x+y,0)/a.length : null; },
+        mediane: html => { const a = html.replace(/[{}]/g,'').split(';').map(x => Number(x.trim().replace(/\s/g,'').replace(',','.'))).sort((x,y)=>x-y); return a.length > 1 && a.every(Number.isFinite) ? (a[Math.floor((a.length-1)/2)]+a[Math.floor(a.length/2)])/2 : null; },
+        pct_simples: html => { const m=html.replace(/\s/g,'').replace(/,/g,'.').match(/^([\d.]+)%de([\d.]+)$/); return m ? +m[1]*+m[2]/100 : null; },
+        geo_perimetre: html => { const m=html.match(/longueur (\d+) cm, largeur (\d+) cm/); return m ? 2*(+m[1]+ +m[2]) : null; },
+        geo_aire: html => { const m=html.match(/base (\d+) cm, hauteur (\d+) cm/); return m ? +m[1]*+m[2]/2 : null; },
+        geo_angles: html => { const m=html.match(/(complémentaire|supplémentaire) de (\d+)°/); return m ? (m[1]==='complémentaire'?90:180)- +m[2] : null; },
+        pyth_cote: html => { const m=html.match(/hypoténuse (\d+) cm, un côté (\d+) cm/); return m ? Math.sqrt(+m[1]**2 - +m[2]**2) : null; }
+      };
+      const failures=[], coverage={};
+      for (const [key, fn] of Object.entries(checks)) {
+        const mod=MODULES[key];
+        if (!mod) { failures.push({module:key,issue:'module absent'});continue; }
+        let checked=0, unsupported=0;
+        for(let iteration=0;iteration<12;iteration++) {
+          for(const q of mod.gen()) {
+            const expected=fn(q.html.replace(/<[^>]+>/g,''));
+            if(expected===null || !Number.isFinite(expected)) {unsupported++;continue;}
+            checked++;
+            if(typeof q.ans!=='number'||Math.abs(q.ans-expected)>0.011) {
+              failures.push({module:key,enonce:q.html,annonce:q.ans,calcule:expected});
+            }
+          }
+        }
+        coverage[key]={checked,unsupported};
+        if(checked===0) failures.push({module:key,issue:'aucune question recalculée'});
+      }
+      return {failures,coverage};
+    });
+    failures.push(...result.failures);
+    Object.assign(coverage,result.coverage);
+    console.log('AUDIT MATHÉMATIQUE INDÉPENDANT:',JSON.stringify({coverage,failures},null,2));
+    assert.deepEqual(failures,[], 'des réponses mathématiques sont incorrectes');
+  } finally { await browser.close(); }
+});
