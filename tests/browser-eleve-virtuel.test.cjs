@@ -433,3 +433,83 @@ test('audit complet : tous les modules génèrent des questions et affichent leu
     await browser.close();
   }
 });
+
+test('TEST-IA : parcours de tous les modules avec sauvegarde Supabase', { timeout: 1200000 }, async (t) => {
+  const pseudo = process.env.AM_TEST_STUDENT_PSEUDO;
+  const password = process.env.AM_TEST_STUDENT_PASSWORD;
+  if (!pseudo || !password) return t.skip('Compte TEST-IA non configuré');
+  const browser = await chromium.launch({ headless: true });
+  const report = [];
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
+    await page.waitForFunction(() => window.AM?.isProgressReady());
+    await page.evaluate(async credentials => window.AM.loginTestStudent(credentials.pseudo, credentials.password), { pseudo, password });
+    const modules = await page.evaluate(() => Object.keys(MODULES));
+    for (const key of modules) {
+      try {
+        const result = await page.evaluate(async key => {
+          const m = MODULES[key];
+          // Les niveaux verrouillés sont préparés via le mécanisme de progression
+          // habituel. Le test ne modifie pas les résultats d'autres élèves.
+          const levels = PROGRESSION_GROUPS[m.group] || [];
+          const index = levels.indexOf(key);
+          for (let n = 0; n < index; n++) {
+            window.AM.recordProgress(MODULES[levels[n]].title, 8, 10);
+          }
+          if (!launchQuiz(key)) throw new Error('niveau verrouillé');
+          const title = m.title;
+          const originalSend = window.AM.sendSession;
+          let saved;
+          window.AM.sendSession = (...args) => {
+            saved = Promise.resolve(originalSend(...args));
+            return saved;
+          };
+          try {
+            for (let i = 0; i < questions.length; i++) {
+              const q = questions[cur];
+              if (m.ansType === 'fraction') {
+                document.getElementById('ans-n').value = String(q.ans.n);
+                document.getElementById('ans-d').value = String(q.ans.d);
+                valider();
+              } else if (m.ansType === 'text') {
+                document.getElementById('ans-txt').value = String(q.ans);
+                valider();
+              } else if (m.ansType === 'yesno') {
+                process(null, null, String(q.ans), false);
+              } else {
+                document.getElementById('ans').value = String(q.ans);
+                valider();
+              }
+              if (!done) throw new Error('réponse non validée à la question ' + (i + 1));
+              // La transition normale attend 1,4 s ; accélérer seulement
+              // cette animation, sans contourner la validation de réponse.
+              clearInterval(tInt);
+              if (i < questions.length - 1) { cur++; loadQ(); }
+            }
+            showResults();
+            if (!saved) throw new Error('enregistrement non demandé');
+            const sessionId = await saved;
+            if (!sessionId) throw new Error('Supabase ne confirme pas la sauvegarde');
+            return { title, score: good, total: questions.length, sessionId };
+          } finally {
+            window.AM.sendSession = originalSend;
+            clearInterval(tInt);
+          }
+        }, key);
+        report.push({ key, ...result, status: 'OK' });
+      } catch (error) {
+        report.push({ key, status: 'ERROR', error: String(error.message || error) });
+      }
+    }
+    const errors = report.filter(x => x.status !== 'OK');
+    console.log('TEST-IA PARCOURS COMPLET:', JSON.stringify({
+      total: report.length, successful: report.length - errors.length, errors,
+      scores: report.map(x => ({ module: x.key, score: x.score, status: x.status }))
+    }, null, 2));
+    assert.equal(report.length, modules.length, 'tous les modules doivent être testés');
+    assert.deepEqual(errors, [], 'certains exercices ou enregistrements Supabase ont échoué');
+  } finally {
+    await browser.close();
+  }
+});
