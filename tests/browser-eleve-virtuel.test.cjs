@@ -604,7 +604,7 @@ test('audit mathématique indépendant : recalcul des opérations et statistique
         geo_perimetre: html => { const m=html.match(/longueur (\d+) cm, largeur (\d+) cm/); return m ? 2*(+m[1]+ +m[2]) : null; },
         geo_aire: html => { const m=html.match(/base (\d+) cm, hauteur (\d+) cm/); return m ? +m[1]*+m[2]/2 : null; },
         geo_angles: html => { const m=html.match(/(complémentaire|supplémentaire) de (\d+)°/); return m ? (m[1]==='complémentaire'?90:180)- +m[2] : null; },
-        pyth_cote: html => { const m=html.match(/hypoténuse (\d+) cm, un côté (\d+) cm/); return m ? Math.sqrt(+m[1]**2 - +m[2]**2) : null; }
+        pyth_cote: html => { const m=html.match(/hypoténuse (\d+) cm, un côté (\d+) cm/); return m ? Math.sqrt((+m[1])**2 - (+m[2])**2) : null; }
       };
       const failures=[], coverage={};
       for (const [key, fn] of Object.entries(checks)) {
