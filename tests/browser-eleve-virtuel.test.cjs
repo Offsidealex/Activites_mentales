@@ -681,3 +681,60 @@ test('audit mathématique indépendant : fractions et probabilité contraire', {
     assert.deepEqual(result.failures,[], 'réponses incohérentes avec les calculs indépendants');
   } finally { await browser.close(); }
 });
+
+test('audit indépendant : 10 niveaux d’équations et expressions algébriques', { timeout: 180000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
+    const result = await page.evaluate(() => {
+      const failures=[],coverage={};
+      const evaluateExpression=(expression,x=0,a=0,b=0)=>{
+        const s=expression.replace(/−/g,'-').replace(/,/g,'.').replace(/²/g,'^2')
+          .replace(/\s+/g,'').replace(/\^/g,'**')
+          .replace(/(\d)([xab(])/g,'$1*$2')
+          .replace(/([xab])\(/g,'$1*(')
+          .replace(/\)([\dxab(])/g,')*$1');
+        if(!/^[\dxab+*/().-]+(?:\*\*[\dxab+*/().-]+)*$/.test(s))throw Error('syntaxe non reconnue: '+s);
+        return Function('x','a','b','return ('+s+')')(x,a,b);
+      };
+      const keys=[...Array.from({length:10},(_,i)=>'eq_niv'+(i+1)),'expressions','reductions','dev_simple','dev_double','factoriser'];
+      for(const key of keys) {
+        const mod=MODULES[key];let count=0;
+        for(let repeat=0;repeat<12;repeat++)for(const q of mod.gen()){
+          try {
+            if(key.startsWith('eq_niv')) {
+              const halves=q.html.split('=');
+              if(halves.length!==2)throw Error('égalité absente');
+              const left=evaluateExpression(halves[0],q.ans),right=evaluateExpression(halves[1],q.ans);
+              count++;
+              if(Math.abs(left-right)>0.00001)failures.push({module:key,enonce:q.html,solution:q.ans,gauche:left,droite:right});
+            } else if(key==='expressions') {
+              const parts=q.html.split('→');
+              if(parts.length!==2)throw Error('expression non reconnue');
+              const vars=parts[0].match(/[ab]\s*=\s*-?\d+(?:,\d+)?/g)||[];
+              const vals={a:0,b:0};
+              for(const v of vars){const m=v.match(/([ab])\s*=\s*(-?\d+(?:,\d+)?)/);vals[m[1]]=Number(m[2].replace(',','.'));}
+              const actual=evaluateExpression(parts[1],0,vals.a,vals.b);
+              count++;
+              if(Math.abs(actual-q.ans)>0.00001)failures.push({module:key,enonce:q.html,solution:q.ans,calcule:actual});
+            } else {
+              const source=q.html.replace(/^Factoriser\s*:\s*/,'');
+              for(const x of [-3,-1,0,2,5]) {
+                const lhs=evaluateExpression(source,x,0,x);
+                const rhs=evaluateExpression(q.ans,x,0,x);
+                count++;
+                if(Math.abs(lhs-rhs)>0.00001)failures.push({module:key,enonce:q.html,solution:q.ans,x,gauche:lhs,droite:rhs});
+              }
+            }
+          }catch(error){failures.push({module:key,enonce:q.html,error:String(error.message||error)});}
+        }
+        coverage[key]=count;
+        if(count===0)failures.push({module:key,error:'aucune question vérifiée'});
+      }
+      return {coverage,failures:failures.slice(0,40),totalFailures:failures.length};
+    });
+    console.log('AUDIT ÉQUATIONS ET ALGÈBRE:',JSON.stringify(result,null,2));
+    assert.equal(result.totalFailures,0,'incohérences mathématiques ou expressions non reconnues');
+  } finally {await browser.close();}
+});
