@@ -514,3 +514,74 @@ test('TEST-IA : parcours de tous les modules avec sauvegarde Supabase', { timeou
     await browser.close();
   }
 });
+
+test('audit erreurs élève : mauvaise réponse, champ vide et cas limites sur chaque module', { timeout: 180000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  const failures = [];
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
+    await page.waitForFunction(() => window.AM?.isProgressReady());
+    const keys = await page.evaluate(() => Object.keys(MODULES));
+    for (const key of keys) {
+      try {
+        const result = await page.evaluate(key => {
+          const m = MODULES[key];
+          const init = () => {
+            CM = m; CMKey = key; CM.key = key;
+            questions = m.gen(); cur = 0; good = 0; log = []; totalAnswerMs = 0;
+            show('s-quiz'); loadQ(); clearInterval(tInt);
+          };
+          // Un champ vide ne doit pas valider la question.
+          init();
+          if (m.ansType !== 'yesno') {
+            valider();
+            if (done || good !== 0) throw new Error('champ vide accepté');
+          }
+          // Une réponse erronée doit être rejetée, sans attribuer de point.
+          init();
+          const q = questions[0];
+          if (m.ansType === 'fraction') {
+            const n = q.ans.n, d = q.ans.d;
+            document.getElementById('ans-n').value = String(n + d);
+            document.getElementById('ans-d').value = String(d);
+            valider();
+          } else if (m.ansType === 'yesno') {
+            process(null, null, String(q.ans).toLowerCase() === 'oui' ? 'non' : 'oui', false);
+          } else if (m.ansType === 'text') {
+            document.getElementById('ans-txt').value = 'réponse volontairement incorrecte';
+            valider();
+          } else {
+            document.getElementById('ans').value = String(Number(q.ans) + 100000);
+            valider();
+          }
+          if (!done) throw new Error('réponse non traitée');
+          if (good !== 0 || !document.getElementById('feedback').classList.contains('bad')) {
+            throw new Error('réponse incorrecte acceptée');
+          }
+          // Les saisies impossibles et fractions à dénominateur nul sont refusées.
+          if (m.ansType === 'fraction') {
+            init();
+            document.getElementById('ans-n').value = String(questions[0].ans.n);
+            document.getElementById('ans-d').value = '0';
+            valider();
+            if (good !== 0) throw new Error('division par zéro acceptée');
+          }
+          // L'expiration du temps doit être considérée comme une erreur.
+          init();
+          process(null, null, null, true);
+          if (good !== 0 || !done) throw new Error('expiration du temps mal traitée');
+          clearInterval(tInt);
+          return { title: m.title };
+        }, key);
+        assert.ok(result.title);
+      } catch (error) {
+        failures.push({ module: key, error: String(error.message || error) });
+      }
+    }
+    console.log('AUDIT ERREURS ÉLÈVE:', JSON.stringify({ modules: keys.length, failures }, null, 2));
+    assert.deepEqual(failures, [], 'erreurs de validation détectées dans certains modules');
+  } finally {
+    await browser.close();
+  }
+});
