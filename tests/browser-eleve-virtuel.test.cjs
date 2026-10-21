@@ -457,7 +457,8 @@ test('TEST-IA : parcours de tous les modules avec sauvegarde Supabase', { timeou
           for (let n = 0; n < index; n++) {
             window.AM.recordProgress(MODULES[levels[n]].title, 8, 10);
           }
-          if (!launchQuiz(key)) throw new Error('niveau verrouillé');
+          if (!isModuleUnlocked(key)) throw new Error('niveau verrouillé');
+          launchQuiz(key);
           const title = m.title;
           const originalSend = window.AM.sendSession;
           let saved;
