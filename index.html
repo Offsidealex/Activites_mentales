@@ -691,6 +691,23 @@ if(typeof document.addEventListener==='function') document.addEventListener('am:
     'Pythagore & racines',
     'Géométrie',
   ];
+  // Ordre pédagogique : conserver l'ordre initial des exercices,
+  // mais placer systématiquement le premier niveau accessible en tête.
+  // Les exercices ajoutés ultérieurement en dehors de leur section
+  // ne doivent pas passer devant les premiers niveaux.
+  for(const items of Object.values(groups)){
+    items.sort((a,b)=>{
+      const rank=([key,m])=>{
+        const match=(m.title+' '+m.tags.join(' ')).match(/niveau\\s*(\\d+)/i);
+        return match?Number(match[1]):null;
+      };
+      const ra=rank(a),rb=rank(b);
+      if(ra===null&&rb===null)return 0;
+      if(ra===null)return -1;
+      if(rb===null)return 1;
+      return ra-rb;
+    });
+  }
   const root=document.getElementById('sections');
   for(const groupName of order){
     if(!groups[groupName])continue;
