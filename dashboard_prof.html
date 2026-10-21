@@ -414,7 +414,7 @@ async function loadAll(){
 }
 
 function populateFilters(){
-  const classes   = [...new Set(allData.sessions.map(s=>s.classe))].filter(Boolean);
+  const classes   = [...new Set([...allData.classes.map(c=>c.code), ...allData.sessions.map(s=>s.classe)])].filter(Boolean).sort((a,b)=>a.localeCompare(b,'fr'));
   const exercices = [...new Set(allData.sessions.map(s=>s.exercice))].filter(Boolean);
   const filterClasse = document.getElementById('filter-classe');
   const previousFilter = filterClasse.value;
@@ -525,7 +525,6 @@ function openStudentFromClass(studentId){
   // La fiche doit rester accessible même si un filtre global masque ses séances.
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab==='eleves'));
   document.querySelectorAll('.tab-content').forEach(c=>c.style.display=c.id==='tab-eleves'?'block':'none');
-  renderElevesTab(allData.sessions);
   showEleveDetail(eleve.prenom,classe.code);
 }
 
