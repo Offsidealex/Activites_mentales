@@ -390,3 +390,46 @@ test('TEST-IA : connexion et seance sauvegardee dans Supabase (optionnel)', { ti
     assert.equal(saved[0].duree_totale_ms, 42000);
   } finally { await browser.close(); }
 });
+
+test('audit complet : tous les modules génèrent des questions et affichent leur premier exercice', { timeout: 180000 }, async () => {
+  const browser = await chromium.launch({ headless: true });
+  const failures = [];
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
+    await page.waitForFunction(() => window.AM?.isProgressReady());
+    const modules = await page.evaluate(() => Object.keys(MODULES));
+    assert.ok(modules.length >= 20, 'le catalogue doit contenir au moins 20 modules');
+    for (const key of modules) {
+      try {
+        const result = await page.evaluate(key => {
+          const m = MODULES[key];
+          for (let run = 0; run < 3; run++) {
+            const qs = m.gen();
+            if (!Array.isArray(qs) || qs.length !== 10) throw new Error('nombre de questions : ' + qs?.length);
+            for (const [i, q] of qs.entries()) {
+              if (!q || typeof q.html !== 'string' || !q.html.trim()) throw new Error('énoncé manquant question ' + (i + 1));
+              if (q.ans === undefined || q.ans === null) throw new Error('réponse absente question ' + (i + 1));
+              if (typeof q.ans === 'number' && !Number.isFinite(q.ans)) throw new Error('réponse non finie question ' + (i + 1));
+              if (m.ansType === 'fraction' && (!Number.isFinite(q.ans.n) || !Number.isFinite(q.ans.d) || q.ans.d === 0)) throw new Error('fraction invalide question ' + (i + 1));
+            }
+          }
+          CM = m; CMKey = key; CM.key = key;
+          questions = m.gen(); cur = 0; good = 0; log = []; totalAnswerMs = 0;
+          show('s-quiz'); loadQ();
+          return { title: m.title, label: document.getElementById('q-label').textContent,
+            operation: document.getElementById('operation').textContent };
+        }, key);
+        assert.match(result.label, /Question 1 \/ 10/);
+        assert.ok(result.operation.trim(), 'énoncé affiché');
+        await page.evaluate(() => clearInterval(tInt));
+      } catch (error) {
+        failures.push({ module: key, error: String(error.message || error) });
+      }
+    }
+    console.log('AUDIT MODULES:', JSON.stringify({ tested: modules.length, failures }, null, 2));
+    assert.deepEqual(failures, [], 'certains modules échouent : voir AUDIT MODULES dans les logs');
+  } finally {
+    await browser.close();
+  }
+});
