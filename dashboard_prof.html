@@ -302,6 +302,8 @@ document.getElementById('forgot-password').addEventListener('click', async () =>
 });
 let profToken = sessionStorage.getItem('am_prof_token');
 let isAuth = false;
+let isTestIaOwner = false;
+const TEST_IA_OWNER_ID = '42024dd1-10d7-4bd5-95f8-802da6e10181';
 let sessionGeneration = 0;
 
 async function verifyTeacherToken(token) {
@@ -317,13 +319,18 @@ async function verifyTeacherToken(token) {
   });
   if (!teacherResponse.ok) return false;
   const teachers = await teacherResponse.json();
-  return Array.isArray(teachers) && teachers.length > 0;
+  if (Array.isArray(teachers) && teachers.length > 0) {
+    isTestIaOwner = user.id === TEST_IA_OWNER_ID;
+    return true;
+  }
+  return false;
 }
 
 function returnToLogin(message) {
   sessionGeneration++;
   profToken = null;
   isAuth = false;
+  isTestIaOwner = false;
   sessionStorage.removeItem('am_prof_token');
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('login-screen').style.display = 'block';
@@ -363,6 +370,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     const teachers=await teacher.json();
     if(!teacher.ok||!teachers.length)throw new Error();
     sessionGeneration++;
+    isTestIaOwner = data.user.id === TEST_IA_OWNER_ID;
     profToken=data.access_token;sessionStorage.setItem('am_prof_token',profToken);isAuth=true;showDashboard();
   }catch(e){error.textContent='Accès professeur refusé.';}
 });
@@ -403,7 +411,12 @@ async function loadAll(){
   ]);
   if (generation !== sessionGeneration || tokenAtStart !== profToken || !isAuth) return;
   if (!Array.isArray(sessions) || !Array.isArray(eleves) || !Array.isArray(classes)) throw new Error('Format de données inattendu');
-  allData = { sessions, eleves, classes };
+  // Ne jamais inclure les données de test dans les tableaux de bord ordinaires.
+  const visibleClasses = isTestIaOwner ? classes : classes.filter(c => c.code !== 'TEST-IA' && c.nom !== 'TEST-IA');
+  const hiddenIds = new Set(classes.filter(c => c.code === 'TEST-IA' || c.nom === 'TEST-IA').map(c => c.id));
+  const visibleEleves = isTestIaOwner ? eleves : eleves.filter(e => !hiddenIds.has(e.classe_id));
+  const visibleSessions = isTestIaOwner ? sessions : sessions.filter(s => s.classe !== 'TEST-IA');
+  allData = { sessions:visibleSessions, eleves:visibleEleves, classes:visibleClasses };
   populateFilters();
   renderAll();
   } catch (error) {
