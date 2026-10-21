@@ -6,6 +6,9 @@ on:
       - 'index.html'
       - 'upe2a.html'
       - 'tests/browser-eleve-virtuel.test.cjs'
+      - 'backend.js'
+      - 'supabase/functions/student-auth/index.ts'
+      - 'dashboard_prof.html'
       - '.github/workflows/eleve-virtuel.yml'
   push:
     branches:
@@ -39,3 +42,34 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Run virtual student
         run: node --test tests/browser-eleve-virtuel.test.cjs
+
+  supabase-test-ia:
+    # Manual only: never expose test account credentials to untrusted pull requests.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify TEST-IA credentials are configured
+        env:
+          AM_TEST_STUDENT_PSEUDO: ${{ secrets.AM_TEST_STUDENT_PSEUDO }}
+          AM_TEST_STUDENT_PASSWORD: ${{ secrets.AM_TEST_STUDENT_PASSWORD }}
+        run: |
+          test -n "$AM_TEST_STUDENT_PSEUDO" || { echo 'Missing AM_TEST_STUDENT_PSEUDO'; exit 1; }
+          test -n "$AM_TEST_STUDENT_PASSWORD" || { echo 'Missing AM_TEST_STUDENT_PASSWORD'; exit 1; }
+      - name: Test real Supabase round-trip
+        env:
+          AM_TEST_STUDENT_PSEUDO: ${{ secrets.AM_TEST_STUDENT_PSEUDO }}
+          AM_TEST_STUDENT_PASSWORD: ${{ secrets.AM_TEST_STUDENT_PASSWORD }}
+        run: node --test --test-name-pattern='TEST-IA' tests/browser-eleve-virtuel.test.cjs

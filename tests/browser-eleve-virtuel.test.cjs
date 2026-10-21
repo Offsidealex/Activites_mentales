@@ -352,3 +352,41 @@ for (const scenario of [
     } finally { await browser.close(); }
   });
 }
+
+
+test('TEST-IA : connexion et seance sauvegardee dans Supabase (optionnel)', { timeout: 90000 }, async (t) => {
+  const pseudo = process.env.AM_TEST_STUDENT_PSEUDO;
+  const password = process.env.AM_TEST_STUDENT_PASSWORD;
+  if (!pseudo || !password) return t.skip('Secrets du compte TEST-IA non configures');
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
+    await page.waitForFunction(() => window.AM?.isProgressReady());
+    const eleve = await page.evaluate(async ({ pseudo, password }) =>
+      window.AM.loginTestStudent(pseudo, password), { pseudo, password });
+    assert.equal(eleve.prenom.toLowerCase(), pseudo.toLowerCase());
+    assert.equal(eleve.classe, 'TEST-IA');
+    const exercice = 'TEST-IA verification ' + Date.now();
+    const sessionId = await page.evaluate(async ({ exercice }) =>
+      window.AM.sendSession({ exercice, score: 8, nb_questions: 10, duree_totale_ms: 42000 }), { exercice });
+    assert.ok(sessionId, 'la seance doit etre enregistree dans Supabase');
+    const saved = await page.evaluate(async ({ sessionId }) => {
+      const session = JSON.parse(sessionStorage.getItem('am_auth_session'));
+      const response = await fetch('https://hxfdlujpedxuumqfewvn.supabase.co/rest/v1/sessions?id=eq.' +
+        encodeURIComponent(sessionId) + '&select=id,exercice,score,nb_questions,duree_totale_ms', {
+        headers: {
+          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZmRsdWpwZWR4dXVtcWZld3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjcyMzAsImV4cCI6MjA5NzcwMzIzMH0.mM0xBhLGWG3vDgE06bEla8b4BhH7v6dvZ-BWn4ZOP0Q',
+          Authorization: 'Bearer ' + session.access_token
+        }
+      });
+      if (!response.ok) throw new Error('Lecture de controle refusee : ' + response.status);
+      return response.json();
+    }, { sessionId });
+    assert.equal(saved.length, 1);
+    assert.equal(saved[0].exercice, exercice);
+    assert.equal(saved[0].score, 8);
+    assert.equal(saved[0].nb_questions, 10);
+    assert.equal(saved[0].duree_totale_ms, 42000);
+  } finally { await browser.close(); }
+});

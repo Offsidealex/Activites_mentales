@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info"
 };
 
-const allowedClasses = new Set(["3PM", "2TNE1", "2TNE2", "2TNE3", "2REMI1", "2REMI2", "1CAP", "UPE2A"]);
+const allowedClasses = new Set(["3PM", "2TNE1", "2TNE2", "2TNE3", "2REMI1", "2REMI2", "1CAP", "UPE2A", "TEST-IA"]);
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -68,6 +68,8 @@ Deno.serve(async (request) => {
       let account = eleve;
 
       if (action === "register") {
+        // TEST-IA accounts must be provisioned by an authenticated teacher.
+        if (classeCode === "TEST-IA") await authenticateTeacher(request);
         if (eleve?.auth_user_id) return json({ error: "Ce pseudo existe déjà dans cette classe. Connecte-toi." }, 409);
         const { data: created, error: createError } = await admin.auth.admin.createUser({
           email: `${crypto.randomUUID()}@eleve.activites-mentales.invalid`,
