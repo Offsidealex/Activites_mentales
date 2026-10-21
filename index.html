@@ -691,22 +691,32 @@ if(typeof document.addEventListener==='function') document.addEventListener('am:
     'Pythagore & racines',
     'Géométrie',
   ];
-  // Ordre pédagogique : conserver l'ordre initial des exercices,
-  // mais placer systématiquement le premier niveau accessible en tête.
-  // Les exercices ajoutés ultérieurement en dehors de leur section
-  // ne doivent pas passer devant les premiers niveaux.
-  for(const items of Object.values(groups)){
-    items.sort((a,b)=>{
-      const rank=([key,m])=>{
-        const match=(m.title+' '+m.tags.join(' ')).match(/niveau\\s*(\\d+)/i);
-        return match?Number(match[1]):null;
-      };
-      const ra=rank(a),rb=rank(b);
-      if(ra===null&&rb===null)return 0;
-      if(ra===null)return -1;
-      if(rb===null)return 1;
-      return ra-rb;
-    });
+  // Progression pédagogique explicite pour les thèmes dont les exercices
+  // ont été ajoutés dans un ordre différent de celui des niveaux.
+  const progression={
+    'Algèbre':['expressions','reductions','dev_simple','dev_double','factoriser'],
+    'Géométrie':['angles','geo_perimetre','geo_aire','geo_angles','geo_echelle'],
+    'Pythagore & racines':['carre','racine','pyth_verif','pyth_hyp','pyth_cote']
+  };
+  for(const [groupName,keys] of Object.entries(progression)){
+    if(!groups[groupName])continue;
+    for(const [i,key] of keys.entries()){
+      const module=MODULES[key];
+      if(!module)continue;
+      module.title=module.title.replace(/\\s*[—–-]\\s*Niveau\\s*\\d+$/i,'')+' — Niveau '+(i+1);
+      module.tags=module.tags.filter(tag=>!/^niveau\\s*\\d+$/i.test(tag));
+      module.tags.splice(1,0,'niveau '+(i+1));
+    }
+    groups[groupName].sort((a,b)=>keys.indexOf(a[0])-keys.indexOf(b[0]));
+  }
+  // Autres thèmes : ordre numérique, puis ordre d'origine à niveau égal.
+  for(const [groupName,items] of Object.entries(groups)){
+    if(progression[groupName])continue;
+    const rank=m=>{
+      const match=(m.title+' '+m.tags.join(' ')).match(/niveau\\s*(\\d+)/i);
+      return match?Number(match[1]):0;
+    };
+    items.sort((a,b)=>rank(a[1])-rank(b[1]));
   }
   const root=document.getElementById('sections');
   for(const groupName of order){
