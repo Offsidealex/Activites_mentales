@@ -16,6 +16,16 @@
     sessionStorage.setItem("am_eleve", JSON.stringify(eleve));
   }
 
+  // For automated tests, authenticate the dedicated TEST-IA pupil through the
+  // existing Supabase Edge Function. No passwords are embedded in the website.
+  async function loginTestStudent(pseudo, password) {
+    if (typeof pseudo !== "string" || !pseudo || typeof password !== "string" || !password) {
+      throw new Error("Identifiants de test requis.");
+    }
+    await studentAuth("login", pseudo, "TEST-IA", password);
+    return loadEleve();
+  }
+
   function loadEleve() {
     if (currentEleve) return currentEleve;
     try {
@@ -338,7 +348,7 @@
 
   injectStyles();
   window.loadEleve = loadEleve;
-  window.AM = { currentEleve: loadEleve, sendSession, loadMenuScores, openLogin, saveScore, openStudentDrawer, logoutStudent, getProgress, recordProgress, loadProgress, isProgressReady };
+  window.AM = { currentEleve: loadEleve, loginTestStudent, sendSession, loadMenuScores, openLogin, saveScore, openStudentDrawer, logoutStudent, getProgress, recordProgress, loadProgress, isProgressReady };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ loadMenuScores(); loadProgress(); initStudentSpace(); });
   else { loadMenuScores(); initStudentSpace(); }
 })();
