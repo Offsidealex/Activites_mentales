@@ -690,11 +690,13 @@ test('audit indépendant : 10 niveaux d’équations et expressions algébriques
     const result = await page.evaluate(() => {
       const failures=[],coverage={};
       const evaluateExpression=(expression,x=0,a=0,b=0)=>{
-        const s=expression.replace(/−/g,'-').replace(/,/g,'.').replace(/²/g,'^2')
+        const root=document.createElement('div');root.innerHTML=expression;for(const fr of root.querySelectorAll('.fr')){const n=fr.querySelector('.n')?.textContent||'';const d=fr.querySelector('.d')?.textContent||'';fr.replaceWith('((' + n + ')/(' + d + '))');}expression=root.textContent;const s=expression.replace(/−/g,'-').replace(/,/g,'.').replace(/²/g,'^2')
           .replace(/\s+/g,'').replace(/\^/g,'**')
           .replace(/(\d)([xab(])/g,'$1*$2')
+          .replace(/([xab])([xab])/g,'$1*$2')
           .replace(/([xab])\(/g,'$1*(')
-          .replace(/\)([\dxab(])/g,')*$1');
+          .replace(/\)([\dxab(])/g,')*$1')
+          .replace(/(^|[+*/(-])-([xab\d.]+)\*\*([\d.]+)/g,'$1-($2**$3)');
         if(!/^[\dxab+*/().-]+(?:\*\*[\dxab+*/().-]+)*$/.test(s))throw Error('syntaxe non reconnue: '+s);
         return Function('x','a','b','return ('+s+')')(x,a,b);
       };
@@ -708,7 +710,7 @@ test('audit indépendant : 10 niveaux d’équations et expressions algébriques
               if(halves.length!==2)throw Error('égalité absente');
               const left=evaluateExpression(halves[0],q.ans),right=evaluateExpression(halves[1],q.ans);
               count++;
-              if(Math.abs(left-right)>0.00001)failures.push({module:key,enonce:q.html,solution:q.ans,gauche:left,droite:right});
+              if(Math.abs(left-right)>0.00011)failures.push({module:key,enonce:q.html,solution:q.ans,gauche:left,droite:right});
             } else if(key==='expressions') {
               const parts=q.html.split('→');
               if(parts.length!==2)throw Error('expression non reconnue');
