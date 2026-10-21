@@ -12,6 +12,7 @@ on:
       - '.github/workflows/eleve-virtuel.yml'
   push:
     branches:
+      - main
       - test/eleve-virtuel-niveau10
     paths:
       - 'index.html'
