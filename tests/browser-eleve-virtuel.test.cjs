@@ -376,8 +376,7 @@ test('TEST-IA : connexion et seance sauvegardee dans Supabase (optionnel)', { ti
       const response = await fetch('https://hxfdlujpedxuumqfewvn.supabase.co/rest/v1/sessions?id=eq.' +
         encodeURIComponent(sessionId) + '&select=id,exercice,score,nb_questions,duree_totale_ms', {
         headers: {
-          apikey: document.querySelector('meta[name="supabase-anon-key"]')?.content ||
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZmRsdWpwZWR4dXVtcWZld3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjcyMzAsImV4cCI6MjA5NzcwMzIzMH0.mM0xBhLGWG3vDgE06bEla8b4BhH7v6dvZ-BWn4ZOP0Q',
+          apikey: session.access_token,
           Authorization: 'Bearer ' + session.access_token
         }
       });
