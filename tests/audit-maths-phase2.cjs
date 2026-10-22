@@ -65,6 +65,7 @@ function check(key,q){
  const tolerance=key==='arrondir'?0.001:0.011;
  return {status:Math.abs(roundedExpected-actual)<=tolerance?'verified':'failed',expected:roundedExpected,actual};
 }
+const expectedKeys=['add_rel','mult_rel','sub_rel','chaine_rel','mix_rel','etendue','moyenne','mediane','effectif_total','moyenne_effectifs','add_frac','mult_frac','arrondir',...Array.from({length:10},(_,i)=>`eq_niv${i+1}`)];
 const counts={},examples={};const rounds=Number(process.env.AUDIT_ROUNDS??30);
 if(!Number.isSafeInteger(rounds)||rounds<1||rounds>1000)throw Error('AUDIT_ROUNDS doit etre un entier entre 1 et 1000');
 for(let seed=1;seed<=rounds;seed++){
@@ -73,12 +74,22 @@ for(let seed=1;seed<=rounds;seed++){
  const context=vm.createContext({Math:math,document:{createElement:element,getElementById(){return element()}}});
  vm.runInContext(scripts[0],context,{timeout:3000});
  const keys=Array.from(vm.runInContext('Object.keys(MODULES)',context));
- for(const key of keys){
-  if(!(['add_rel','mult_rel','sub_rel','chaine_rel','mix_rel','etendue','moyenne','mediane','effectif_total','moyenne_effectifs','add_frac','mult_frac','arrondir'].includes(key)||/^eq_niv\d+$/.test(key)))continue;
+ for(const key of expectedKeys){
+  counts[key]??={verified:0,unverified:0,failed:0};
+  if(!keys.includes(key)){
+   counts[key].failed++;
+   (examples[key]??=[]).push({seed,error:'Module attendu absent ou renomme'});
+   continue;
+  }
   counts[key]??={verified:0,unverified:0,failed:0};
   let questions;
   try{questions=vm.runInContext('MODULES['+JSON.stringify(key)+'].gen()',context,{timeout:2000})}
   catch(e){counts[key].failed++;(examples[key]??=[]).push({seed,error:String(e)});continue}
+  if(!Array.isArray(questions)||questions.length===0){
+   counts[key].failed++;
+   (examples[key]??=[]).push({seed,error:'Generation vide ou non valide'});
+   continue;
+  }
   for(const q of questions){
    let result;try{result=check(key,q)}catch(e){result={status:'failed',error:String(e)}}
    counts[key][result.status]++;
