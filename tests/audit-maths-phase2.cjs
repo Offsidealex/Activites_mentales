@@ -64,10 +64,23 @@ function check(key,q){
  if(!validScalar&&!validFraction)return {status:'failed',error:'Reponse absente ou invalide',expected};
  const actual=validFraction?rational(Number(raw.n),Number(raw.d)):ans;
  if(!Number.isFinite(actual))return {status:'failed',error:'Reponse non numerique',expected};
- // Tolérance volontaire pour exercices à réponses arrondies (2 décimales ou dixième).
+ // Les réponses exactes ne doivent jamais être acceptées par proximité (ex. 3.01 pour 3).
+ if(key==='add_frac'||key==='mult_frac'){
+  const parts=fractionParts(q.html||'');
+  if(parts.length!==2)return {status:'unverified'};
+  const [[a,b],[c,d]]=parts.map(pair=>pair.map(BigInt));
+  const numerator=key==='add_frac'?a*d+c*b:a*c;
+  const denominator=key==='add_frac'?b*d:b*d;
+  const correct=validFraction
+   ?BigInt(Number(raw.n))*denominator===numerator*BigInt(Number(raw.d))
+   :Number.isInteger(actual)&&Number.isSafeInteger(actual)&&BigInt(actual)*denominator===numerator;
+  return {status:correct?'verified':'failed',expected,actual};
+ }
  const roundedExpected=key==='arrondir'?Math.round(expected*10)/10:expected;
- const tolerance=key==='arrondir'?0.001:0.011;
- return {status:Math.abs(roundedExpected-actual)<=tolerance?'verified':'failed',expected:roundedExpected,actual};
+ const exactInteger=['add_rel','mult_rel','sub_rel','chaine_rel','mix_rel','effectif_total'].includes(key);
+ const correct=exactInteger?Number.isInteger(actual)&&actual===roundedExpected:
+  Math.abs(roundedExpected-actual)<=1e-10*Math.max(1,Math.abs(roundedExpected));
+ return {status:correct?'verified':'failed',expected:roundedExpected,actual};
 }
 const expectedKeys=['add_rel','mult_rel','sub_rel','chaine_rel','mix_rel','etendue','moyenne','mediane','effectif_total','moyenne_effectifs','add_frac','mult_frac','arrondir',...Array.from({length:10},(_,i)=>`eq_niv${i+1}`)];
 const counts={},examples={};const rounds=Number(process.env.AUDIT_ROUNDS??30);
