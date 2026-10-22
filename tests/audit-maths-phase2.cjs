@@ -25,7 +25,10 @@ function fractionParts(html){
 }
 function check(key,q){
  const text=String(q.html||'').replace(/<br\s*\/?>/gi,';').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
- const ans=typeof q.ans==='number'?q.ans:Number(q.ans);
+ const raw=q.ans;
+ const validScalar=(typeof raw==='number'||typeof raw==='string')&&String(raw).trim()!==''&&Number.isFinite(Number(raw));
+ const validFraction=raw!==null&&typeof raw==='object'&&raw.n!==null&&raw.d!==null&&raw.n!==undefined&&raw.d!==undefined&&String(raw.n).trim()!==''&&String(raw.d).trim()!==''&&Number.isInteger(Number(raw.n))&&Number.isInteger(Number(raw.d))&&Number(raw.d)!==0;
+ const ans=validScalar?Number(raw):NaN;
  let expected=null;
  if(['add_rel','mult_rel','sub_rel','chaine_rel','mix_rel'].includes(key)){
   expected=evalExpr(text);
@@ -50,16 +53,17 @@ function check(key,q){
   if(key==='mult_frac'&&f.length===2)expected=rational(...f[0])*rational(...f[1]);
  }else if(/^eq_niv\d+$/.test(key)){
   const sides=text.split('=');
-  if(sides.length===2&&Number.isFinite(ans)){
+  if(sides.length===2){
+   if(!validScalar)return {status:'failed',error:'Reponse absente ou invalide'};
    const left=evalExpr(sides[0],ans),right=evalExpr(sides[1],ans);
    if(left!==null&&right!==null)expected=right===null?null:left-right;
    if(expected!==null)return {status:Math.abs(expected)<1e-6?'verified':'failed',expected:0,actual:expected};
   }
  }
  if(expected===null||!Number.isFinite(expected))return {status:'unverified'};
- const actual=q.ans&&typeof q.ans==='object'&&Number.isFinite(Number(q.ans.n))&&Number.isFinite(Number(q.ans.d))
-  ?rational(Number(q.ans.n),Number(q.ans.d)):ans;
- if(!Number.isFinite(actual))return {status:'unverified'};
+ if(!validScalar&&!validFraction)return {status:'failed',error:'Reponse absente ou invalide',expected};
+ const actual=validFraction?rational(Number(raw.n),Number(raw.d)):ans;
+ if(!Number.isFinite(actual))return {status:'failed',error:'Reponse non numerique',expected};
  // Tolérance volontaire pour exercices à réponses arrondies (2 décimales ou dixième).
  const roundedExpected=key==='arrondir'?Math.round(expected*10)/10:expected;
  const tolerance=key==='arrondir'?0.001:0.011;
@@ -81,7 +85,6 @@ for(let seed=1;seed<=rounds;seed++){
    (examples[key]??=[]).push({seed,error:'Module attendu absent ou renomme'});
    continue;
   }
-  counts[key]??={verified:0,unverified:0,failed:0};
   let questions;
   try{questions=vm.runInContext('MODULES['+JSON.stringify(key)+'].gen()',context,{timeout:2000})}
   catch(e){counts[key].failed++;(examples[key]??=[]).push({seed,error:String(e)});continue}
