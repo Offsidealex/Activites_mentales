@@ -23,6 +23,11 @@ jobs:
           AUDIT_ROUNDS: ${{ inputs.rounds }}
           AUDIT_TARGET: '65'
         run: node tests/audit-maths-65.cjs
+      - name: Oracles independants phase 2
+        continue-on-error: true
+        env:
+          AUDIT_ROUNDS: ${{ inputs.rounds }}
+        run: node tests/audit-maths-phase2.cjs
       - name: Tests d'equations existants
         run: node --test tests/equations.test.cjs
       - name: Publier le rapport (meme si audit incomplet)
