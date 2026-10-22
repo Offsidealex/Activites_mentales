@@ -39,7 +39,7 @@ function check(key,q){
   const m=text.match(/Effectifs\s*:\s*([\d\s|]+)/i);
   if(m)expected=(m[1].match(/\d+/g)||[]).reduce((a,b)=>a+Number(b),0);
  }else if(key==='moyenne_effectifs'){
-  const a=text.match(/Valeurs\s*:\s*([\d\s|]+)/i),b=text.match(/Effectifs\s*:\s*([\d\s|]+)/i);
+  const a=text.match(/(?:Valeurs|Notes)\s*:\s*([\d\s|]+)/i),b=text.match(/Effectifs\s*:\s*([\d\s|]+)/i);
   if(a&&b){const v=a[1].match(/\d+/g).map(Number),n=b[1].match(/\d+/g).map(Number);
    if(v.length===n.length&&n.reduce((x,y)=>x+y,0)>0)expected=v.reduce((s,x,i)=>s+x*n[i],0)/n.reduce((s,x)=>s+x,0);
   }
