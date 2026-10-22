@@ -61,10 +61,12 @@ function check(key,q){
   ?rational(Number(q.ans.n),Number(q.ans.d)):ans;
  if(!Number.isFinite(actual))return {status:'unverified'};
  // Tolérance volontaire pour exercices à réponses arrondies (2 décimales ou dixième).
- const tolerance=key==='arrondir'?0.051:0.011;
- return {status:Math.abs(expected-actual)<=tolerance?'verified':'failed',expected,actual};
+ const roundedExpected=key==='arrondir'?Math.round(expected*10)/10:expected;
+ const tolerance=key==='arrondir'?0.001:0.011;
+ return {status:Math.abs(roundedExpected-actual)<=tolerance?'verified':'failed',expected:roundedExpected,actual};
 }
-const counts={},examples={};const rounds=Number(process.env.AUDIT_ROUNDS||30);
+const counts={},examples={};const rounds=Number(process.env.AUDIT_ROUNDS??30);
+if(!Number.isSafeInteger(rounds)||rounds<1||rounds>1000)throw Error('AUDIT_ROUNDS doit etre un entier entre 1 et 1000');
 for(let seed=1;seed<=rounds;seed++){
  let state=seed;const math=Object.create(Math);math.random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)/2**32);
  const element=()=>({children:[],dataset:{},style:{setProperty(){}},appendChild(c){this.children.push(c)}});
