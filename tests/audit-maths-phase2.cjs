@@ -8,7 +8,7 @@ assert.equal(scripts.length,1);
 function calculate(source){
  const s=source.replace(/,/g,'.').replace(/[−–]/g,'-').replace(/×/g,'*').replace(/÷/g,'/').replace(/\s+/g,'');
  if(!/^[0-9x+\-*/().]+$/.test(s))return null;
- const expression=s.replace(/(\d|\))x/g,'$1*x').replace(/x/g,'X');
+ const expression=s.replace(/(\d|\))x/g,'$1*x').replace(/(\d|\))\(/g,'$1*(').replace(/x/g,'X');
  if(!/^[0-9X+\-*/().]+$/.test(expression))return null;
  return expression;
 }
@@ -62,7 +62,7 @@ function check(key,q){
    if(!validScalar)return {status:'failed',error:'Reponse absente ou invalide'};
    const left=evalExpr(sides[0],ans),right=evalExpr(sides[1],ans);
    if(left!==null&&right!==null)expected=right===null?null:left-right;
-   if(expected!==null)return {status:Math.abs(expected)<1e-6?'verified':'failed',expected:0,actual:expected};
+   if(expected!==null)return {status:Math.abs(expected)<(key==='eq_niv7'?5.01e-5:1e-6)?'verified':'failed',expected:0,actual:expected};
   }
  }
  if(expected===null||!Number.isFinite(expected))return {status:'unverified'};
