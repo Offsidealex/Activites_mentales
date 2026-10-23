@@ -51,6 +51,11 @@ jobs:
         env:
           AUDIT_ROUNDS: ${{ inputs.rounds || '30' }}
         run: node tests/audit-maths-phase6.cjs
+      - name: Oracles independants phase 7
+        continue-on-error: true
+        env:
+          AUDIT_ROUNDS: ${{ inputs.rounds || '30' }}
+        run: node tests/audit-maths-phase7.cjs
       - name: Tests d'equations existants
         run: node --test tests/equations.test.cjs
       - name: Consolider la couverture des deux audits
