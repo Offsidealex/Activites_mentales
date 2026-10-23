@@ -121,4 +121,4 @@ const report={rounds,counts,examples};
 fs.mkdirSync('audit-reports',{recursive:true});
 fs.writeFileSync('audit-reports/math-phase2.json',JSON.stringify(report,null,2));
 console.log(JSON.stringify(counts,null,2));
-if(Object.values(counts).some(c=>c.failed>0||c.verified===0))process.exitCode=1;
+if(Object.values(counts).some(c=>c.failed>0||c.unverified>0||c.verified===0))process.exitCode=1;
