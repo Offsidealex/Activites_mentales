@@ -1,5 +1,8 @@
 name: Audit mathematique 65 modules
 on:
+  push:
+    branches:
+      - audit-maths-phase2-regression-review
   workflow_dispatch:
     inputs:
       rounds:
