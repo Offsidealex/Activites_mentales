@@ -37,7 +37,8 @@ function check(key,q){
  if(['add_rel','mult_rel','sub_rel','chaine_rel','mix_rel'].includes(key)){
   expected=evalExpr(text);
  }else if(['etendue','moyenne','mediane'].includes(key)){
-  const values=(text.match(/-?\d+(?:[.,]\d+)?/g)||[]).map(x=>Number(x.replace(',','.')));
+  const normalized=text.replace(/(\d)\s+(?=\d)/g,'$1');
+  const values=(normalized.match(/-?\d+(?:[.,]\d+)?/g)||[]).map(x=>Number(x.replace(',','.')));
   if(values.length){const sorted=values.slice().sort((a,b)=>a-b);
    expected=key==='etendue'?sorted.at(-1)-sorted[0]:key==='moyenne'?values.reduce((a,b)=>a+b,0)/values.length:
    (sorted[Math.floor((sorted.length-1)/2)]+sorted[Math.floor(sorted.length/2)])/2;
