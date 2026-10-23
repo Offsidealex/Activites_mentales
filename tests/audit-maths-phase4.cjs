@@ -7,16 +7,15 @@ const num=s=>Number(String(s).replace(/\s/g,'').replace(',','.'));
 function expected(key,q){
  const t=String(q.html).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
  if(key.startsWith('tableau_prop')){
-  const numbers=[...t.matchAll(/\d+(?:[,.]\d+)?/g)].map(x=>num(x[0]));
-  // Table markup is inspected independently; reject ambiguous table formats.
-  const cells=[...String(q.html).matchAll(/<td[^>]*>(.*?)<\/td>/gi)].map(m=>m[1].replace(/<[^>]*>/g,'').trim());
-  if(cells.length!==6)return null;
-  const [,,a,b,c,d]=cells;
-  if(d!=='?'||![a,b,c].every(x=>Number.isFinite(num(x)))||num(a)===0)return null;
-  return num(b)*num(c)/num(a);
+  const rows=[...String(q.html).matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)].map(m=>[...m[1].matchAll(/<(?:td|th)\b[^>]*>([\s\S]*?)<\/(?:td|th)>/gi)].map(c=>c[1].replace(/<[^>]*>/g,'').trim()));
+  if(rows.length!==2||rows.some(r=>r.length!==3))return null;
+  const a=num(rows[0][1]),b=num(rows[0][2]),c=num(rows[1][1]);
+  if(rows[1][2]!=='?'||![a,b,c].every(Number.isFinite)||a===0)return null;
+  return b*c/a;
  }
  if(key==='pourcentages'){const m=t.match(/([\d\s,.]+)\s*(?:\S+\s+)?sur\s+([\d\s,.]+)/i);return m?Math.round(num(m[1])/num(m[2])*100):null;}
  if(key==='pct_simples'){const m=t.match(/([\d,.]+)\s*%\s*de\s*([\d\s,.]+)/i);return m?num(m[1])*num(m[2])/100:null;}
+ if(key==='pct_variation'){const m=t.match(/([\d\s,.]+)\s*\S+\s*(augmenté|diminué)\s*de\s*([\d,.]+)\s*%/i);return m?num(m[1])*(m[2].toLowerCase()==='augmenté'?1+num(m[3])/100:1-num(m[3])/100):null;}
  if(key==='pct_arrondi'){const m=t.match(/([\d\s,.]+)\s+par rapport à\s+([\d\s,.]+)/i);return m?Math.round(num(m[1])/num(m[2])*10000)/100:null;}
  return null;
 }
