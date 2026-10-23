@@ -20,8 +20,8 @@ function evalExpr(expression,x){
 }
 function rational(n,d){if(!Number.isInteger(n)||!Number.isInteger(d)||!d)return null;return n/d}
 function fractionParts(html){
- return [...html.matchAll(/<span class="fr">\s*<span class="n">(\d+)<\/span>\s*<span class="d">(\d+)<\/span>\s*<\/span>/g)]
- .map(m=>[Number(m[1]),Number(m[2])]);
+ return [...html.matchAll(/<span class="fr">\s*<span class="n">(\d+)<\/span>\s*<span class="d">(\d+)<\/span>\s*<\/span>|(?:^|>)\s*(\d+)\s*\+\s*(?=<span class="fr">)/g)]
+ .map(m=>m[1]!==undefined?[Number(m[1]),Number(m[2])]:[Number(m[3]),1]);
 }
 function check(key,q){
  const text=String(q.html||'').replace(/<br\s*\/?>/gi,';').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
