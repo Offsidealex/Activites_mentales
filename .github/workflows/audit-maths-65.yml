@@ -33,6 +33,9 @@ jobs:
         run: node tests/audit-maths-phase2.cjs
       - name: Tests d'equations existants
         run: node --test tests/equations.test.cjs
+      - name: Consolider la couverture des deux audits
+        continue-on-error: true
+        run: node tests/consolidate-maths-audit.cjs
       - name: Publier le rapport (meme si audit incomplet)
         if: always()
         uses: actions/upload-artifact@v4
@@ -40,4 +43,4 @@ jobs:
           name: audit-maths-65-report
           path: audit-reports/
       - name: Refuser une couverture mathematique incomplete
-        run: node -e "const r=require('./audit-reports/math-audit.json');const p=require('./audit-reports/math-phase2.json');if(r.catalogueCount!==65||r.fullyVerified!==65||r.totals.failed||Object.values(p.counts).some(c=>c.failed>0||c.unverified>0||c.verified===0))process.exit(1)"
+        run: node tests/consolidate-maths-audit.cjs
