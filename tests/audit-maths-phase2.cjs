@@ -23,6 +23,10 @@ function fractionParts(html){
  return [...html.matchAll(/<span class="fr">\s*<span class="n">(\d+)<\/span>\s*<span class="d">(\d+)<\/span>\s*<\/span>|(?:^|>)\s*(\d+)\s*\+\s*(?=<span class="fr">)/g)]
  .map(m=>m[1]!==undefined?[Number(m[1]),Number(m[2])]:[Number(m[3]),1]);
 }
+// Tests de non-régression du parseur, exécutés avant les tirages aléatoires.
+assert.deepEqual(fractionParts('7 + <span class="fr"><span class="n">1</span><span class="d">4</span></span>'),[[7,1],[1,4]]);
+assert.deepEqual(fractionParts('<span class="fr"><span class="n">2</span><span class="d">3</span></span> + <span class="fr"><span class="n">1</span><span class="d">5</span></span>'),[[2,3],[1,5]]);
+assert.deepEqual(fractionParts('<span class="fr"><span class="n">2</span><span class="d">3</span></span> × <span class="fr"><span class="n">1</span><span class="d">5</span></span>'),[[2,3],[1,5]]);
 function check(key,q){
  const text=String(q.html||'').replace(/<br\s*\/?>/gi,';').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').trim();
  const raw=q.ans;
