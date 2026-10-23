@@ -37,4 +37,4 @@ jobs:
           name: audit-maths-65-report
           path: audit-reports/
       - name: Refuser une couverture mathematique incomplete
-        run: node -e "const r=require('./audit-reports/math-audit.json');const p=require('./audit-reports/math-phase2.json');if(r.catalogueCount!==65||r.fullyVerified!==65||r.totals.failed||Object.values(p.counts).some(c=>c.failed>0))process.exit(1)"
+        run: node -e "const r=require('./audit-reports/math-audit.json');const p=require('./audit-reports/math-phase2.json');if(r.catalogueCount!==65||r.fullyVerified!==65||r.totals.failed||Object.values(p.counts).some(c=>c.failed>0||c.verified===0))process.exit(1)"
