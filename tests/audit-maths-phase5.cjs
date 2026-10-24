@@ -101,4 +101,4 @@ for(let seed=1;seed<=rounds;seed++){
  }}
 }
 fs.mkdirSync('audit-reports',{recursive:true});fs.writeFileSync('audit-reports/math-phase5.json',JSON.stringify({rounds,counts,examples},null,2));console.log(JSON.stringify(counts,null,2));
-if(Object.values(counts).some(c=>c.failed||c.unverified))process.exitCode=1;
+if(Object.values(counts).some(c=>c.failed||c.unverified||!c.verified))process.exitCode=1;
