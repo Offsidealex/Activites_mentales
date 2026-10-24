@@ -5,20 +5,19 @@ const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>
 const keys=['factoriser','pyth_cote','geo_perimetre','geo_aire','geo_angles','geo_echelle','expressions','reductions','dev_simple','dev_double','carre','racine','pyth_verif','pyth_hyp','angles'];
 const rounds=Number(process.env.AUDIT_ROUNDS||30),counts={},examples={};
 const num=s=>Number(String(s).replace(/\s/g,'').replace(',','.'));
-const clean=s=>String(s).replace(/<span class="fr">\s*<span class="n">([\s\S]*?)<\/span>\s*<span class="d">([\s\S]*?)<\/span>\s*<\/span>/g,'(($1)/($2))').replace(/<[^>]*>/g,'').replace(/[−–]/g,'-').replace(/²/g,'^2').replace(/³/g,'^3').replace(/×/g,'*').replace(/,/g,'.');
+const clean=s=>String(s).replace(/<span class="fr">\s*<span class="n">([\s\S]*?)<\/span>\s*<span class="d">([\s\S]*?)<\/span>\s*<\/span>/g,'(($1)/($2))').replace(/<[^>]*>/g,'').replace(/[−–]/g,'-').replace(/²/g,'^2').replace(/³/g,'^3').replace(/×/g,'*').replace(/(\d),(?=\d)/g,'$1.');
 function evaluate(src,vars={}){
  const s=clean(src).replace(/\s/g,'');let i=0;
  function atom(){
-  if(s[i]==='+'){i++;return atom();}
-  if(s[i]==='-'){i++;return -atom();}
   if(s[i]==='('){i++;const v=expr();if(s[i++]!==')')throw Error('parenthesis');return v;}
   const m=s.slice(i).match(/^(?:\d+(?:\.\d+)?|\.\d+)/);
   if(m){i+=m[0].length;return Number(m[0]);}
   if(/[a-z]/i.test(s[i]||'')){const k=s[i++];if(!(k in vars))throw Error('unknown variable '+k);return vars[k];}
   throw Error('atom at '+s.slice(i));
  }
- function power(){let v=atom();if(s[i]==='^'){i++;v**=power();}return v;}
- function term(){let v=power();while(i<s.length){const c=s[i];if(c==='*'||c==='/'){i++;const rhs=power();v=c==='*'?v*rhs:v/rhs;}else if(c==='('||/[a-z]/i.test(c)||/\d/.test(c)){v*=power();}else break;}return v;}
+ function power(){let v=atom();if(s[i]==='^'){i++;v**=unary();}return v;}
+ function unary(){if(s[i]==='+'){i++;return unary();}if(s[i]==='-'){i++;return -unary();}return power();}
+ function term(){let v=unary();while(i<s.length){const c=s[i];if(c==='*'||c==='/'){i++;const rhs=unary();v=c==='*'?v*rhs:v/rhs;}else if(c==='('||/[a-z]/i.test(c)||/\d/.test(c)){v*=unary();}else break;}return v;}
  function expr(){let v=term();while(s[i]==='+'||s[i]==='-'){const c=s[i++],rhs=term();v+=c==='+'?rhs:-rhs;}return v;}
  const value=expr();if(i!==s.length||!Number.isFinite(value))throw Error('unparsed '+s.slice(i));return value;
 }
