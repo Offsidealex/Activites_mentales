@@ -218,10 +218,32 @@ body{
 .card.am-locked .arrow{display:none}
 .card .am-lock-label{font-size:.72rem;font-weight:800;color:var(--muted);margin-top:.35rem}
 .card.am-locked:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+/* Atelier Maths : identité orange Activités mentales */
+:root{--accent:#e66a13;--accent-2:#c4510a;--accent-soft:#fff0e2;--bg:#edf5fc;--bg-grad-1:#e6f1fc;--bg-grad-2:#edf5fc;--shadow:0 4px 16px rgba(230,106,19,.09),0 2px 6px rgba(15,23,42,.04);--shadow-lg:0 18px 42px rgba(230,106,19,.15),0 6px 16px rgba(15,23,42,.06)}
+body{background:radial-gradient(1100px 550px at 20% -10%,var(--bg-grad-1),transparent 65%),var(--bg-grad-2)}
+.atelier-header{height:74px;background:#0b315b;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1rem,4vw,3rem);gap:1rem;box-shadow:0 6px 24px rgba(11,49,91,.12)}
+.atelier-header-brand{display:flex;align-items:center;gap:.9rem;text-decoration:none;color:#fff;min-width:0}
+.atelier-header-logo{height:43px;width:43px;display:grid;place-items:center;background:#fff0e2;border-radius:12px;font-size:1.55rem}
+.atelier-header-name{font-weight:800;font-size:1.05rem;line-height:1.25}
+.atelier-header-sub{font-size:.75rem;color:#c8d9ed;font-weight:600}
+.atelier-header-accent{width:100%;height:4px;background:#e66a13}
+#s-menu{padding-top:1.6rem}
+.brand-eyebrow{color:#b74b0b;background:#fff0e2}
+.menu-title em{color:var(--accent)}
+.login-btn{background:var(--accent);box-shadow:0 8px 20px rgba(230,106,19,.2)}
+.card:hover{border-color:#f4bd91}
+.card::before{background:var(--accent)}
+#student-theme-toggle{position:static;flex-shrink:0;background:#fff;color:#0b315b;border-color:transparent}
+:root[data-theme="dark"]{--accent:#ffad66;--accent-2:#ffbe8a;--accent-soft:#492b20}
+:root[data-theme="dark"] .atelier-header{background:#071e38}
+:root[data-theme="dark"] #student-theme-toggle{background:#203d5d;color:#fff}
+:root[data-theme="dark"] .brand-eyebrow{background:#3b2c28;color:#ffc58f}
+@media(max-width:600px){.atelier-header{height:auto;min-height:70px;padding:.7rem .85rem}.atelier-header-name{font-size:.92rem}.atelier-header-sub{font-size:.68rem}.atelier-header-logo{width:37px;height:37px}.atelier-header-brand{gap:.55rem}#student-theme-toggle{font-size:0;padding:.55rem}#student-theme-toggle::first-letter{font-size:1.2rem}}
 </style>
 </head>
 <body>
-<button id="student-theme-toggle" type="button" aria-label="Activer le mode sombre">🌙 Mode sombre</button>
+<header class="atelier-header"><div class="atelier-header-brand"><span class="atelier-header-logo" aria-hidden="true">🧠</span><div><div class="atelier-header-name">Atelier Maths</div><div class="atelier-header-sub">Activités mentales · Mathématiques</div></div></div><button id="student-theme-toggle" type="button" aria-label="Activer le mode sombre">🌙 Mode sombre</button></header><div class="atelier-header-accent"></div>
 <script>
 (function(){
   const key='am_student_theme';
