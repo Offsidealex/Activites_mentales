@@ -31,7 +31,7 @@
     try {
       const session = JSON.parse(sessionStorage.getItem("am_auth_session"));
       const eleve = JSON.parse(sessionStorage.getItem("am_eleve"));
-      if (session && eleve && session.expires_at * 1000 > Date.now()) {
+      if (session && eleve && session.refresh_token) {
         authSession = session;
         currentEleve = eleve;
       }
@@ -53,9 +53,32 @@
     document.dispatchEvent(new Event("am:login"));
   }
 
+  let refreshPromise = null;
+  async function ensureStudentSession() {
+    const saved=authSession, pupil=currentEleve;
+    if(!saved||!pupil) throw new Error('Connexion élève requise.');
+    if(saved.expires_at*1000>Date.now()+30000)return;
+    if(refreshPromise?.session===saved)return refreshPromise.promise;
+    const promise=(async()=>{
+      const res=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{
+        method:'POST',headers:{apikey:SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({refresh_token:saved.refresh_token})
+      });
+      if(!res.ok)throw new Error('Session expirée. Reconnecte-toi.');
+      const next=await res.json();
+      if(authSession!==saved||currentEleve!==pupil)throw new Error('Le compte a changé.');
+      if(!next.access_token||!next.refresh_token)throw new Error('Session expirée. Reconnecte-toi.');
+      saveSession({...next,expires_at:next.expires_at||Math.floor(Date.now()/1000)+Number(next.expires_in||3600)},pupil);
+    })();
+    refreshPromise={session:saved,promise};
+    try{await promise}finally{if(refreshPromise?.promise===promise)refreshPromise=null}
+  }
+
   async function sbQuery(table, method, body, params) {
     const eleve = loadEleve();
     if (!eleve || !authSession) throw new Error("Connexion élève requise.");
+    await ensureStudentSession();
+    if(currentEleve!==eleve)throw new Error("Le compte a changé.");
     const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params || ""}`, {
       method: method || "GET",
       headers: {
@@ -136,8 +159,13 @@
       try {
         const query = "?eleve_id=eq." + encodeURIComponent(eleve.id) +
           "&played_at=gte." + encodeURIComponent(PROGRESSION_START) +
-          "&select=exercice,score,nb_questions&limit=10000";
-        const sessions = await sbQuery("sessions", "GET", null, query);
+          "&select=exercice,score,nb_questions&order=played_at.asc,id.asc&limit=1000&offset=";
+        const sessions=[];
+        for(let offset=0;;offset+=1000){
+          const page=await sbQuery("sessions","GET",null,query+offset);
+          if(generation!==progressLoadGeneration||identityKey!==progressStorageKey())return;
+          sessions.push(...page);if(page.length<1000)break;
+        }
         // Never apply a response to another student (or the guest) after logout/login.
         if (generation !== progressLoadGeneration || identityKey !== progressStorageKey()) return;
         const stored = readProgress();
@@ -346,9 +374,17 @@
     document.head.appendChild(style);
   }
 
+  function refreshSharedProgress(){
+    if(!loadEleve())return;
+    loadProgress();loadMenuScores();
+    if(document.getElementById('am-student-drawer'))refreshStudentDrawer();
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSharedProgress()});
+  window.addEventListener('online',refreshSharedProgress);
+
   injectStyles();
   window.loadEleve = loadEleve;
   window.AM = { currentEleve: loadEleve, loginTestStudent, sendSession, loadMenuScores, openLogin, saveScore, openStudentDrawer, logoutStudent, getProgress, recordProgress, loadProgress, isProgressReady };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ loadMenuScores(); loadProgress(); initStudentSpace(); });
-  else { loadMenuScores(); initStudentSpace(); }
+  else { loadMenuScores(); loadProgress(); initStudentSpace(); }
 })();

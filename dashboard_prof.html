@@ -132,6 +132,7 @@
     <div class="filters">
       <div><label>Classe</label><select id="filter-classe"><option value="">Toutes</option></select></div>
       <div><label>Exercice</label><select id="filter-exercice"><option value="">Tous</option></select></div>
+      <div><label>Plateforme</label><select id="filter-source"><option value="">Toutes</option><option value="activites_mentales">Activités mentales</option><option value="maths_quest">Maths Quest</option></select></div>
       <div><label>Depuis</label><input type="date" id="filter-date"/></div>
       <button id="refresh-btn">↻ Actualiser</button>
     </div>
@@ -461,6 +462,8 @@ function getFiltered(){
   const classe   = document.getElementById('filter-classe').value;
   const exercice = document.getElementById('filter-exercice').value;
   const date     = document.getElementById('filter-date').value;
+  const source=document.getElementById('filter-source').value;
+  if(source) data=data.filter(s=>(s.source||'activites_mentales')===source);
   if(classe)   data = data.filter(s=>s.classe===classe);
   if(exercice) data = data.filter(s=>s.exercice===exercice);
   if(date)     data = data.filter(s=>s.played_at>=date);
@@ -549,6 +552,8 @@ function openStudentFromClass(studentId){
 }
 
 
+function sourceLabel(session){return session.source==='maths_quest'?'Maths Quest':'Activités mentales'}
+
 function showEleveDetail(prenom,classe){
   document.getElementById('eleve-list').style.display='none';
   document.getElementById('eleve-detail').style.display='block';
@@ -558,7 +563,7 @@ function showEleveDetail(prenom,classe){
   const eleve=allData.eleves.find(e=>e.prenom===prenom&&classRecord&&e.classe_id===classRecord.id);
   const reset=eleve?`<button type="button" onclick="resetStudentPassword('${eleve.id}')" style="margin-bottom:1rem;padding:.5rem .8rem;background:var(--accent);border:0;border-radius:6px;color:#fff;cursor:pointer;font-weight:700">Réinitialiser le mot de passe</button>`:'';
   if(sessions.length===0){ document.getElementById('detail-content').innerHTML=reset+'<div class="empty">Aucune session.</div>'; return; }
-  let html=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Exercice</th><th>Score</th><th>%</th><th>Durée</th></tr></thead><tbody>`;
+  let html=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Exercice</th><th>Plateforme</th><th>Score</th><th>%</th><th>Durée</th></tr></thead><tbody>`;
   sessions.forEach(s=>{
     const date=new Date(s.played_at).toLocaleString('fr-FR');
     const badge=s.pourcentage>=70?'badge-green':s.pourcentage>=40?'badge-yellow':'badge-red';
@@ -567,6 +572,7 @@ function showEleveDetail(prenom,classe){
     html+=`<tr>
       <td>${date}</td>
       <td>${isDNB?'<span class="badge badge-dnb">📝 DNB Pro</span>':s.exercice}</td>
+      <td>${sourceLabel(s)}</td>
       <td>${s.score}/${s.nb_questions}</td>
       <td><span class="badge ${badge}">${s.pourcentage}%</span></td>
       <td>${duree}</td></tr>`;
@@ -593,7 +599,7 @@ document.getElementById('back-btn').addEventListener('click', showEleveList);
 function renderSessionsTab(data){
   const recent=[...data].sort((a,b)=>b.played_at.localeCompare(a.played_at)).slice(0,50);
   if(recent.length===0){ document.getElementById('sessions-content').innerHTML='<div class="empty">Aucune session.</div>'; return; }
-  let html=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Élève</th><th>Classe</th><th>Exercice</th><th>Score</th><th>%</th></tr></thead><tbody>`;
+  let html=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Élève</th><th>Classe</th><th>Exercice</th><th>Plateforme</th><th>Score</th><th>%</th></tr></thead><tbody>`;
   recent.forEach(s=>{
     const date=new Date(s.played_at).toLocaleString('fr-FR');
     const badge=s.pourcentage>=70?'badge-green':s.pourcentage>=40?'badge-yellow':'badge-red';
@@ -601,6 +607,7 @@ function renderSessionsTab(data){
     html+=`<tr>
       <td>${date}</td><td>${s.prenom}</td><td>${s.classe}</td>
       <td>${isDNB?'<span class="badge badge-dnb">📝 DNB Pro</span>':s.exercice}</td>
+      <td>${sourceLabel(s)}</td>
       <td>${s.score}/${s.nb_questions}</td>
       <td><span class="badge ${badge}">${s.pourcentage}%</span></td></tr>`;
   });
@@ -759,7 +766,7 @@ function renderDNBTab(){
 }
 
 // ── FILTRES RÉACTIFS ──
-['filter-classe','filter-exercice','filter-date'].forEach(id=>{
+['filter-classe','filter-exercice','filter-date','filter-source'].forEach(id=>{
   document.getElementById(id).addEventListener('change',()=>{ showEleveList(); renderAll(); });
 });
 document.getElementById('manage-classe').addEventListener('change', function(){
