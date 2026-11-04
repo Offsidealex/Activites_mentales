@@ -677,7 +677,11 @@ function isModuleUnlocked(key) {
   if(index===0) return true;
   if(!window.AM || !window.AM.isProgressReady()) return false;
   const progress=window.AM.getProgress();
-  return Number(progress[MODULES[levels[index-1]].title])>=80;
+  const previousKey = levels[index-1];
+  // Les séances Maths Quest fournissent un identifiant stable (module_key).
+  // Les anciens résultats restent reconnus par leur titre historique.
+  return Math.max(Number(progress[previousKey]) || 0,
+                  Number(progress[MODULES[previousKey].title]) || 0) >= 80;
 }
 function updateProgressLocks() {
   document.querySelectorAll('.card[data-key]').forEach(card=>{
