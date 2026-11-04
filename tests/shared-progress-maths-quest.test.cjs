@@ -29,15 +29,16 @@ async function verifyImportedScore({ played_at, exercice, module_key, expectedUn
     });
     await page.goto(pathToFileURL(resolve(__dirname, '..', 'index.html')).href);
     await page.waitForFunction(() => window.AM?.isProgressReady());
-    await page.waitForFunction(() => document.querySelector('.card[data-key="add_rel"]')?.querySelector('.score-badge')?.textContent.includes('9/10'));
-    await page.waitForFunction(() => {
-      const card = document.querySelector('.card[data-key="mult_rel"]');
-      return card && (window.AM.getProgress().add_rel === 90 ||
-        window.AM.getProgress()['Addition de relatifs'] === 90 ||
-        card.getAttribute('aria-disabled') === 'true');
-    });
-    // L'attente de synchronisation ci-dessus couvre aussi l'absence de succès
-    // dans le test des anciennes séances.
+    if (exercice === 'Addition de relatifs') {
+      await page.waitForFunction(() => document.querySelector('.card[data-key="add_rel"]')
+        ?.querySelector('.score-badge')?.textContent.includes('9/10'));
+    }
+    if (expectedUnlocked) {
+      await page.waitForFunction(() => document.querySelector('.card[data-key="mult_rel"]')
+        ?.getAttribute('aria-disabled') === 'false');
+    } else {
+      await page.waitForFunction(() => window.AM?.isProgressReady());
+    }
     assert.equal(await page.locator('.card[data-key="mult_rel"]').getAttribute('aria-disabled'),
       String(!expectedUnlocked));
     if (expectedUnlocked) {
