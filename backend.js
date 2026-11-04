@@ -149,6 +149,35 @@
     progressBest = { ...progressBest, ...stored };
     publishProgress();
   }
+  // Les résultats (Activités mentales ou Maths Quest) alimentent la même
+  // progression. Le titre assure la compatibilité historique et module_key
+  // reste stable même si un intitulé change dans le menu.
+  function mergeSessionProgress(sessions, identityKey) {
+    if (identityKey !== progressStorageKey() || !Array.isArray(sessions)) return;
+    const stored = readProgress();
+    let changed = false;
+    const start = Date.parse(PROGRESSION_START);
+    for (const session of sessions) {
+      const score = Number(session.score), total = Number(session.nb_questions);
+      const date = typeof session.played_at === "string" ? Date.parse(session.played_at) : NaN;
+      if (!Number.isInteger(score) || !Number.isInteger(total) || total < 1 ||
+          score < 0 || score > total || score * 100 < total * 80 ||
+          !Number.isFinite(date) || date < start) continue;
+      const percent = 100 * score / total;
+      for (const key of [session.exercice, session.module_key]) {
+        if (typeof key !== "string" || !key.trim()) continue;
+        if (percent > (Number(stored[key]) || 0)) {
+          stored[key] = percent;
+          changed = true;
+        }
+      }
+    }
+    if (!changed || identityKey !== progressStorageKey()) return;
+    try { localStorage.setItem(identityKey, JSON.stringify(stored)); }
+    catch (error) { console.warn('[AM] Stockage local progression indisponible :', error); }
+    progressBest = { ...progressBest, ...stored };
+    publishProgress();
+  }
   async function loadProgress() {
     const generation = ++progressLoadGeneration;
     const identityKey = progressStorageKey();
@@ -159,7 +188,7 @@
       try {
         const query = "?eleve_id=eq." + encodeURIComponent(eleve.id) +
           "&played_at=gte." + encodeURIComponent(PROGRESSION_START) +
-          "&select=exercice,score,nb_questions&order=played_at.asc,id.asc&limit=1000&offset=";
+          "&select=exercice,module_key,score,nb_questions,played_at&order=played_at.asc,id.asc&limit=1000&offset=";
         const sessions=[];
         for(let offset=0;;offset+=1000){
           const page=await sbQuery("sessions","GET",null,query+offset);
@@ -168,17 +197,7 @@
         }
         // Never apply a response to another student (or the guest) after logout/login.
         if (generation !== progressLoadGeneration || identityKey !== progressStorageKey()) return;
-        const stored = readProgress();
-        for (const session of sessions) {
-          const percent = 100 * Number(session.score) / Number(session.nb_questions);
-          if (Number.isFinite(percent) && percent >= 80) {
-            stored[session.exercice] = Math.max(Number(stored[session.exercice]) || 0, percent);
-          }
-        }
-        if (generation !== progressLoadGeneration || identityKey !== progressStorageKey()) return;
-        try { localStorage.setItem(identityKey, JSON.stringify(stored)); }
-        catch (error) { console.warn('[AM] Stockage local progression indisponible :', error); }
-        progressBest = { ...progressBest, ...stored };
+        mergeSessionProgress(sessions, identityKey);
       } catch (error) {
         console.warn("[AM] Synchronisation progression indisponible :", error);
       }
@@ -217,8 +236,13 @@
     renderScores(localBest);
     const eleve = loadEleve();
     if (!eleve || !authSession) return;
+    const identityKey = progressStorageKey();
     try {
-      const sessions = await sbQuery("sessions", "GET", null, `?eleve_id=eq.${eleve.id}&select=exercice,score,nb_questions`);
+      const sessions = await sbQuery("sessions", "GET", null, `?eleve_id=eq.${eleve.id}&select=exercice,module_key,score,nb_questions,played_at`);
+      if (identityKey !== progressStorageKey()) return;
+      // Même si le chargement dédié de progression échoue, une séance récente
+      // affichée comme « Meilleur » peut déverrouiller le niveau suivant.
+      mergeSessionProgress(sessions, identityKey);
       const best = {};
       sessions.forEach(function (session) {
         const pct = Math.round(session.score / session.nb_questions * 100);
